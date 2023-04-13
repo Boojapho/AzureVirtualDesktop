@@ -235,7 +235,7 @@ try
                     {
                         Remove-ADComputer -Credential $DomainCredential -Identity $StorageAccountName -Confirm:$false
                     }
-                    $ComputerObject = New-ADComputer -Credential $DomainCredential -Name $StorageAccountName -Path $OuPath -ServicePrincipalNames $SPN -AccountPassword $ComputerPassword -KerberosEncryptionType $KerberosEncryptionType -Description $Description -PassThru
+                    $ComputerObject = New-ADComputer -Credential $DomainCredential -Name $StorageAccountName -Path $OuPath -ServicePrincipalNames $SPN -AccountPassword $ComputerPassword -Description $Description -PassThru
                     Write-Log -Message "Computer object creation succeeded" -Type 'INFO'
 
                     # Update the Azure Storage Account with the domain join 'INFO'
@@ -249,7 +249,7 @@ try
                         -ActiveDirectoryDomainGuid $Domain.ObjectGUID `
                         -ActiveDirectoryDomainsid $Domain.DomainSID `
                         -ActiveDirectoryAzureStorageSid $ComputerObject.SID.Value `
-                        -ActiveDirectorySamAccountName $StorageAccountName `
+                        -ActiveDirectorySamAccountName $ComputerObject.SamAccountName `
                         -ActiveDirectoryAccountType 'Computer'
                     Write-Log -Message "Storage Account update with domain join info succeeded" -Type 'INFO'
                 
