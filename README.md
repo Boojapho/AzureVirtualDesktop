@@ -2,7 +2,7 @@
 
 [**Home**](./readme.md) | [**Features**](./docs/features.md) | [**Design**](./docs/design.md) | [**Prerequisites**](./docs/prerequisites.md) | [**Post Deployment**](./docs/post.md) | [**Troubleshooting**](./docs/troubleshooting.md)
 
-This Azure Virtual Desktop (AVD) solution will deploy a fully operational [stamp](https://docs.microsoft.com/en-us/azure/architecture/patterns/deployment-stamp) in an Azure subscription. Many of the [features](./docs/features.md) used with AVD have been automated in this solution for your convenience.  When deploying this solution be sure to read the descriptions for each parameter to the understand the consequences of your selection. To target the desired marketplace image for your session hosts, use the code below:
+This Azure Virtual Desktop (AVD) solution will deploy a fully operational [stamp](https://learn.microsoft.com/azure/architecture/patterns/deployment-stamp) in an Azure subscription. Many of the [features](./docs/features.md) used with AVD have been automated in this solution for your convenience.  When deploying this solution be sure to read the descriptions for each parameter to the understand the consequences of your selection. To target the desired marketplace image for your session hosts, use the code below:
 
 ```powershell
 # Determine the Publisher; input the location for your AVD deployment
@@ -30,15 +30,15 @@ Get-AzVMImage -Location $Location -PublisherName $Publisher -Offer $Offer -Skus 
 
 ### Azure Portal
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjamasten%2FAzure%2Fmaster%2Fsolutions%2Favd%2Fsolution.json)
-[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjamasten%2FAzure%2Fmaster%2Fsolutions%2Favd%2Fsolution.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjamasten%2FAzureVirtualDesktop%2Fmain%2Fsolution.json)
+[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjamasten%2FAzureVirtualDesktop%2Fmain%2Fsolution.json)
 
 ### PowerShell
 
 ````powershell
 New-AzDeployment `
     -Location '<Azure location>' `
-    -TemplateFile 'https://raw.githubusercontent.com/jamasten/Azure/master/solutions/avd/solution.json' `
+    -TemplateFile 'https://raw.githubusercontent.com/jamasten/AzureVirtualDesktop/main/solution.json' `
     -Verbose
 ````
 
@@ -47,5 +47,5 @@ New-AzDeployment `
 ````cli
 az deployment sub create \
     --location '<Azure location>' \
-    --template-uri 'https://raw.githubusercontent.com/jamasten/Azure/master/solutions/avd/solution.json'
+    --template-uri 'https://raw.githubusercontent.com/jamasten/AzureVirtualDesktop/main/solution.json'
 ````  
