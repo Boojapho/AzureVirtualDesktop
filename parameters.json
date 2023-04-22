@@ -5,6 +5,9 @@
         "_artifactsLocation": {
             "value": "https://raw.githubusercontent.com/jamasten/AzureVirtualDesktop/main/artifacts/"
         },
+        "_artifactsLocationSasToken": {
+            "value": ""
+        },
         "availability": {
             "value": "None"
         },
@@ -26,17 +29,17 @@
         "domainJoinPassword": {
             "reference": {
                 "keyVault": {
-                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-shd-svc-d-eu-000/providers/Microsoft.KeyVault/vaults/kv-shd-id-d-eu-000"
+                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
                 },
-                "secretName": "DomainAdminPassword"
+                "secretName": "DomainJoinPassword"
             }
         },
         "domainJoinUserPrincipalName": {
             "reference": {
                 "keyVault": {
-                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-shd-svc-d-eu-000/providers/Microsoft.KeyVault/vaults/kv-shd-id-d-eu-000"
+                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
                 },
-                "secretName": "DomainAdminUserPrincipalName"
+                "secretName": "DomainJoinUsername"
             }
         },
         "domainName": {
@@ -61,7 +64,7 @@
             "value": "ProfileContainer"
         },
         "fslogixStorage": {
-            "value": "None"
+            "value": "AzureStorageAccount Standard ServiceEndpoint"
         },
         "hostPoolType": {
             "value": "Pooled DepthFirst"
@@ -79,10 +82,10 @@
             "value": "MicrosoftWindowsDesktop"
         },
         "imageSku": {
-            "value": "win11-21h2-avd-m365"
+            "value": "win11-22h2-avd-m365"
         },
         "imageVersion": {
-            "value": "22000.1100.221018"
+            "value": "latest"
         },
         "kerberosEncryption": {
             "value": "RC4"
@@ -100,7 +103,7 @@
             "value": 2
         },
         "monitoring": {
-            "value": false
+            "value": true
         },
         "ouPath": {
             "value": "OU=AVD,DC=jasonmasten,DC=com"
@@ -127,7 +130,7 @@
             "value": "1"
         },
         "scalingTool": {
-            "value": false
+            "value": true
         },
         "scalingTimeDifference": {
             "value": "-5:00"
@@ -135,17 +138,14 @@
         "screenCaptureProtection": {
             "value": false
         },
-        "_artifactsLocationSasToken": {
-            "value": ""
-        },
         "securityPrincipalObjectIds": {
             "value": [
-                "70acf6ff-76b2-4d5a-8db2-5b0216eae46c"
+                "06c4afa5-b6dc-4719-8034-947887108e29"
             ]
         },
         "securityPrincipalNames": {
             "value": [
-                "AVD"
+                "zerocool"
             ]
         },
         "sessionHostCount": {
@@ -158,10 +158,10 @@
             "value": 0
         },
         "startVmOnConnect": {
-            "value": false
+            "value": true
         },
         "storageCount": {
-            "value": 0
+            "value": 1
         },
         "storageIndex": {
             "value": 0
@@ -172,7 +172,6 @@
         "tags": {
             "value": {
                 "Owner": "Jason Masten",
-                "Purpose": "POC",
                 "Environment": "Development"
             }
         },
@@ -180,26 +179,26 @@
             "value": false
         },
         "virtualNetwork": {
-            "value": "vnet-shd-net-d-eu-000"
+            "value": "vnet-net-d-eu"
         },
         "virtualNetworkResourceGroup": {
-            "value": "rg-shd-net-d-eu-000"
+            "value": "rg-net-d-eu"
         },
         "vmPassword": {
             "reference": {
                 "keyVault": {
-                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-shd-svc-d-eu-000/providers/Microsoft.KeyVault/vaults/kv-shd-id-d-eu-000"
+                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
                 },
                 "secretName": "VmPassword"
             }
         },
         "vmSize": {
-            "value": "Standard_D4ds_v4"
+            "value": "Standard_D4ds_v5"
         },
         "vmUsername": {
             "reference": {
                 "keyVault": {
-                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-shd-svc-d-eu-000/providers/Microsoft.KeyVault/vaults/kv-shd-id-d-eu-000"
+                  "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
                 },
                 "secretName": "VmUsername"
             }
