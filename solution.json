@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "13775078097147178524"
+      "templateHash": "9192954416342965308"
     }
   },
   "parameters": {
@@ -1541,7 +1541,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "10673395749660980203"
+              "templateHash": "18037535938360940474"
             }
           },
           "parameters": {
@@ -2011,7 +2011,7 @@
               },
               "type": "Microsoft.OperationalInsights/workspaces/dataSources",
               "apiVersion": "2020-08-01",
-              "name": "[format('{0}/WindowsEvent{1}', parameters('LogAnalyticsWorkspaceName'), copyIndex())]",
+              "name": "[format('{0}/{1}', parameters('LogAnalyticsWorkspaceName'), format('WindowsEvent{0}', copyIndex()))]",
               "tags": "[parameters('Tags')]",
               "kind": "WindowsEvent",
               "properties": {
@@ -2031,7 +2031,7 @@
               },
               "type": "Microsoft.OperationalInsights/workspaces/dataSources",
               "apiVersion": "2020-08-01",
-              "name": "[format('{0}/WindowsPerformanceCounter{1}', parameters('LogAnalyticsWorkspaceName'), copyIndex())]",
+              "name": "[format('{0}/{1}', parameters('LogAnalyticsWorkspaceName'), format('WindowsPerformanceCounter{0}', copyIndex()))]",
               "tags": "[parameters('Tags')]",
               "kind": "WindowsPerformanceCounter",
               "properties": {

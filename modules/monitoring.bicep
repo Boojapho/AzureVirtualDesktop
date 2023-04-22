@@ -438,7 +438,8 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
 
 @batchSize(1)
 resource windowsEvents 'Microsoft.OperationalInsights/workspaces/dataSources@2020-08-01' = [for (item, i) in WindowsEvents: {
-  name: '${logAnalyticsWorkspace.name}/WindowsEvent${i}'
+  parent: logAnalyticsWorkspace
+  name: 'WindowsEvent${i}'
   tags: Tags
   kind: 'WindowsEvent'
   properties: {
@@ -449,7 +450,8 @@ resource windowsEvents 'Microsoft.OperationalInsights/workspaces/dataSources@202
 
 @batchSize(1)
 resource windowsPerformanceCounters 'Microsoft.OperationalInsights/workspaces/dataSources@2020-08-01' = [for (item, i) in WindowsPerformanceCounters: {
-  name: '${logAnalyticsWorkspace.name}/WindowsPerformanceCounter${i}'
+  parent: logAnalyticsWorkspace
+  name: 'WindowsPerformanceCounter${i}'
   tags: Tags
   kind: 'WindowsPerformanceCounter'
   properties: {
