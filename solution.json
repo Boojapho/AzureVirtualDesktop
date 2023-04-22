@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "9192954416342965308"
+      "templateHash": "4743375741227300647"
     }
   },
   "parameters": {
@@ -496,6 +496,278 @@
     }
   },
   "variables": {
+    "$fxv#0": {
+      "australiacentral": {
+        "acronym": "auc",
+        "timeDifference": "+10:00",
+        "timeZone": "AUS Eastern Standard Time"
+      },
+      "australiacentral2": {
+        "acronym": "auc2",
+        "timeDifference": "+10:00",
+        "timeZone": "AUS Eastern Standard Time"
+      },
+      "australiaeast": {
+        "acronym": "aue",
+        "timeDifference": "+10:00",
+        "timeZone": "AUS Eastern Standard Time"
+      },
+      "australiasoutheast": {
+        "acronym": "ause",
+        "timeDifference": "+10:00",
+        "timeZone": "AUS Eastern Standard Time"
+      },
+      "brazilsouth": {
+        "acronym": "brs",
+        "timeDifference": "-3:00",
+        "timeZone": "E. South America Standard Time"
+      },
+      "brazilsoutheast": {
+        "acronym": "brse",
+        "timeDifference": "-3:00",
+        "timeZone": "E. South America Standard Time"
+      },
+      "canadacentral": {
+        "acronym": "cac",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "canadaeast": {
+        "acronym": "cae",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "centralindia": {
+        "acronym": "inc",
+        "timeDifference": "+5:30",
+        "timeZone": "India Standard Time"
+      },
+      "centralus": {
+        "acronym": "usc",
+        "timeDifference": "-6:00",
+        "timeZone": "Central Standard Time"
+      },
+      "chinaeast": {
+        "acronym": "cne",
+        "timeDifference": "+8:00",
+        "timeZone": "China Standard Time"
+      },
+      "chinaeast2": {
+        "acronym": "cne2",
+        "timeDifference": "+8:00",
+        "timeZone": "China Standard Time"
+      },
+      "chinanorth": {
+        "acronym": "cnn",
+        "timeDifference": "+8:00",
+        "timeZone": "China Standard Time"
+      },
+      "chinanorth2": {
+        "acronym": "cnn2",
+        "timeDifference": "+8:00",
+        "timeZone": "China Standard Time"
+      },
+      "eastasia": {
+        "acronym": "ase",
+        "timeDifference": "+8:00",
+        "timeZone": "China Standard Time"
+      },
+      "eastus": {
+        "acronym": "use",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "eastus2": {
+        "acronym": "use2",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "francecentral": {
+        "acronym": "frc",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "francesouth": {
+        "acronym": "frs",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "germanynorth": {
+        "acronym": "den",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "germanywestcentral": {
+        "acronym": "dewc",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "japaneast": {
+        "acronym": "jpe",
+        "timeDifference": "+9:00",
+        "timeZone": "Tokyo Standard Time"
+      },
+      "japanwest": {
+        "acronym": "jpw",
+        "timeDifference": "+9:00",
+        "timeZone": "Tokyo Standard Time"
+      },
+      "jioindiacentral": {
+        "acronym": "injc",
+        "timeDifference": "+5:30",
+        "timeZone": "India Standard Time"
+      },
+      "jioindiawest": {
+        "acronym": "injw",
+        "timeDifference": "+5:30",
+        "timeZone": "India Standard Time"
+      },
+      "koreacentral": {
+        "acronym": "krc",
+        "timeDifference": "+9:00",
+        "timeZone": "Korea Standard Time"
+      },
+      "koreasouth": {
+        "acronym": "krs",
+        "timeDifference": "+9:00",
+        "timeZone": "Korea Standard Time"
+      },
+      "northcentralus": {
+        "acronym": "usnc",
+        "timeDifference": "-6:00",
+        "timeZone": "Central Standard Time"
+      },
+      "northeurope": {
+        "acronym": "eun",
+        "timeDifference": "0:00",
+        "timeZone": "GMT Standard Time"
+      },
+      "norwayeast": {
+        "acronym": "noe",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "norwaywest": {
+        "acronym": "now",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "southafricanorth": {
+        "acronym": "zan",
+        "timeDifference": "+2:00",
+        "timeZone": "South Africa Standard Time"
+      },
+      "southafricawest": {
+        "acronym": "zaw",
+        "timeDifference": "+2:00",
+        "timeZone": "South Africa Standard Time"
+      },
+      "southcentralus": {
+        "acronym": "ussc",
+        "timeDifference": "-6:00",
+        "timeZone": "Central Standard Time"
+      },
+      "southeastasia": {
+        "acronym": "asse",
+        "timeDifference": "+8:00",
+        "timeZone": "Singapore Standard Time"
+      },
+      "southindia": {
+        "acronym": "ins",
+        "timeDifference": "+5:30",
+        "timeZone": "India Standard Time"
+      },
+      "swedencentral": {
+        "acronym": "sec",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "switzerlandnorth": {
+        "acronym": "chn",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "switzerlandwest": {
+        "acronym": "chw",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "uaecentral": {
+        "acronym": "aec",
+        "timeDifference": "+3:00",
+        "timeZone": "Arabian Standard Time"
+      },
+      "uaenorth": {
+        "acronym": "aen",
+        "timeDifference": "+3:00",
+        "timeZone": "Arabian Standard Time"
+      },
+      "uksouth": {
+        "acronym": "uks",
+        "timeDifference": "0:00",
+        "timeZone": "GMT Standard Time"
+      },
+      "ukwest": {
+        "acronym": "ukw",
+        "timeDifference": "0:00",
+        "timeZone": "GMT Standard Time"
+      },
+      "usdodcentral": {
+        "acronym": "dodc",
+        "timeDifference": "-6:00",
+        "timeZone": "Central Standard Time"
+      },
+      "usdodeast": {
+        "acronym": "dode",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "usgovarizona": {
+        "acronym": "az",
+        "timeDifference": "-7:00",
+        "timeZone": "Mountain Standard Time"
+      },
+      "usgovtexas": {
+        "acronym": "tx",
+        "timeDifference": "-6:00",
+        "timeZone": "Central Standard Time"
+      },
+      "usgovvirginia": {
+        "acronym": "va",
+        "timeDifference": "-5:00",
+        "timeZone": "Eastern Standard Time"
+      },
+      "westcentralus": {
+        "acronym": "uswc",
+        "timeDifference": "-7:00",
+        "timeZone": "Mountain Standard Time"
+      },
+      "westeurope": {
+        "acronym": "euw",
+        "timeDifference": "+1:00",
+        "timeZone": "Central Europe Standard Time"
+      },
+      "westindia": {
+        "acronym": "inw",
+        "timeDifference": "+5:30",
+        "timeZone": "India Standard Time"
+      },
+      "westus": {
+        "acronym": "usw",
+        "timeDifference": "-8:00",
+        "timeZone": "Pacific Standard Time"
+      },
+      "westus2": {
+        "acronym": "usw2",
+        "timeDifference": "-8:00",
+        "timeZone": "Pacific Standard Time"
+      },
+      "westus3": {
+        "acronym": "usw3",
+        "timeDifference": "-7:00",
+        "timeZone": "Mountain Standard Time"
+      }
+    },
     "MaxResourcesPerTemplateDeployment": 79,
     "DivisionValue": "[div(parameters('SessionHostCount'), variables('MaxResourcesPerTemplateDeployment'))]",
     "DivisionRemainderValue": "[mod(parameters('SessionHostCount'), variables('MaxResourcesPerTemplateDeployment'))]",
@@ -529,60 +801,8 @@
     "Fslogix": "[if(or(equals(parameters('FslogixStorage'), 'None'), contains(parameters('DomainServices'), 'None')), false(), true())]",
     "HostPoolName": "[format('hp-{0}', variables('NamingStandard'))]",
     "KeyVaultName": "[format('kv-{0}', variables('NamingStandard'))]",
-    "LocationShortName": "[variables('LocationShortNames')[parameters('Location')]]",
-    "LocationShortNames": {
-      "australiacentral": "ac",
-      "australiacentral2": "ac2",
-      "australiaeast": "ae",
-      "australiasoutheast": "as",
-      "brazilsouth": "bs2",
-      "brazilsoutheast": "bs",
-      "canadacentral": "cc",
-      "canadaeast": "ce",
-      "centralindia": "ci",
-      "centralus": "cu",
-      "eastasia": "ea",
-      "eastus": "eu",
-      "eastus2": "eu2",
-      "francecentral": "fc",
-      "francesouth": "fs",
-      "germanynorth": "gn",
-      "germanywestcentral": "gwc",
-      "japaneast": "je",
-      "japanwest": "jw",
-      "jioindiacentral": "jic",
-      "jioindiawest": "jiw",
-      "koreacentral": "kc",
-      "koreasouth": "ks",
-      "northcentralus": "ncu",
-      "northeurope": "ne",
-      "norwayeast": "ne2",
-      "norwaywest": "nw",
-      "southafricanorth": "san",
-      "southafricawest": "saw",
-      "southcentralus": "scu",
-      "southeastasia": "sa",
-      "southindia": "si",
-      "swedencentral": "sc",
-      "switzerlandnorth": "sn",
-      "switzerlandwest": "sw",
-      "uaecentral": "uc",
-      "uaenorth": "un",
-      "uksouth": "us",
-      "ukwest": "uw",
-      "usdodcentral": "uc",
-      "usdodeast": "ue",
-      "usgovarizona": "az",
-      "usgoviowa": "ia",
-      "usgovtexas": "tx",
-      "usgovvirginia": "va",
-      "westcentralus": "wcu",
-      "westeurope": "we",
-      "westindia": "wi",
-      "westus": "wu",
-      "westus2": "wu2",
-      "westus3": "wu3"
-    },
+    "Locations": "[variables('$fxv#0')]",
+    "LocationShortName": "[variables('Locations')[parameters('Location')].acronym]",
     "LogAnalyticsWorkspaceName": "[format('law-{0}', variables('NamingStandard'))]",
     "LogicAppPrefix": "[format('la-{0}', variables('NamingStandard'))]",
     "ManagedIdentityName": "[format('uami-{0}', variables('NamingStandard'))]",
@@ -619,63 +839,6 @@
     "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
     "StorageSuffix": "[environment().suffixes.storage]",
-    "TimeZones": {
-      "australiacentral": "AUS Eastern Standard Time",
-      "australiacentral2": "AUS Eastern Standard Time",
-      "australiaeast": "AUS Eastern Standard Time",
-      "australiasoutheast": "AUS Eastern Standard Time",
-      "brazilsouth": "E. South America Standard Time",
-      "brazilsoutheast": "E. South America Standard Time",
-      "canadacentral": "Eastern Standard Time",
-      "canadaeast": "Eastern Standard Time",
-      "centralindia": "India Standard Time",
-      "centralus": "Central Standard Time",
-      "chinaeast": "China Standard Time",
-      "chinaeast2": "China Standard Time",
-      "chinanorth": "China Standard Time",
-      "chinanorth2": "China Standard Time",
-      "eastasia": "China Standard Time",
-      "eastus": "Eastern Standard Time",
-      "eastus2": "Eastern Standard Time",
-      "francecentral": "Central Europe Standard Time",
-      "francesouth": "Central Europe Standard Time",
-      "germanynorth": "Central Europe Standard Time",
-      "germanywestcentral": "Central Europe Standard Time",
-      "japaneast": "Tokyo Standard Time",
-      "japanwest": "Tokyo Standard Time",
-      "jioindiacentral": "India Standard Time",
-      "jioindiawest": "India Standard Time",
-      "koreacentral": "Korea Standard Time",
-      "koreasouth": "Korea Standard Time",
-      "northcentralus": "Central Standard Time",
-      "northeurope": "GMT Standard Time",
-      "norwayeast": "Central Europe Standard Time",
-      "norwaywest": "Central Europe Standard Time",
-      "southafricanorth": "South Africa Standard Time",
-      "southafricawest": "South Africa Standard Time",
-      "southcentralus": "Central Standard Time",
-      "southindia": "India Standard Time",
-      "southeastasia": "Singapore Standard Time",
-      "swedencentral": "Central Europe Standard Time",
-      "switzerlandnorth": "Central Europe Standard Time",
-      "switzerlandwest": "Central Europe Standard Time",
-      "uaecentral": "Arabian Standard Time",
-      "uaenorth": "Arabian Standard Time",
-      "uksouth": "GMT Standard Time",
-      "ukwest": "GMT Standard Time",
-      "usdodcentral": "Central Standard Time",
-      "usdodeast": "Eastern Standard Time",
-      "usgovarizona": "Mountain Standard Time",
-      "usgoviowa": "Central Standard Time",
-      "usgovtexas": "Central Standard Time",
-      "usgovvirginia": "Eastern Standard Time",
-      "westcentralus": "Mountain Standard Time",
-      "westeurope": "Central Europe Standard Time",
-      "westindia": "India Standard Time",
-      "westus": "Pacific Standard Time",
-      "westus2": "Pacific Standard Time",
-      "westus3": "Mountain Standard Time"
-    },
     "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), variables('StampIndexFull'))]",
     "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"vmSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VmSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
     "WorkspaceName": "[format('ws-{0}', variables('NamingStandard'))]"
@@ -6112,7 +6275,7 @@
             "value": "[parameters('Timestamp')]"
           },
           "TimeZone": {
-            "value": "[variables('TimeZones')[parameters('Location')]]"
+            "value": "[variables('Locations')[parameters('Location')].timeZone]"
           },
           "VmName": {
             "value": "[variables('VmName')]"
