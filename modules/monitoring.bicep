@@ -504,7 +504,7 @@ resource hostPoolDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
   scope: hostPool
   properties: {
     logs: HostPoolLogs
-    workspaceId: resourceId('Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName)
+    workspaceId: logAnalyticsWorkspace.id
   }
 }
 

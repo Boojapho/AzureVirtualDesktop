@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "4743375741227300647"
+      "templateHash": "17652836671706861893"
     }
   },
   "parameters": {
@@ -1704,7 +1704,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "18037535938360940474"
+              "templateHash": "5372217480833668498"
             }
           },
           "parameters": {
@@ -2243,7 +2243,10 @@
               "properties": {
                 "logs": "[variables('HostPoolLogs')]",
                 "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
-              }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
+              ]
             },
             {
               "condition": "[parameters('PooledHostPool')]",
