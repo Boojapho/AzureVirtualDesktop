@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "_artifactsLocation": {
-            "value": "https://raw.githubusercontent.com/jamasten/Azure/main/solutions/avd/artifacts/"
+            "value": "https://raw.githubusercontent.com/jamasten/AzureVirtualDesktop/main/artifacts/"
         },
         "availability": {
             "value": "None"

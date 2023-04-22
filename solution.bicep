@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('The URL prefix for linked resources.')
-param _artifactsLocation string = 'https://raw.githubusercontent.com/jamasten/Azure/master/solutions/avd/artifacts/'
+param _artifactsLocation string = 'https://raw.githubusercontent.com/jamasten/AzureVirtualDesktop/main/artifacts/'
 
 @secure()
 @description('The SAS Token for the scripts if they are stored on an Azure Storage Account.')
