@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "17652836671706861893"
+      "templateHash": "12941941890138779557"
     }
   },
   "parameters": {
@@ -1704,7 +1704,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "5372217480833668498"
+              "templateHash": "15398012214670396696"
             }
           },
           "parameters": {
@@ -2233,7 +2233,10 @@
                   }
                 ],
                 "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
-              }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LogAnalyticsWorkspaceName'))]"
+              ]
             },
             {
               "type": "Microsoft.Insights/diagnosticSettings",

@@ -491,7 +491,7 @@ resource workspaceDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-
         enabled: true
       }
     ]
-    workspaceId: resourceId('Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName)
+    workspaceId: logAnalyticsWorkspace.id
   }
 }
 
