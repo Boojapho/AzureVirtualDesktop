@@ -4,6 +4,7 @@ param DomainServices string
 param HostPoolName string
 param HostPoolType string
 param Location string
+param LogAnalyticsWorkspaceResourceId string
 param MaxSessionLimit int
 param RoleDefinitionIds object
 param SecurityPrincipalIds array
@@ -16,6 +17,32 @@ param WorkspaceName string
 
 
 var CustomRdpProperty_Complete = contains(DomainServices, 'None') ? '${CustomRdpProperty}targetisaadjoined:i:1' : CustomRdpProperty
+var HostPoolLogs = [
+  {
+    category: 'Checkpoint'
+    enabled: true
+  }
+  {
+    category: 'Error'
+    enabled: true
+  }
+  {
+    category: 'Management'
+    enabled: true
+  }
+  {
+    category: 'Connection'
+    enabled: true
+  }
+  {
+    category: 'HostRegistration'
+    enabled: true
+  }
+  {
+    category: 'AgentHealthStatus'
+    enabled: true
+  }
+]
 
 
 resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-03-09-preview' = {
@@ -37,6 +64,15 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-03-09-preview'
     startVMOnConnect: StartVmOnConnect // https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect
     vmTemplate: VmTemplate
 
+  }
+}
+
+resource hostPoolDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-${HostPoolName}'
+  scope: hostPool
+  properties: {
+    logs: HostPoolLogs
+    workspaceId: LogAnalyticsWorkspaceResourceId
   }
 }
 
@@ -67,5 +103,31 @@ resource workspace 'Microsoft.DesktopVirtualization/workspaces@2021-03-09-previe
     applicationGroupReferences: [
       appGroup.id
     ]
+  }
+}
+
+resource workspaceDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'diag-${WorkspaceName}'
+  scope: workspace
+  properties: {
+    logs: [
+      {
+        category: 'Checkpoint'
+        enabled: true
+      }
+      {
+        category: 'Error'
+        enabled: true
+      }
+      {
+        category: 'Management'
+        enabled: true
+      }
+      {
+        category: 'Feed'
+        enabled: true
+      }
+    ]
+    workspaceId: LogAnalyticsWorkspaceResourceId
   }
 }

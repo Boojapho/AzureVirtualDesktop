@@ -1,40 +1,10 @@
-param AutomationAccountName string
-param HostPoolName string
 param Location string
 param LogAnalyticsWorkspaceName string
 param LogAnalyticsWorkspaceRetention int
 param LogAnalyticsWorkspaceSku string
-param PooledHostPool bool
 param Tags object
-param WorkspaceName string
 
 
-var HostPoolLogs = [
-  {
-    category: 'Checkpoint'
-    enabled: true
-  }
-  {
-    category: 'Error'
-    enabled: true
-  }
-  {
-    category: 'Management'
-    enabled: true
-  }
-  {
-    category: 'Connection'
-    enabled: true
-  }
-  {
-    category: 'HostRegistration'
-    enabled: true
-  }
-  {
-    category: 'AgentHealthStatus'
-    enabled: true
-  }
-]
 var WindowsEvents = [
   {
     name: 'Microsoft-FSLogix-Apps/Operational'
@@ -465,69 +435,5 @@ resource windowsPerformanceCounters 'Microsoft.OperationalInsights/workspaces/da
   ]
 }]
 
-resource workspace 'Microsoft.DesktopVirtualization/workspaces@2021-07-12' existing = {
-  name: WorkspaceName
-}
 
-resource workspaceDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diag-${WorkspaceName}'
-  scope: workspace
-  properties: {
-    logs: [
-      {
-        category: 'Checkpoint'
-        enabled: true
-      }
-      {
-        category: 'Error'
-        enabled: true
-      }
-      {
-        category: 'Management'
-        enabled: true
-      }
-      {
-        category: 'Feed'
-        enabled: true
-      }
-    ]
-    workspaceId: logAnalyticsWorkspace.id
-  }
-}
-
-resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-07-12' existing = {
-  name: HostPoolName
-}
-
-resource hostPoolDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diag-${HostPoolName}'
-  scope: hostPool
-  properties: {
-    logs: HostPoolLogs
-    workspaceId: logAnalyticsWorkspace.id
-  }
-}
-
-resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' existing = if(PooledHostPool) {
-  name: AutomationAccountName
-}
-
-resource automationAccountDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if(PooledHostPool) {
-  name: 'diag-${AutomationAccountName}'
-  scope: automationAccount
-  properties: {
-    logs: [
-      {
-        category: 'JobLogs'
-        enabled: true
-      }
-      {
-        category: 'JobStreams'
-        enabled: true
-      }
-    ]
-    workspaceId: logAnalyticsWorkspace.id
-  }
-}
-
-output LogAnalyticsWorkspaceResourceId string = logAnalyticsWorkspace.id
+output ResourceId string = logAnalyticsWorkspace.id

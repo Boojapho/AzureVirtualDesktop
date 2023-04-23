@@ -423,7 +423,7 @@ module automationAccount 'modules/automationAccount.bicep' = if(PooledHostPool |
   params: {
     AutomationAccountName: AutomationAccountName
     Location: Location
-    LogAnalyticsWorkspaceResourceId: Monitoring ? monitoring.outputs.LogAnalyticsWorkspaceResourceId : ''
+    LogAnalyticsWorkspaceResourceId: Monitoring ? logAnalyticsWorkspace.outputs.ResourceId : ''
     Monitoring: Monitoring
   }
   dependsOn: [
@@ -443,6 +443,7 @@ module hostPool 'modules/hostPool.bicep' = {
     HostPoolName: HostPoolName
     HostPoolType: HostPoolType
     Location: Location
+    LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
     RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalObjectIds
@@ -459,23 +460,18 @@ module hostPool 'modules/hostPool.bicep' = {
 
 // Monitoring Resources for AVD Insights
 // This module deploys a Log Analytics Workspace with Windows Events & Windows Performance Counters plus diagnostic settings on the required resources 
-module monitoring 'modules/monitoring.bicep' = if(Monitoring) {
+module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if(Monitoring) {
   name: 'Monitoring_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
-    AutomationAccountName: AutomationAccountName
-    HostPoolName: HostPoolName
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     LogAnalyticsWorkspaceRetention: LogAnalyticsWorkspaceRetention
     LogAnalyticsWorkspaceSku: LogAnalyticsWorkspaceSku
     Location: Location
-    PooledHostPool: PooledHostPool
     Tags: Tags
-    WorkspaceName: WorkspaceName
   }
   dependsOn: [
     resourceGroups
-    hostPool
   ]
 }
 
@@ -508,8 +504,8 @@ module stig 'modules/stig.bicep' = if(DisaStigCompliance) {
     Timestamp: Timestamp
   }
   dependsOn: [
-    resourceGroups
     automationAccount
+    resourceGroups
   ]
 }
 
@@ -662,9 +658,9 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     VmUsername: VmUsername
   }
   dependsOn: [
-    resourceGroups
-    monitoring
     bitLocker
+    logAnalyticsWorkspace
+    resourceGroups
     stig
   ]
 }
@@ -693,8 +689,8 @@ module backup 'modules/backup/backup.bicep' = if(RecoveryServices) {
     VmResourceGroupName: ResourceGroupHosts
   }
   dependsOn: [
-    sessionHosts
     fslogix
+    sessionHosts
   ]
 }
 
