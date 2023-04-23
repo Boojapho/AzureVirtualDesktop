@@ -107,7 +107,7 @@ resource configuration 'Microsoft.Automation/automationAccounts/configurations@2
 
 resource compilationJob 'Microsoft.Automation/automationAccounts/compilationjobs@2019-06-01' = {
   parent: automationAccount
-  name: guid(configuration.name, automationAccount.name, resourceGroup().id)
+  name: guid(Timestamp)
   location: Location
   properties: {
     configuration: {

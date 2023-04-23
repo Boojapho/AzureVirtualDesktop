@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "14546304229484107979"
+      "templateHash": "16717203428864473809"
     }
   },
   "parameters": {
@@ -2469,7 +2469,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "3034570479106216808"
+              "templateHash": "6038496017145057949"
             }
           },
           "parameters": {
@@ -2595,7 +2595,7 @@
             {
               "type": "Microsoft.Automation/automationAccounts/compilationjobs",
               "apiVersion": "2019-06-01",
-              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), guid(parameters('ConfigurationName'), parameters('AutomationAccountName'), resourceGroup().id))]",
+              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), guid(parameters('Timestamp')))]",
               "location": "[parameters('Location')]",
               "properties": {
                 "configuration": {
