@@ -373,7 +373,7 @@ module managedIdentity 'modules/managedIdentity/managedIdentity.bicep' = {
 // This module validates the selected parameter values and collects required data
 module validation 'modules/validation.bicep' = {
   name: 'Validation_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -479,13 +479,13 @@ module monitoring 'modules/monitoring.bicep' = if(Monitoring) {
   ]
 }
 
-module bitLocker 'modules/bitlocker/bitLocker.bicep' = if(DiskEncryption) {
+module bitLocker 'modules/bitLocker.bicep' = if(DiskEncryption) {
   name: 'BitLocker_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    DeploymentResourceGroup: ResourceGroups[0] // Deployment Resource Group
+    ResourceGroupManagement: ResourceGroupManagement
     KeyVaultName: KeyVaultName
     Location: Location
     //ManagedIdentityName: managedIdentity.name
@@ -548,7 +548,8 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     OuPath: OuPath
     PrivateDnsZoneName: PrivateDnsZoneName
     PrivateEndpoint: PrivateEndpoint
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement: ResourceGroupManagement
+    ResourceGroupStorage: ResourceGroupStorage
     RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalObjectIds
     SecurityPrincipalNames: SecurityPrincipalNames
@@ -590,7 +591,7 @@ module sentinel 'modules/sentinel.bicep' = {
 
 module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
   name: 'SessionHosts_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[1]) // Hosts Resource Group
+  scope: resourceGroup(ResourceGroupHosts)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -689,7 +690,7 @@ module backup 'modules/backup/backup.bicep' = if(RecoveryServices) {
     Timestamp: Timestamp
     TimeZone: Locations[Location].timeZone
     VmName: VmName
-    VmResourceGroupName: ResourceGroups[1]
+    VmResourceGroupName: ResourceGroupHosts
   }
   dependsOn: [
     sessionHosts

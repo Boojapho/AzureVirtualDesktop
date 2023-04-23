@@ -35,6 +35,8 @@ param Netbios string
 param OuPath string
 param PrivateDnsZoneName string
 param PrivateEndpoint bool
+param ResourceGroupManagement string
+param ResourceGroupStorage string
 param SecurityPrincipalIds array 
 param SecurityPrincipalNames array
 param SmbServerLocation string
@@ -46,7 +48,6 @@ param StorageSku string
 param StorageSolution string
 param StorageSuffix string
 param Subnet string
-param ResourceGroups array
 param RoleDefinitionIds object
 param Tags object
 param Timestamp string
@@ -61,7 +62,7 @@ param VmUsername string
 // This module is required to fully configure any storage option for FSLogix
 module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(DomainServices, 'None')) {
   name: 'ManagementVirtualMachine_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     DiskEncryption: DiskEncryption
     DomainJoinPassword: DomainJoinPassword
@@ -71,7 +72,7 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(
     Location: Location
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement: ResourceGroupManagement
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
@@ -86,7 +87,7 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(
 // Azure NetApp Files for Fslogix
 module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureNetAppFiles' && !contains(DomainServices, 'None')) {
   name: 'AzureNetAppFiles_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[3]) // Storage Resource Group
+  scope: resourceGroup(ResourceGroupStorage)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -104,7 +105,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     NetAppAccountName: NetAppAccountName
     NetAppCapacityPoolName: NetAppCapacityPoolName
     OuPath: OuPath
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement: ResourceGroupManagement
     SecurityPrincipalNames: SecurityPrincipalNames
     SmbServerLocation: SmbServerLocation
     StorageSku: StorageSku
@@ -121,7 +122,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
 // Azure Files for FSLogix
 module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureStorageAccount' && !contains(DomainServices, 'None')) {
   name: 'AzureFiles_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[3]) // Storage Resource Group
+  scope: resourceGroup(ResourceGroupStorage)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -148,7 +149,8 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
     OuPath: OuPath
     PrivateDnsZoneName: PrivateDnsZoneName
     PrivateEndpoint: PrivateEndpoint
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement: ResourceGroupManagement
+    ResourceGroupStorage: ResourceGroupStorage
     RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalIds
     SecurityPrincipalNames: SecurityPrincipalNames

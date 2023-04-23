@@ -16,7 +16,7 @@ param NamingStandard string
 param NetAppAccountName string
 param NetAppCapacityPoolName string
 param OuPath string
-param ResourceGroups array
+param ResourceGroupManagement string
 param SecurityPrincipalNames array
 param SmbServerLocation string
 param StorageSku string
@@ -136,7 +136,7 @@ resource volumes 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2021-06-
 
 module ntfsPermissions 'ntfsPermissions.bicep' = {
   name: 'FslogixNtfsPermissions_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken

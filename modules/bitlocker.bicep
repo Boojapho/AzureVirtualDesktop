@@ -1,13 +1,13 @@
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
-param DeploymentResourceGroup string
 param KeyVaultName string
 param Location string
 //param ManagedIdentityName string
 param ManagedIdentityPrincipalId string
 param ManagedIdentityResourceId string
 param NamingStandard string
+param ResourceGroupManagement string
 param Timestamp string
 
 
@@ -52,15 +52,16 @@ resource vault 'Microsoft.KeyVault/vaults@2016-10-01' = {
 
 module deploymentScript 'deploymentScript.bicep' = {
   name: 'DeploymentScript_${Timestamp}'
-  scope: resourceGroup(DeploymentResourceGroup)
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
-    _artifactsLocation: _artifactsLocation
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    KeyVaultName: vault.name
+    Arguments: '-KeyVault ${KeyVaultName}'
     Location: Location
-    ManagedIdentityResourceId: ManagedIdentityResourceId
-    NamingStandard: NamingStandard
+    Name: 'ds-${NamingStandard}-bitlockerKek'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'New-AzureKeyEncryptionKey.ps1'
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
 /* dependsOn: [
     roleAssignment

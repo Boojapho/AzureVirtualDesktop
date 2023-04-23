@@ -25,7 +25,8 @@ param Netbios string
 param OuPath string
 param PrivateDnsZoneName string
 param PrivateEndpoint bool
-param ResourceGroups array
+param ResourceGroupManagement string
+param ResourceGroupStorage string
 param RoleDefinitionIds object
 param SecurityPrincipalIds array
 param SecurityPrincipalNames array
@@ -46,7 +47,6 @@ param VmPassword string
 param VmUsername string
 
 
-var DeploymentResourceGroup = ResourceGroups[0]
 var Endpoint = split(FslogixStorage, ' ')[2]
 var ResourceGroupName = resourceGroup().name
 var SmbMultiChannel = {
@@ -113,7 +113,7 @@ resource roleAssignment_Vm 'Microsoft.Authorization/roleAssignments@2022-04-01' 
   name: guid(storageAccounts[i].name, RoleDefinitionIds.contributor, ManagementVmName)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleDefinitionIds.contributor)
-    principalId: reference(resourceId(DeploymentResourceGroup, 'Microsoft.Compute/virtualMachines', ManagementVmName), '2020-12-01', 'Full').identity.principalId
+    principalId: reference(resourceId(ResourceGroupManagement, 'Microsoft.Compute/virtualMachines', ManagementVmName), '2020-12-01', 'Full').identity.principalId
     principalType: 'ServicePrincipal'
   }
 }]
@@ -149,7 +149,7 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2021-02-01
 
 module shares 'shares.bicep' = [for i in range(0, StorageCount): {
   name: 'FileShares_${i}_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[3]) // Storage Resource Group
+  scope: resourceGroup(ResourceGroupStorage)
   params: {
     FileShares: FileShares
     FslogixShareSizeInGB: FslogixShareSizeInGB
@@ -208,11 +208,11 @@ module dnsForwarder 'dnsForwarder.bicep' = if(PrivateEndpoint) {
 
 module ntfsPermissions '../ntfsPermissions.bicep' = if(!contains(DomainServices, 'None')) {
   name: 'FslogixNtfsPermissions_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -DomainServices ${DomainServices} -Environment ${environment().name} -FslogixSolution ${FslogixSolution} -KerberosEncryptionType ${KerberosEncryption} -Netbios ${Netbios} -OuPath "${OuPath}" -SecurityPrincipalNames "${SecurityPrincipalNames}" -StorageAccountPrefix ${StorageAccountPrefix} -StorageAccountResourceGroupName ${ResourceGroups[3]} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${environment().suffixes.storage} -SubscriptionId ${subscription().subscriptionId} -TenantId ${subscription().tenantId}'
+    CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -DomainServices ${DomainServices} -Environment ${environment().name} -FslogixSolution ${FslogixSolution} -KerberosEncryptionType ${KerberosEncryption} -Netbios ${Netbios} -OuPath "${OuPath}" -SecurityPrincipalNames "${SecurityPrincipalNames}" -StorageAccountPrefix ${StorageAccountPrefix} -StorageAccountResourceGroupName ${ResourceGroupStorage} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${environment().suffixes.storage} -SubscriptionId ${subscription().subscriptionId} -TenantId ${subscription().tenantId}'
     Location: Location
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
