@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "4176261873868220300"
+      "templateHash": "205434376049387881"
     }
   },
   "parameters": {
@@ -1365,7 +1365,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "11774451295155844685"
+              "templateHash": "14533387360418759752"
             }
           },
           "parameters": {
@@ -1405,6 +1405,10 @@
               "name": "[format('diag-{0}', parameters('AutomationAccountName'))]",
               "properties": {
                 "logs": [
+                  {
+                    "category": "DscNodeStatus",
+                    "enabled": true
+                  },
                   {
                     "category": "JobLogs",
                     "enabled": true

@@ -24,6 +24,10 @@ resource diagnostics 'Microsoft.Insights/diagnosticsettings@2017-05-01-preview' 
   properties: {
     logs: [
       {
+        category: 'DscNodeStatus'
+        enabled: true
+      }
+      {
         category: 'JobLogs'
         enabled: true
       }
