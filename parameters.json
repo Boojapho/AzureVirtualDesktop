@@ -132,9 +132,6 @@
         "scalingTool": {
             "value": true
         },
-        "scalingTimeDifference": {
-            "value": "-5:00"
-        },
         "screenCaptureProtection": {
             "value": false
         },
@@ -166,7 +163,7 @@
         "storageIndex": {
             "value": 0
         },
-        "subnet": {
+        "subnetName": {
             "value": "Clients"
         },
         "tags": {
@@ -178,10 +175,10 @@
         "validationEnvironment": {
             "value": false
         },
-        "virtualNetwork": {
+        "virtualNetworkName": {
             "value": "vnet-net-d-eu"
         },
-        "virtualNetworkResourceGroup": {
+        "virtualNetworkResourceGroupName": {
             "value": "rg-net-d-eu"
         },
         "vmPassword": {

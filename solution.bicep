@@ -202,7 +202,7 @@ param SentinelLogAnalyticsWorkspaceResourceGroupName string = ''
 param SentinelLogAnalyticsWorkspaceSubscriptionId string = subscription().subscriptionId
 
 @description('The number of session hosts to deploy in the host pool.  The default values will allow you deploy 250 VMs using 4 nested deployments.  These integers may be modified to create a smaller deployment in a shard.')
-param SessionHostCount int = 2
+param SessionHostCount int = 1
 
 @description('The session host number to begin with for the deployment. This is important when adding virtual machines to ensure the names do not conflict.')
 param SessionHostIndex int = 0
@@ -220,12 +220,11 @@ param StorageCount int = 1
 param StorageIndex int = 0
 
 @description('The subnet for the AVD session hosts.')
-param Subnet string = 'Clients'
+param SubnetName string = 'Clients'
 
 @description('Key / value pairs of metadata for the Azure resources.')
 param Tags object = {
   Owner: 'Jason Masten'
-  Purpose: 'POC'
   Environment: 'Development'
 }
 
@@ -561,7 +560,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     StorageSku: StorageSku
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
-    Subnet: Subnet
+    Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
     VirtualNetwork: VirtualNetworkName
@@ -650,7 +649,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     StorageIndex: StorageIndex 
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
-    Subnet: Subnet
+    Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
     TrustedLaunch: validation.outputs.trustedLaunch

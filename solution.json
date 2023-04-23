@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "8896077255003576577"
+      "templateHash": "2440278690418895393"
     }
   },
   "parameters": {
@@ -384,7 +384,7 @@
     },
     "SessionHostCount": {
       "type": "int",
-      "defaultValue": 2,
+      "defaultValue": 1,
       "metadata": {
         "description": "The number of session hosts to deploy in the host pool.  The default values will allow you deploy 250 VMs using 4 nested deployments.  These integers may be modified to create a smaller deployment in a shard."
       }
@@ -424,7 +424,7 @@
         "description": "The Storage Index allows the deployment of one or more storage resources within an AVD stamp to shard for extra capacity. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
       }
     },
-    "Subnet": {
+    "SubnetName": {
       "type": "string",
       "defaultValue": "Clients",
       "metadata": {
@@ -435,7 +435,6 @@
       "type": "object",
       "defaultValue": {
         "Owner": "Jason Masten",
-        "Purpose": "POC",
         "Environment": "Development"
       },
       "metadata": {
@@ -2795,7 +2794,7 @@
             "value": "[variables('StorageSuffix')]"
           },
           "Subnet": {
-            "value": "[parameters('Subnet')]"
+            "value": "[parameters('SubnetName')]"
           },
           "Tags": {
             "value": "[parameters('Tags')]"
@@ -5270,7 +5269,7 @@
             "value": "[variables('StorageSuffix')]"
           },
           "Subnet": {
-            "value": "[parameters('Subnet')]"
+            "value": "[parameters('SubnetName')]"
           },
           "Tags": {
             "value": "[parameters('Tags')]"
