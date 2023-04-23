@@ -71,9 +71,14 @@ var Modules = [
 ]
 
 
+resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
+  name: AutomationAccountName
+}
+
 @batchSize(1)
 resource modules 'Microsoft.Automation/automationAccounts/modules@2019-06-01' = [for item in Modules: {
-  name: '${AutomationAccountName}/${item.name}'
+  parent: automationAccount
+  name: item.name
   location: Location
   properties: {
     contentLink: {
@@ -83,7 +88,8 @@ resource modules 'Microsoft.Automation/automationAccounts/modules@2019-06-01' = 
 }]
 
 resource configuration 'Microsoft.Automation/automationAccounts/configurations@2019-06-01' = {
-  name: '${AutomationAccountName}/${ConfigurationName}'
+  parent: automationAccount
+  name: ConfigurationName
   location: Location
   properties: {
     source: {
@@ -100,15 +106,15 @@ resource configuration 'Microsoft.Automation/automationAccounts/configurations@2
 }
 
 resource compilationJob 'Microsoft.Automation/automationAccounts/compilationjobs@2019-06-01' = {
-  name: '${AutomationAccountName}/${guid(deployment().name)}'
+  parent: automationAccount
+  name: guid(configuration.name, automationAccount.name, resourceGroup().id)
   location: Location
   properties: {
     configuration: {
-      name: ConfigurationName
+      name: configuration.name
     }
   }
   dependsOn: [
     modules
-    configuration
   ]
 }

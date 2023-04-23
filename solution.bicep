@@ -153,7 +153,7 @@ param LogAnalyticsWorkspaceSku string = 'PerGB2018'
 @description('The maximum number of sessions per AVD session host.')
 param MaxSessionLimit int = 2
 
-@description('Deploys the required monitoring resources to enable AVD Insights.')
+@description('Deploys the required monitoring resources to enable AVD Insights and monitor features in the automation account.')
 param Monitoring bool = true
 
 @description('The distinguished name for the target Organization Unit in Active Directory Domain Services.')
@@ -182,9 +182,6 @@ param ScalingSessionThresholdPerCPU string = '1'
 
 @description('Deploys the required resources for the Scaling Tool. https://docs.microsoft.com/en-us/azure/virtual-desktop/scaling-automation-logic-apps')
 param ScalingTool bool = true
-
-@description('Time zone off set for host pool location; Format 24 hours e.g. -4:00 for Eastern Daylight Time')
-param ScalingTimeDifference string = '-5:00'
 
 @description('Determines whether the Screen Capture Protection feature is enabled.  As of 9/17/21 this is only supported in Azure Cloud. https://docs.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection')
 param ScreenCaptureProtection bool = false
@@ -239,10 +236,10 @@ param Timestamp string = utcNow('yyyyMMddhhmmss')
 param ValidationEnvironment bool = false
 
 @description('Virtual network for the AVD sessions hosts')
-param VirtualNetwork string
+param VirtualNetworkName string
 
 @description('Virtual network resource group for the AVD sessions hosts')
-param VirtualNetworkResourceGroup string
+param VirtualNetworkResourceGroupName string
 
 @secure()
 @description('Local administrator password for the AVD session hosts')
@@ -280,18 +277,18 @@ var ConfigurationName = 'Windows10'
 var DiskName = 'disk-${NamingStandard}'
 var FileShareNames = {
   CloudCacheProfileContainer: [
-    'profilecontainers'
+    'profile-containers'
   ]
   CloudCacheProfileOfficeContainer: [
-    'officecontainers'
-    'profilecontainers'
+    'office-containers'
+    'profile-containers'
   ]
   ProfileContainer: [
-    'profilecontainers'
+    'profile-containers'
   ]
   ProfileOfficeContainer: [
-    'officecontainers'
-    'profilecontainers'
+    'office-containers'
+    'profile-containers'
   ]
 }
 var FileShares = FileShareNames[FslogixSolution]
@@ -301,7 +298,6 @@ var KeyVaultName = 'kv-${NamingStandard}'
 var Locations = loadJsonContent('artifacts/locations.json')
 var LocationShortName = Locations[Location].acronym
 var LogAnalyticsWorkspaceName = 'law-${NamingStandard}'
-var LogicAppPrefix = 'la-${NamingStandard}'
 var ManagedIdentityName = 'uami-${NamingStandard}'
 var ManagementVmName = '${VmName}mgt'
 var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndexFull}'
@@ -313,24 +309,31 @@ var PooledHostPool = split(HostPoolType, ' ')[0] == 'Pooled' ? true : false
 var PrivateDnsZoneName = 'privatelink.file.${StorageSuffix}'
 var PrivateEndpoint = contains(FslogixStorage, 'PrivateEndpoint') ? true : false
 var RecoveryServicesVaultName = 'rsv-${NamingStandard}'
-var ResourceGroups = [
-  'rg-${NamingStandard}-deployment'  
-  'rg-${NamingStandard}-hosts'
-  'rg-${NamingStandard}-management'
-  'rg-${NamingStandard}-storage'
+var ResourceGroupHosts = 'rg-${NamingStandard}-hosts'
+var ResourceGroupManagement = 'rg-${NamingStandard}-management'
+var ResourceGroupStorage = 'rg-${NamingStandard}-storage'
+var ResourceGroups = Fslogix ? [
+  ResourceGroupManagement
+  ResourceGroupHosts
+  ResourceGroupStorage
+] : [
+  ResourceGroupManagement
+  ResourceGroupHosts
 ]
 var RoleDefinitionIds = {
   contributor: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
   desktopVirtualizationPowerOnContributor: '489581de-a3bd-480d-9518-53dea7416b33'
+  desktopVirtualizationPowerOnOffContributor: '40c5ff49-9181-41f8-ae61-143b0e78555e'
   desktopVirtualizationSessionHostOperator: '2ad6aaab-ead9-4eaa-8ac5-da422f562408'
   desktopVirtualizationUser: '1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63'
   networkContributor: '4d97b98b-1d4f-4787-a291-c67834d212e7'
   reader: 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+  storageAccountContributor: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
   storageFileDataSMBShareContributor: '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb'
   virtualMachineUserLogin: 'fb879df8-f326-4884-b1cf-06f3ad86be52'
 }
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
-var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroups[2]
+var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
 var StampIndexFull = padLeft(StampIndex, 2, '0')
 var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndexFull}'
 var StorageSolution = split(FslogixStorage, ' ')[0]
@@ -349,7 +352,7 @@ resource resourceGroups 'Microsoft.Resources/resourceGroups@2020-10-01' = [for i
 }]
 
 // User Assigned Managed Identity
-// This resource is needed to run several deployment scripts
+// This resource is needed to run several deployment scripts and to set the NTFS permissions on Azure Files
 module managedIdentity 'modules/managedIdentity/managedIdentity.bicep' = {
   name: 'ManagedIdentity_${Timestamp}'
   params: {
@@ -357,10 +360,10 @@ module managedIdentity 'modules/managedIdentity/managedIdentity.bicep' = {
     FslogixStorage: FslogixStorage
     Location: Location
     ManagedIdentityName: ManagedIdentityName
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement: ResourceGroupManagement
     RoleDefinitionIds: RoleDefinitionIds
     Timestamp: Timestamp
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+    VirtualNetworkResourceGroupName: VirtualNetworkResourceGroupName
   }
   dependsOn: [
     resourceGroups
@@ -397,8 +400,8 @@ module validation 'modules/validation.bicep' = {
     StorageSolution: StorageSolution
     Tags: Tags
     Timestamp: Timestamp
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+    VirtualNetwork: VirtualNetworkName
+    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmSize: VmSize
   }
   dependsOn: [
@@ -417,10 +420,12 @@ resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' =
 
 module automationAccount 'modules/automationAccount.bicep' = if(PooledHostPool || DisaStigCompliance) {
   name: 'AutomationAccount_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     AutomationAccountName: AutomationAccountName
     Location: Location
+    LogAnalyticsWorkspaceResourceId: Monitoring ? monitoring.outputs.LogAnalyticsWorkspaceResourceId : ''
+    Monitoring: Monitoring
   }
   dependsOn: [
     resourceGroups
@@ -431,7 +436,7 @@ module automationAccount 'modules/automationAccount.bicep' = if(PooledHostPool |
 // This module deploys the host pool, desktop application group, & workspace
 module hostPool 'modules/hostPool.bicep' = {
   name: 'HostPool_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     AppGroupName: AppGroupName
     CustomRdpProperty: CustomRdpProperty
@@ -457,7 +462,7 @@ module hostPool 'modules/hostPool.bicep' = {
 // This module deploys a Log Analytics Workspace with Windows Events & Windows Performance Counters plus diagnostic settings on the required resources 
 module monitoring 'modules/monitoring.bicep' = if(Monitoring) {
   name: 'Monitoring_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     AutomationAccountName: AutomationAccountName
     HostPoolName: HostPoolName
@@ -477,7 +482,7 @@ module monitoring 'modules/monitoring.bicep' = if(Monitoring) {
 
 module bitLocker 'modules/bitlocker/bitLocker.bicep' = if(DiskEncryption) {
   name: 'BitLocker_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -494,7 +499,7 @@ module bitLocker 'modules/bitlocker/bitLocker.bicep' = if(DiskEncryption) {
 
 module stig 'modules/stig.bicep' = if(DisaStigCompliance) {
   name: 'STIG_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -559,8 +564,8 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+    VirtualNetwork: VirtualNetworkName
+    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmPassword: VmPassword
     VmUsername: VmUsername
   }
@@ -606,6 +611,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
     DomainServices: DomainServices
+    DrainMode: DrainMode
     EphemeralOsDisk: validation.outputs.ephemeralOsDisk
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution
@@ -618,6 +624,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     KeyVaultName: KeyVaultName
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
+    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
     MaxResourcesPerTemplateDeployment: MaxResourcesPerTemplateDeployment
     Monitoring: Monitoring
     NamingStandard: NamingStandard
@@ -628,7 +635,8 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     OuPath: OuPath
     PooledHostPool: PooledHostPool
     RdpShortPath: RdpShortPath
-    ResourceGroups: ResourceGroups
+    ResourceGroupHosts: ResourceGroupHosts
+    ResourceGroupManagement: ResourceGroupManagement
     RoleDefinitionIds: RoleDefinitionIds
     ScreenCaptureProtection: ScreenCaptureProtection
     SecurityPrincipalObjectIds: SecurityPrincipalObjectIds
@@ -646,8 +654,8 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     Tags: Tags
     Timestamp: Timestamp
     TrustedLaunch: validation.outputs.trustedLaunch
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+    VirtualNetwork: VirtualNetworkName
+    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmName: VmName
     VmPassword: VmPassword
     VmSize: VmSize
@@ -663,7 +671,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
 
 module backup 'modules/backup/backup.bicep' = if(RecoveryServices) {
   name: 'Backup_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     DivisionRemainderValue: DivisionRemainderValue
     FileShares: FileShares
@@ -676,7 +684,7 @@ module backup 'modules/backup/backup.bicep' = if(RecoveryServices) {
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex
-    StorageResourceGroupName: ResourceGroups[3] // Storage Resource Group
+    StorageResourceGroupName: ResourceGroupStorage
     StorageSolution: StorageSolution
     Tags: Tags
     Timestamp: Timestamp
@@ -692,7 +700,7 @@ module backup 'modules/backup/backup.bicep' = if(RecoveryServices) {
 
 module scalingTool 'modules/scalingTool.bicep' = if(ScalingTool && PooledHostPool) {
   name: 'ScalingTool_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -700,15 +708,16 @@ module scalingTool 'modules/scalingTool.bicep' = if(ScalingTool && PooledHostPoo
     BeginPeakTime: ScalingBeginPeakTime
     EndPeakTime: ScalingEndPeakTime
     HostPoolName: HostPoolName
-    HostPoolResourceGroupName: ResourceGroups[2] // Management Resource Group
+    HostPoolResourceGroupName: ResourceGroupManagement
     LimitSecondsToForceLogOffUser: ScalingLimitSecondsToForceLogOffUser
     Location: Location
-    LogicAppPrefix: LogicAppPrefix
-    ManagementResourceGroupName: ResourceGroups[2] // Management Resource Group
     MinimumNumberOfRdsh: ScalingMinimumNumberOfRdsh
-    SessionHostsResourceGroupName: ResourceGroups[1] // Hosts Resource Group
+    ResourceGroupHosts: ResourceGroupHosts
+    ResourceGroupManagement: ResourceGroupManagement
+    RoleDefinitionIds: RoleDefinitionIds
     SessionThresholdPerCPU: ScalingSessionThresholdPerCPU
-    TimeDifference: ScalingTimeDifference
+    TimeDifference: Locations[Location].timeDifference
+    TimeZone: Locations[Location].timeZone
   }
   dependsOn: [
     automationAccount
@@ -719,43 +728,25 @@ module scalingTool 'modules/scalingTool.bicep' = if(ScalingTool && PooledHostPoo
 
 module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQuota.bicep' = if(contains(FslogixStorage, 'AzureStorageAccount Premium') && StorageCount > 0) {
   name: 'AutoIncreasePremiumFileShareQuota_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[2]) // Management Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AutomationAccountName: AutomationAccountName
-    FslogixSolution: FslogixSolution
+    Environment: Environment
     Location: Location
-    LogicAppPrefix: LogicAppPrefix
+    RoleDefinitionIds: RoleDefinitionIds
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex
-    StorageResourceGroupName: ResourceGroups[3] // Storage Resource Group
+    StorageResourceGroupName: ResourceGroupStorage
+    Tags: Tags
+    Timestamp: Timestamp
+    TimeZone: Locations[Location].timeZone
   }
   dependsOn: [
     automationAccount
     backup
-    sessionHosts
+    fslogix
   ]
 } 
-
-
-// Enables drain mode on the session hosts so users cannot login
-module drainMode 'modules/drainMode.bicep' = if(DrainMode) {
-  name: 'DrainMode_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
-  params: {
-    _artifactsLocation: _artifactsLocation    
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    HostPoolName: HostPoolName
-    HostPoolResourceGroupName: ResourceGroups[2] // Management Resource Group
-    Location: Location
-    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
-    NamingStandard: NamingStandard
-    Tags: Tags
-    Timestamp: Timestamp
-  }
-  dependsOn: [
-    sessionHosts
-  ]
-}

@@ -1,25 +1,32 @@
-param _artifactsLocation string
+param _artifactsLocation string   
 @secure()
 param _artifactsLocationSasToken string
 param AutomationAccountName string
-param FslogixSolution string
+param Environment string
 param Location string
-param LogicAppPrefix string
+param RoleDefinitionIds object
 param StorageAccountPrefix string
 param StorageCount int
 param StorageIndex int
 param StorageResourceGroupName string
-@description('ISO 8601 timestamp used to determine the webhook expiration date.  The webhook is hardcoded to expire 5 years after the timestamp.')
-param Timestamp string = utcNow('u')
+param Tags object
+param Timestamp string
+param TimeZone string
 
 
-var Environment = environment().name
+var RunbookName = 'Set-FileShareQuota'
 var SubscriptionId = subscription().subscriptionId
 
 
+resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
+  name: AutomationAccountName
+}
+
 resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
-  name: '${AutomationAccountName}/AvdScaleFileShareQuota'
+  parent: automationAccount
+  name: RunbookName
   location: Location
+  tags: Tags
   properties: {
     runbookType: 'PowerShell'
     logProgress: false
@@ -31,104 +38,37 @@ resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' =
   }
 }
 
-resource webhook 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = {
-  name: '${AutomationAccountName}/${runbook.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
-  properties: {
-    isEnabled: true
-    expiryTime: dateTimeAdd(Timestamp, 'P5Y')
-    runbook: {
-      name: runbook.name
-    }
+module schedules 'schedules.bicep' = [for i in range(StorageIndex, StorageCount): {
+  name: 'Schedules_${i}_${Timestamp}'
+  params: {
+    AutomationAccountName: automationAccount.name
+    StorageAccountName: '${StorageAccountPrefix}${padLeft(i, 2, '0')}'
+    TimeZone: TimeZone
   }
-}
+}]
 
-resource variable 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = {
-  name: '${AutomationAccountName}/WebhookURI_${runbook.name}'
-  properties: {
-    value: '"${webhook.properties.uri}"'
-    isEncrypted: false
+module jobSchedules 'jobSchedules.bicep' = [for i in range(StorageIndex, StorageCount): {
+  name: 'JobSchedules_${i}_${Timestamp}'
+  params: {
+    AutomationAccountName: automationAccount.name
+    Environment: Environment
+    RunbookName: RunbookName
+    ResourceGroupName: StorageResourceGroupName
+    StorageAccountName: '${StorageAccountPrefix}${padLeft(i, 2, '0')}'
+    SubscriptionId: SubscriptionId
+    Timestamp: Timestamp
   }
-}
+  dependsOn: [
+    runbook
+    schedules
+  ]
+}]
 
-// Gives the Automation Account Contributor rights on the Storage resource group for scaling
-module roleAssignments 'roleAssignments.bicep' = {
-  name: 'RoleAssignment_${StorageResourceGroupName}'
+module roleAssignment 'roleAssignment.bicep' = {
+  name: 'RoleAssignment_${StorageResourceGroupName}_${Timestamp}'
   scope: resourceGroup(StorageResourceGroupName)
   params: {
-    AutomationAccountId: reference(resourceId('Microsoft.Automation/automationAccounts', AutomationAccountName), '2021-06-22', 'Full').identity.principalId
+    PrincipalId: automationAccount.identity.principalId
+    RoleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleDefinitionIds.storageAccountContributor)
   }
 }
-
-// Logic App to trigger scaling runbook for each "officecontainers" file share 
-resource logicApp_ScaleFileShares_OfficeContainers 'Microsoft.Logic/workflows@2016-06-01' = [for i in range(0, StorageCount): if(contains(FslogixSolution, 'Office')) {
-  name: '${LogicAppPrefix}-${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}-officecontainers'
-  location: Location
-  properties: {
-    state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      actions: {
-        HTTP: {
-          type: 'Http'
-          inputs: {
-            method: 'POST'
-            uri: replace(variable.properties.value, '"', '')
-            body: {
-              Environment: Environment
-              FileShareName: 'officecontainers'
-              ResourceGroupName: StorageResourceGroupName
-              StorageAccountName: '${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}'
-              SubscriptionId: SubscriptionId
-            }
-          }
-        }
-      }
-      triggers: {
-        Recurrence: {
-          type: 'Recurrence'
-          recurrence: {
-            frequency: 'Minute'
-            interval: 15
-          }
-        }
-      }
-    }
-  }
-}]
-
-// Logic App to trigger scaling runbook for each "profilecontainers" file share 
-resource logicApp_ScaleFileShares_ProfileContainers 'Microsoft.Logic/workflows@2016-06-01' = [for i in range(0, StorageCount): {
-  name: '${LogicAppPrefix}-${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}-profilecontainers'
-  location: Location
-  properties: {
-    state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      actions: {
-        HTTP: {
-          type: 'Http'
-          inputs: {
-            method: 'POST'
-            uri: replace(variable.properties.value, '"', '')
-            body: {
-              Environment: Environment
-              FileShareName: 'profilecontainers'
-              ResourceGroupName: StorageResourceGroupName
-              StorageAccountName: '${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}'
-              SubscriptionId: SubscriptionId
-            }
-          }
-        }
-      }
-      triggers: {
-        Recurrence: {
-          type: 'Recurrence'
-          recurrence: {
-            frequency: 'Minute'
-            interval: 15
-          }
-        }
-      }
-    }
-  }
-}]

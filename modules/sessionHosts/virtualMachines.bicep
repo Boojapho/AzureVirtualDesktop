@@ -15,6 +15,7 @@ param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
 param DomainServices string
+param DrainMode bool
 param EphemeralOsDisk string
 param Fslogix bool
 param FslogixSolution string
@@ -27,13 +28,14 @@ param ImageVersion string
 param KeyVaultName string
 param Location string
 param LogAnalyticsWorkspaceName string
+param ManagedIdentityResourceId string
 param Monitoring bool
 param NamingStandard string
 param NetworkSecurityGroupName string
 param NetAppFileShares array
 param OuPath string
 param RdpShortPath bool
-param ResourceGroups array
+param ResourceGroupManagement string
 param ScreenCaptureProtection bool
 param Sentinel bool
 param SentinelWorkspaceId string
@@ -66,7 +68,6 @@ var AmdVmSizes = [
   'Standard_NV32as_v4'
 ]
 var AmdVmSize = contains(AmdVmSizes, VmSize)
-var DeploymentResourceGroup = ResourceGroups[0] // Deployment Resource Group
 var Intune = DomainServices == 'NoneWithIntune' ? true : false
 var NvidiaVmSizes = [
   'Standard_NV6'
@@ -88,7 +89,6 @@ var NvidiaVmSizes = [
 ]
 var NvidiaVmSize = contains(NvidiaVmSizes, VmSize)
 var PooledHostPool = (split(HostPoolType, ' ')[0] == 'Pooled')
-var ManagementResourceGroup = ResourceGroups[2] // Management Resource Group
 var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '2021-06-01').primarySharedKey : 'NotApplicable'
 var VmIdentityType = (contains(DomainServices, 'None') ? ((!empty(UserAssignedIdentity)) ? 'SystemAssigned, UserAssigned' : 'SystemAssigned') : ((!empty(UserAssignedIdentity)) ? 'UserAssigned' : 'None'))
 var VmIdentityTypeProperty = {
@@ -237,10 +237,10 @@ resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/e
     typeHandlerVersion: '1.0'
     autoUpgradeMinorVersion: true
     settings: {
-      workspaceId: Monitoring ? reference(resourceId(ManagementResourceGroup, 'Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName), '2015-03-20').customerId : null
+      workspaceId: Monitoring ? reference(resourceId(ResourceGroupManagement, 'Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName), '2015-03-20').customerId : null
     }
     protectedSettings: {
-      workspaceKey: Monitoring ? listKeys(resourceId(ManagementResourceGroup, 'Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName), '2015-03-20').primarySharedKey : null
+      workspaceKey: Monitoring ? listKeys(resourceId(ResourceGroupManagement, 'Microsoft.OperationalInsights/workspaces', LogAnalyticsWorkspaceName), '2015-03-20').primarySharedKey : null
     }
   }
   dependsOn: [
@@ -264,7 +264,7 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
       timestamp: Timestamp
     }
     protectedSettings: {
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DisaStigCompliance ${DisaStigCompliance} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ManagementResourceGroup, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -RdpShortPath ${RdpShortPath} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
+      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DisaStigCompliance ${DisaStigCompliance} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ResourceGroupManagement, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -RdpShortPath ${RdpShortPath} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
     }
   }
   dependsOn: [
@@ -272,6 +272,26 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
     extension_MicrosoftMonitoringAgent
   ]
 }]
+
+// Enables drain mode on the session hosts so users cannot login to hosts immediately after the deployment
+module drainMode '../deploymentScript.bicep' = if(DrainMode) {
+  name: 'DrainMode_${Timestamp}'
+  scope: resourceGroup(ResourceGroupManagement) 
+  params: {
+    Arguments: '-ResourceGroup ${ResourceGroupManagement} -HostPool ${HostPoolName}'
+    Location: Location
+    Name: 'ds-${NamingStandard}-drainMode'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'Set-AvdDrainMode.ps1'
+    Timestamp: Timestamp
+    UserAssignedIdentityResourceId: ManagedIdentityResourceId
+  }
+  dependsOn: [
+    virtualMachine
+    extension_CustomScriptExtension
+  ]
+}
 
 resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (contains(DomainServices, 'ActiveDirectory')) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/JsonADDomainExtension'
@@ -296,7 +316,7 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
   }
   dependsOn: [
     virtualMachine
-    extension_CustomScriptExtension
+    drainMode
   ]
 }]
 
@@ -311,7 +331,7 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
     autoUpgradeMinorVersion: true
     settings: Intune ? {
       mdmId: '0000000a-0000-0000-c000-000000000000'
-    } : json('null')
+    } : null
   }
   dependsOn: [
     virtualMachine
@@ -366,10 +386,10 @@ resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extens
     forceUpdateTag: Timestamp
     settings: {
       EncryptionOperation: 'EnableEncryption'
-      KeyVaultURL: DiskEncryption ? reference(resourceId(ManagementResourceGroup, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
-      KeyVaultResourceId: resourceId(ManagementResourceGroup, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(DeploymentResourceGroup, 'Microsoft.Resources/deploymentScripts', 'ds-${NamingStandard}-bitlockerKek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
-      KekVaultResourceId: resourceId(ManagementResourceGroup, 'Microsoft.KeyVault/vaults', KeyVaultName)
+      KeyVaultURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
+      KeyVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
+      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', 'ds-${NamingStandard}-bitlockerKek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
+      KekVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
       KeyEncryptionAlgorithm: 'RSA-OAEP'
       VolumeType: 'All'
       ResizeOSDisk: false
@@ -391,7 +411,7 @@ resource extension_DSC 'Microsoft.Compute/virtualMachines/extensions@2019-07-01'
     autoUpgradeMinorVersion: true
     protectedSettings: {
       Items: {
-        registrationKeyPrivate: DisaStigCompliance ? listKeys(resourceId(ManagementResourceGroup, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').Keys[0].value : null
+        registrationKeyPrivate: DisaStigCompliance ? listKeys(resourceId(ResourceGroupManagement, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').Keys[0].value : null
       }
     }
     settings: {
@@ -406,7 +426,7 @@ resource extension_DSC 'Microsoft.Compute/virtualMachines/extensions@2019-07-01'
         }
         {
           Name: 'RegistrationUrl'
-          Value: DisaStigCompliance ? reference(resourceId(ManagementResourceGroup, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').registrationUrl : null
+          Value: DisaStigCompliance ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').registrationUrl : null
           TypeName: 'System.String'
         }
         {

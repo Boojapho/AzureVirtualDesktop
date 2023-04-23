@@ -5,8 +5,10 @@ param _artifactsLocationSasToken string
 param CommandToExecute string
 param Location string
 param ManagementVmName string
+param NamingStandard string
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 
 
 resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2020-12-01' = {
@@ -28,4 +30,21 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
       commandToExecute: CommandToExecute
     }
   }
+}
+
+module deploymentScript '../deploymentScript.bicep' = {
+  name: 'DeploymentScript_FSLogixCleanUp_${Timestamp}'
+  params : {
+    Arguments: '-VirtualMachineName ${ManagementVmName} -ResourceGroupName ${resourceGroup().name}'
+    Location: Location
+    Name: 'ds-${NamingStandard}-fslogixCleanUp'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'Remove-AzureVirtualMachine.ps1'
+    Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
+  }
+  dependsOn: [
+    customScriptExtension
+  ]
 }

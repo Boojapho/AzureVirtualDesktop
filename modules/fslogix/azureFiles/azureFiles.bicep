@@ -215,8 +215,10 @@ module ntfsPermissions '../ntfsPermissions.bicep' = if(!contains(DomainServices,
     CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -DomainServices ${DomainServices} -Environment ${environment().name} -FslogixSolution ${FslogixSolution} -KerberosEncryptionType ${KerberosEncryption} -Netbios ${Netbios} -OuPath "${OuPath}" -SecurityPrincipalNames "${SecurityPrincipalNames}" -StorageAccountPrefix ${StorageAccountPrefix} -StorageAccountResourceGroupName ${ResourceGroups[3]} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${environment().suffixes.storage} -SubscriptionId ${subscription().subscriptionId} -TenantId ${subscription().tenantId}'
     Location: Location
     ManagementVmName: ManagementVmName
+    NamingStandard: NamingStandard
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
   dependsOn: [
     shares

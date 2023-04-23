@@ -529,3 +529,5 @@ resource automationAccountDiagnostics 'Microsoft.Insights/diagnosticSettings@202
     workspaceId: logAnalyticsWorkspace.id
   }
 }
+
+output LogAnalyticsWorkspaceResourceId string = logAnalyticsWorkspace.id

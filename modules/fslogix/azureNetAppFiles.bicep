@@ -12,6 +12,7 @@ param FileShares array
 param FslogixSolution string
 param Location string
 param ManagementVmName string
+param NamingStandard string
 param NetAppAccountName string
 param NetAppCapacityPoolName string
 param OuPath string
@@ -22,6 +23,7 @@ param StorageSku string
 param StorageSolution string
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 
 
 resource netAppAccount 'Microsoft.NetApp/netAppAccounts@2021-06-01' = {
@@ -141,8 +143,10 @@ module ntfsPermissions 'ntfsPermissions.bicep' = {
     CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -FslogixSolution ${FslogixSolution} -SecurityPrincipalNames "${SecurityPrincipalNames}" -SmbServerLocation ${SmbServerLocation} -StorageSolution ${StorageSolution}'
     Location: Location
     ManagementVmName: ManagementVmName
+    NamingStandard: NamingStandard
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
   dependsOn: [
     volumes

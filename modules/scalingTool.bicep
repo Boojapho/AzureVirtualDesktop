@@ -8,24 +8,29 @@ param HostPoolName string
 param HostPoolResourceGroupName string
 param LimitSecondsToForceLogOffUser string
 param Location string
-param LogicAppPrefix string
-param ManagementResourceGroupName string
 param MinimumNumberOfRdsh string
-param SessionHostsResourceGroupName string
+param ResourceGroupHosts string
+param ResourceGroupManagement string
+param RoleDefinitionIds object
 param SessionThresholdPerCPU string
 param TimeDifference string
-@description('ISO 8601 timestamp used to determine the webhook expiration date.  The webhook is hardcoded to expire 5 years after the timestamp.')
-param Timestamp string = utcNow('u')
+param Time string = utcNow('u')
+param TimeZone string
 
 
-var RoleAssignmentResourceGroups = [
-  ManagementResourceGroupName
-  SessionHostsResourceGroupName
+var RoleAssignments = [
+  ResourceGroupHosts
+  ResourceGroupManagement
 ]
 
 
+resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
+  name: AutomationAccountName
+}
+
 resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
-  name: '${AutomationAccountName}/AvdScaleHostPool'
+  parent: automationAccount
+  name: 'AVD-Scaling-Tool'
   location: Location
   properties: {
     runbookType: 'PowerShell'
@@ -38,79 +43,57 @@ resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' =
   }
 }
 
-resource webhook 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = {
-  name: '${AutomationAccountName}/AvdScaleHostPool_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
+resource schedules 'Microsoft.Automation/automationAccounts/schedules@2022-08-08' = [for i in range(0, 4): {
+  parent: automationAccount
+  name: '${HostPoolName}_${(i+1)*15}min'
   properties: {
-    isEnabled: true
-    expiryTime: dateTimeAdd(Timestamp, 'P5Y')
-    runbook: {
-      name: 'AvdScaleHostPool'
-    }
-  }
-  dependsOn:[
-    runbook
-  ]
-}
-
-resource variable 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = {
-  name: '${AutomationAccountName}/WebhookURI_AvdScaleHostPool'
-  properties: {
-    value: '"${webhook.properties.uri}"'
-    isEncrypted: false
-  }
-}
-
-// Gives the Automation Account Contributor rights on the Hosts and Management resource groups for scaling
-module roleAssignments 'roleAssignments.bicep' = [for i in range(0, length(RoleAssignmentResourceGroups)): {
-  name: 'RoleAssignment_${RoleAssignmentResourceGroups[i]}'
-  scope: resourceGroup(RoleAssignmentResourceGroups[i])
-  params: {
-    AutomationAccountId: reference(resourceId('Microsoft.Automation/automationAccounts', AutomationAccountName), '2021-06-22', 'Full').identity.principalId
+    advancedSchedule: {}
+    description: null
+    expiryTime: null
+    frequency: 'Hour'
+    interval: 1
+    startTime: dateTimeAdd(Time, 'PT${(i+1)*15}M')
+    timeZone: TimeZone
   }
 }]
 
-// Logic App to trigger scaling runbook for the AVD host pool
-resource logicApp_ScaleHostPool 'Microsoft.Logic/workflows@2016-06-01' = {
-  name: '${LogicAppPrefix}-scaleHostPool'
-  location: Location
+resource jobSchedules 'Microsoft.Automation/automationAccounts/jobSchedules@2022-08-08' = [for i in range(0, 4): {
+  parent: automationAccount
+  #disable-next-line use-stable-resource-identifiers
+  name: guid(Time, runbook.name, HostPoolName, string(i))
   properties: {
-    state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      actions: {
-        HTTP: {
-          type: 'Http'
-          inputs: {
-            method: 'POST'
-            uri: replace(variable.properties.value, '"', '')
-            body: {
-              AADTenantId: subscription().tenantId
-              SubscriptionId: subscription().subscriptionId
-              EnvironmentName: environment().name
-              ResourceGroupName: HostPoolResourceGroupName
-              HostPoolName: HostPoolName
-              MaintenanceTagName: 'Maintenance'
-              TimeDifference: TimeDifference
-              BeginPeakTime: BeginPeakTime
-              EndPeakTime: EndPeakTime
-              SessionThresholdPerCPU: SessionThresholdPerCPU
-              MinimumNumberOfRDSH: MinimumNumberOfRdsh
-              LimitSecondsToForceLogOffUser: LimitSecondsToForceLogOffUser
-              LogOffMessageTitle: 'Machine is about to shutdown.'
-              LogOffMessageBody: 'Your session will be logged off. Please save and close everything.'
-            }
-          }
-        }
-      }
-      triggers: {
-        Recurrence: {
-          type: 'Recurrence'
-          recurrence: {
-            frequency: 'Minute'
-            interval: 15
-          }
-        }
-      }
+    parameters: {
+      TenantId: subscription().tenantId
+      SubscriptionId: subscription().subscriptionId
+      EnvironmentName: environment().name
+      ResourceGroupName: HostPoolResourceGroupName
+      HostPoolName: HostPoolName
+      MaintenanceTagName: 'Maintenance'
+      TimeDifference: TimeDifference
+      BeginPeakTime: BeginPeakTime
+      EndPeakTime: EndPeakTime
+      SessionThresholdPerCPU: SessionThresholdPerCPU
+      MinimumNumberOfRDSH: MinimumNumberOfRdsh
+      LimitSecondsToForceLogOffUser: LimitSecondsToForceLogOffUser
+      LogOffMessageTitle: 'Machine is about to shutdown.'
+      LogOffMessageBody: 'Your session will be logged off. Please save and close everything.'
+    }
+    runbook: {
+      name: runbook.name
+    }
+    runOn: null
+    schedule: {
+      name: schedules[i].name
     }
   }
-}
+}]
+
+// Gives the Automation Account the "Desktop Virtualization Power On Off Contributor" role on the resource groups containing the hosts and host pool
+module roleAssignments 'roleAssignment.bicep' = [for i in range(0, length(RoleAssignments)): {
+  name: 'RoleAssignment_${i}_${RoleAssignments[i]}'
+  scope: resourceGroup(RoleAssignments[i])
+  params: {
+    PrincipalId: automationAccount.identity.principalId
+    RoleDefinitionId: RoleDefinitionIds.desktopVirtualizationPowerOnOffContributor
+  }
+}]

@@ -5,28 +5,30 @@ param DrainMode bool
 param FslogixStorage string
 param Location string
 param ManagedIdentityName string
-param ResourceGroups array
+param ResourceGroupManagement string
 param RoleDefinitionIds object
 param Timestamp string
-param VirtualNetworkResourceGroup string
+param VirtualNetworkResourceGroupName string
 
-
-var RoleAssignments = [
+var DrainModeRoleAssignment = DrainMode ? [
   {
     condition: DrainMode // Supports drain mode on session hosts
-    resourceGroup: ResourceGroups[2] // Management resource group
+    resourceGroup: ResourceGroupManagement
     roleDefinitionId: RoleDefinitionIds.desktopVirtualizationSessionHostOperator // https://docs.microsoft.com/en-us/azure/virtual-desktop/rbac#desktop-virtualization-session-host-operator
   }
-
+] : []
+var PrivateEndpointRoleAssignment = contains(FslogixStorage, 'PrivateEndpoint') ? [
   {
     condition: contains(FslogixStorage, 'PrivateEndpoint') // Supports private endpoints on Azure Files
-    resourceGroup: VirtualNetworkResourceGroup // Networking resource group
+    resourceGroup: VirtualNetworkResourceGroupName // Networking resource group
     roleDefinitionId: RoleDefinitionIds.networkContributor
   }
-]
+] :[]
+var RoleAssignments = union(DrainModeRoleAssignment, PrivateEndpointRoleAssignment)
 
 
-resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+// This shouldn't be required anymore
+/* resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid('DeploymentScriptContributor', subscription().id)
   properties: {
     assignableScopes: [
@@ -48,16 +50,15 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
       }
     ]
   }
-}
+} */
 
 // User Assigned Managed Identity
 module userAssignedIdentity 'userAssignedManagedIdentity.bicep' = {
   name: 'UserAssignedManagedIdentity_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[0]) // Deployment Resource Group
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     Location: Location
     ManagedIdentityName: ManagedIdentityName
-    RoleDefinitionId: roleDefinition.id
   }
 }
 
@@ -74,13 +75,12 @@ resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022
 
 // Role Assignments on Resource Groups 
 // These role assignments are needed to support different features based on parameter values and are conditionally deployed
-module roleAssignments 'roleAssignments.bicep' = [for i in range(0, length(RoleAssignments)): {
+module roleAssignments '../roleAssignment.bicep' = [for i in range(0, length(RoleAssignments)): {
   name: 'RoleAssignments_${RoleAssignments[i].resourceGroup}_${Timestamp}'
   scope: resourceGroup(RoleAssignments[i].resourceGroup)
   params: {
-    Condition: RoleAssignments[i].condition
     PrincipalId: userAssignedIdentity.outputs.principalId
-    RoleDefinitionId: RoleAssignments[i].roleDefinitionId
+    RoleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleAssignments[i].roleDefinitionId)
   }
 }]
 

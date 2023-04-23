@@ -1,19 +1,24 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
 	[Parameter(Mandatory)]
-	$WebHookData
-)
+	[string]$Environment,
 
-$Parameters = ConvertFrom-Json -InputObject $WebHookData.RequestBody
-$Environment = $Parameters.PSObject.Properties['Environment'].Value
-$FileShareName = $Parameters.PSObject.Properties['FileShareName'].Value
-$ResourceGroupName = $Parameters.PSObject.Properties['ResourceGroupName'].Value
-$StorageAccountName = $Parameters.PSObject.Properties['StorageAccountName'].Value
-$SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
+	[Parameter(Mandatory)]
+	[string]$FileShareName,
+
+	[Parameter(Mandatory)]
+	[string]$ResourceGroupName,
+
+	[Parameter(Mandatory)]
+	[string]$StorageAccountName,
+
+	[Parameter(Mandatory)]
+	[string]$SubscriptionId
+)
 
 $ErrorActionPreference = 'Stop'
 
-#Connect to Azure and Import Az Module
+# Connect to Azure and Import Az Module
 Import-Module -Name 'Az.Accounts'
 Import-Module -Name 'Az.Storage'
 Connect-AzAccount -Environment $Environment -Subscription $SubscriptionId -Identity | Out-Null
@@ -29,21 +34,6 @@ Write-Output "[$StorageAccountName] [$FileShareName] Share Usage: $([math]::Roun
 
 # Get storage account
 $StorageAccount = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $StorageAccountName
-
-# Percentage Based Scaling
-# Grows exponentially and increases the risk of unneccessary cost
-# if less than 20% of provisioned capacity is remaining, increase provisioned capacity by 20%
-<# if (($ProvisionedCapacity - ($UsedCapacity / ([Math]::Pow(2,30)))) -lt ($ProvisionedCapacity*0.2)) {
-    Write-Output "[$StorageAccountName] [$FileShareName] Share Usage is greater than 80%" 
-    $Quota = $ProvisionedCapacity*1.2
-    Update-AzRmStorageShare -StorageAccount $StorageAccount -Name $FileShareName -QuotaGiB $Quota | Out-Null
-    $ProvisionedCapacity = $Quota
-    Write-Output "[$StorageAccountName] [$FileShareName] New Capacity: $($ProvisionedCapacity)GB"
-}
-else {
-    Write-Output "[$StorageAccountName] [$FileShareName] Share Usage is below 20% threshold. No Changes."
-} #>
-
 
 # GB Based Scaling
 # No scaling if no usage

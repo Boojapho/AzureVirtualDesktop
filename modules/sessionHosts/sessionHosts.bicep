@@ -18,6 +18,7 @@ param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
 param DomainServices string
+param DrainMode bool
 param EphemeralOsDisk string
 param FslogixSolution string
 param Fslogix bool
@@ -30,6 +31,7 @@ param ImageVersion string
 param KeyVaultName string
 param Location string
 param LogAnalyticsWorkspaceName string
+param ManagedIdentityResourceId string
 param MaxResourcesPerTemplateDeployment int
 param Monitoring bool
 param NamingStandard string
@@ -38,7 +40,8 @@ param NetAppFileShares array
 param OuPath string
 param PooledHostPool bool
 param RdpShortPath bool
-param ResourceGroups array
+param ResourceGroupHosts string
+param ResourceGroupManagement string
 param RoleDefinitionIds object
 param ScreenCaptureProtection bool
 param SecurityPrincipalObjectIds array
@@ -67,7 +70,7 @@ param VmUsername string
 
 module availabilitySets 'availabilitySets.bicep' = if (PooledHostPool && Availability == 'AvailabilitySet') {
   name: 'AvailabilitySets_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[1]) // Hosts Resource Group
+  scope: resourceGroup(ResourceGroupHosts)
   params: {
     AvailabilitySetCount: AvailabilitySetCount
     AvailabilitySetIndex: AvailabilitySetIndex
@@ -81,7 +84,7 @@ module availabilitySets 'availabilitySets.bicep' = if (PooledHostPool && Availab
 // This module deploys the role assignments to login to Azure AD joined session hosts
 module roleAssignments 'roleAssignments.bicep' = if (contains(DomainServices, 'None')) {
   name: 'RoleAssignments_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[1]) // Hosts Resource Group
+  scope: resourceGroup(ResourceGroupHosts)
   params: {
     RoleDefinitionId: RoleDefinitionIds.virtualMachineUserLogin
     SecurityPrincipalIds: SecurityPrincipalObjectIds
@@ -91,7 +94,7 @@ module roleAssignments 'roleAssignments.bicep' = if (contains(DomainServices, 'N
 @batchSize(1)
 module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostBatchCount): {
   name: 'VirtualMachines_${i-1}_${Timestamp}'
-  scope: resourceGroup(ResourceGroups[1]) // Hosts Resource Group
+  scope: resourceGroup(ResourceGroupHosts)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -108,6 +111,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
     DomainServices: DomainServices
+    DrainMode: DrainMode
     EphemeralOsDisk: EphemeralOsDisk
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution
@@ -120,13 +124,14 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     KeyVaultName: KeyVaultName
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
+    ManagedIdentityResourceId: ManagedIdentityResourceId
     Monitoring: Monitoring
     NamingStandard: NamingStandard
     NetworkSecurityGroupName: NetworkSecurityGroupName
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
     RdpShortPath: RdpShortPath
-    ResourceGroups: ResourceGroups
+    ResourceGroupManagement :ResourceGroupManagement
     ScreenCaptureProtection: ScreenCaptureProtection
     Sentinel: Sentinel
     SentinelWorkspaceId: SentinelWorkspaceId

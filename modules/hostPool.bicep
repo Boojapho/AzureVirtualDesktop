@@ -25,7 +25,7 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-03-09-preview'
   properties: {
     hostPoolType: split(HostPoolType, ' ')[0]
     maxSessionLimit: MaxSessionLimit
-    loadBalancerType: contains(HostPoolType, 'Pooled') ? split(HostPoolType, ' ')[1] : null
+    loadBalancerType: contains(HostPoolType, 'Pooled') ? split(HostPoolType, ' ')[1] : 'Persistent'
     validationEnvironment: ValidationEnvironment
     registrationInfo: {
       expirationTime: dateTimeAdd(Timestamp, 'PT2H')

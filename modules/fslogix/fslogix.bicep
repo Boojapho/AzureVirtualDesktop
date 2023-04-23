@@ -100,6 +100,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     FslogixSolution: FslogixSolution
     Location: Location
     ManagementVmName: ManagementVmName
+    NamingStandard: NamingStandard
     NetAppAccountName: NetAppAccountName
     NetAppCapacityPoolName: NetAppCapacityPoolName
     OuPath: OuPath
@@ -110,6 +111,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     StorageSolution: StorageSolution
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
   dependsOn: [
     managementVirtualMachine
