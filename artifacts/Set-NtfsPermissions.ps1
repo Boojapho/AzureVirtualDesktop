@@ -142,10 +142,10 @@ try
     # Selects the appropraite share names based on the FSlogixSolution param from the deployment
     $Shares = switch($FslogixSolution)
     {
-        'CloudCacheProfileContainer' {@('profilecontainers')}
-        'CloudCacheProfileOfficeContainer' {@('officecontainers','profilecontainers')}
-        'ProfileContainer' {@('profilecontainers')}
-        'ProfileOfficeContainer' {@('officecontainers','profilecontainers')}
+        'CloudCacheProfileContainer' {@('profile-containers')}
+        'CloudCacheProfileOfficeContainer' {@('office-containers','profile-containers')}
+        'ProfileContainer' {@('profile-containers')}
+        'ProfileOfficeContainer' {@('office-containers','profile-containers')}
     }
 
     if($StorageSolution -eq 'AzureNetAppFiles' -or ($StorageSolution -eq 'AzureStorageAccount' -and $DomainServices -eq 'ActiveDirectory'))
