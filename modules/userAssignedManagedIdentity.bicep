@@ -26,7 +26,7 @@ var FSLogixNtfsRoleAssignments = Fslogix ? [
     scope: resourceGroup().name
   }
   {
-    roleDefinitionId: 'c12c1c16-33a1-487b-954d-41c89c60f349' // Reader and Data Access (NTFS Permissions - Get storage account key)
+    roleDefinitionId: '17d1049b-9a84-46fb-8f53-869881c3d3ab' // Storage Account Contributor (Domain Join & NTFS Permissions)
     scope: ResourceGroupStorage
   }
 ] : []

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "7826056251255817179"
+      "templateHash": "11715316311116751089"
     }
   },
   "parameters": {
@@ -906,7 +906,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "17277478524551920087"
+              "templateHash": "286575974856006340"
             }
           },
           "parameters": {
@@ -941,7 +941,7 @@
           "variables": {
             "DiskEncryptionRoleAssignment": "[if(parameters('DiskEncryption'), createArray(createObject('roleDefinitionId', '14b46e9e-c2b7-41b4-b07b-48a6ebf60603', 'scope', resourceGroup().name)), createArray())]",
             "DrainModeRoleAssignment": "[if(parameters('DrainMode'), createArray(createObject('roleDefinitionId', '2ad6aaab-ead9-4eaa-8ac5-da422f562408', 'scope', resourceGroup().name)), createArray())]",
-            "FSLogixNtfsRoleAssignments": "[if(parameters('Fslogix'), createArray(createObject('roleDefinitionId', 'a959dbd1-f747-45e3-8ba6-dd80f235f97c', 'scope', resourceGroup().name), createObject('roleDefinitionId', 'c12c1c16-33a1-487b-954d-41c89c60f349', 'scope', parameters('ResourceGroupStorage'))), createArray())]",
+            "FSLogixNtfsRoleAssignments": "[if(parameters('Fslogix'), createArray(createObject('roleDefinitionId', 'a959dbd1-f747-45e3-8ba6-dd80f235f97c', 'scope', resourceGroup().name), createObject('roleDefinitionId', '17d1049b-9a84-46fb-8f53-869881c3d3ab', 'scope', parameters('ResourceGroupStorage'))), createArray())]",
             "FSLogixPrivateEndpointRoleAssignment": "[if(contains(parameters('FslogixStorage'), 'PrivateEndpoint'), createArray(createObject('roleDefinitionId', '4d97b98b-1d4f-4787-a291-c67834d212e7', 'scope', parameters('VirtualNetworkResourceGroupName'))), createArray())]",
             "FSLogixRoleAssignments": "[union(variables('FSLogixNtfsRoleAssignments'), variables('FSLogixPrivateEndpointRoleAssignment'))]",
             "RoleAssignments": "[union(variables('DiskEncryptionRoleAssignment'), variables('DrainModeRoleAssignment'), variables('FSLogixRoleAssignments'))]"
