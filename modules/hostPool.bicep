@@ -90,7 +90,7 @@ resource appGroupAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01'
   scope: appGroup
   name: guid(SecurityPrincipalIds[i], DesktopVirtualizationUserRoleDefinitionResourceId, AppGroupName)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', DesktopVirtualizationUserRoleDefinitionResourceId)
+    roleDefinitionId: DesktopVirtualizationUserRoleDefinitionResourceId
     principalId: SecurityPrincipalIds[i]
   }
 }]

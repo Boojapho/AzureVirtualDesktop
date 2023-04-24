@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "9711619180027934890"
+      "templateHash": "11149419286451406403"
     }
   },
   "parameters": {
@@ -1439,7 +1439,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "15096266836960694794"
+              "templateHash": "1325645264417710995"
             }
           },
           "parameters": {
@@ -1580,7 +1580,7 @@
               "scope": "[format('Microsoft.DesktopVirtualization/applicationGroups/{0}', parameters('AppGroupName'))]",
               "name": "[guid(parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]], variables('DesktopVirtualizationUserRoleDefinitionResourceId'), parameters('AppGroupName'))]",
               "properties": {
-                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('DesktopVirtualizationUserRoleDefinitionResourceId'))]",
+                "roleDefinitionId": "[variables('DesktopVirtualizationUserRoleDefinitionResourceId')]",
                 "principalId": "[parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]]]"
               },
               "dependsOn": [
