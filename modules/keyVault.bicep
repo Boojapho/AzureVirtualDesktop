@@ -18,7 +18,7 @@ resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForDeployment: false
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: false
-    enablePurgeProtection: Environment == 'd' || Environment == 't' ? false : true
+    enablePurgeProtection: Environment == 'd' || Environment == 't' ? null : true
     enableRbacAuthorization: true
     enableSoftDelete: Environment == 'd' || Environment == 't' ? false : true
     sku: {

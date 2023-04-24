@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "3880894207325016098"
+      "templateHash": "9711619180027934890"
     }
   },
   "parameters": {
@@ -2201,7 +2201,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "18126914644344423609"
+              "templateHash": "12450347755939274233"
             }
           },
           "parameters": {
@@ -2244,7 +2244,7 @@
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": true,
                 "enabledForTemplateDeployment": false,
-                "enablePurgeProtection": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), false(), true())]",
+                "enablePurgeProtection": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), null(), true())]",
                 "enableRbacAuthorization": true,
                 "enableSoftDelete": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), false(), true())]",
                 "sku": {
