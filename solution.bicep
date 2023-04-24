@@ -474,7 +474,7 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if(Monitori
 }
 
 module keyVault 'modules/keyVault.bicep' = if(DiskEncryption) {
-  name: 'BitLocker_${Timestamp}'
+  name: 'KeyVault_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "11149419286451406403"
+      "templateHash": "3047128047420126753"
     }
   },
   "parameters": {
@@ -2158,7 +2158,7 @@
       "condition": "[parameters('DiskEncryption')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('BitLocker_{0}', parameters('Timestamp'))]",
+      "name": "[format('KeyVault_{0}', parameters('Timestamp'))]",
       "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -5088,7 +5088,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('BitLocker_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('STIG_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp')))]"
@@ -6626,7 +6626,7 @@
       },
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('BitLocker_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp')))]",
         "resourceGroups",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
