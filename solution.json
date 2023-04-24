@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "9830785629403094082"
+      "templateHash": "16161271788352898491"
     }
   },
   "parameters": {
@@ -814,6 +814,8 @@
     "ResourceGroupManagement": "[format('rg-{0}-management', variables('NamingStandard'))]",
     "ResourceGroupStorage": "[format('rg-{0}-storage', variables('NamingStandard'))]",
     "ResourceGroups": "[if(variables('Fslogix'), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts'), variables('ResourceGroupStorage')), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts')))]",
+    "SecurityPrincipalIdsCount": "[length(parameters('SecurityPrincipalObjectIds'))]",
+    "SecurityPrincipalNamesCount": "[length(parameters('SecurityPrincipalNames'))]",
     "Sentinel": "[if(or(empty(parameters('SentinelLogAnalyticsWorkspaceName')), empty(parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'))), false(), true())]",
     "SentinelResourceGroup": "[if(variables('Sentinel'), parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'), variables('ResourceGroupManagement'))]",
     "StampIndexFull": "[padLeft(parameters('StampIndex'), 2, '0')]",
@@ -1032,7 +1034,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('Validation_{0}', parameters('Timestamp'))]",
+      "name": "[format('DeploymentScript_Validation_{0}', parameters('Timestamp'))]",
       "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -1040,86 +1042,29 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "_artifactsLocation": {
-            "value": "[parameters('_artifactsLocation')]"
-          },
-          "_artifactsLocationSasToken": {
-            "value": "[parameters('_artifactsLocationSasToken')]"
-          },
-          "Availability": {
-            "value": "[parameters('Availability')]"
-          },
-          "DeploymentScriptNamePrefix": {
-            "value": "[variables('DeploymentScriptNamePrefix')]"
-          },
-          "DiskEncryption": {
-            "value": "[parameters('DiskEncryption')]"
-          },
-          "DiskSku": {
-            "value": "[parameters('DiskSku')]"
-          },
-          "DomainName": {
-            "value": "[parameters('DomainName')]"
-          },
-          "DomainServices": {
-            "value": "[parameters('DomainServices')]"
-          },
-          "EphemeralOsDisk": {
-            "value": "[parameters('EphemeralOsDisk')]"
-          },
-          "ImageSku": {
-            "value": "[parameters('ImageSku')]"
-          },
-          "KerberosEncryption": {
-            "value": "[parameters('KerberosEncryption')]"
+          "Arguments": {
+            "value": "[format('-Availability {0} -DiskEncryption {1} -DiskSku {2} -DomainName {3} -DomainServices {4} -Environment {5} -EphemeralOsDisk {6} -ImageSku {7} -KerberosEncryption {8} -Location {9} -PooledHostPool {10} -RecoveryServices {11} -SecurityPrincipalIdsCount {12} -SecurityPrincipalNamesCount {13} -SessionHostCount {14} -SessionHostIndex {15} -StartVmOnConnect {16} -StorageCount {17} -StorageSolution {18} -VmSize {19} -VnetName {20} -VnetResourceGroupName {21}', parameters('Availability'), parameters('DiskEncryption'), parameters('DiskSku'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('EphemeralOsDisk'), parameters('ImageSku'), parameters('KerberosEncryption'), parameters('Location'), variables('PooledHostPool'), parameters('RecoveryServices'), variables('SecurityPrincipalIdsCount'), variables('SecurityPrincipalNamesCount'), parameters('SessionHostCount'), parameters('SessionHostIndex'), parameters('StartVmOnConnect'), parameters('StorageCount'), variables('StorageSolution'), parameters('VmSize'), parameters('VirtualNetworkName'), parameters('VirtualNetworkResourceGroupName'))]"
           },
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "ManagedIdentityResourceId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
+          "Name": {
+            "value": "[format('{0}validation', variables('DeploymentScriptNamePrefix'))]"
           },
-          "PooledHostPool": {
-            "value": "[variables('PooledHostPool')]"
+          "ScriptContainerSasToken": {
+            "value": "[parameters('_artifactsLocationSasToken')]"
           },
-          "RecoveryServices": {
-            "value": "[parameters('RecoveryServices')]"
+          "ScriptContainerUri": {
+            "value": "[parameters('_artifactsLocation')]"
           },
-          "SecurityPrincipalIds": {
-            "value": "[parameters('SecurityPrincipalObjectIds')]"
-          },
-          "SecurityPrincipalNames": {
-            "value": "[parameters('SecurityPrincipalNames')]"
-          },
-          "SessionHostCount": {
-            "value": "[parameters('SessionHostCount')]"
-          },
-          "SessionHostIndex": {
-            "value": "[parameters('SessionHostIndex')]"
-          },
-          "StartVmOnConnect": {
-            "value": "[parameters('StartVmOnConnect')]"
-          },
-          "StorageCount": {
-            "value": "[parameters('StorageCount')]"
-          },
-          "StorageSolution": {
-            "value": "[variables('StorageSolution')]"
-          },
-          "Tags": {
-            "value": "[parameters('Tags')]"
+          "ScriptName": {
+            "value": "Get-Validation.ps1"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
           },
-          "VirtualNetwork": {
-            "value": "[parameters('VirtualNetworkName')]"
-          },
-          "VirtualNetworkResourceGroup": {
-            "value": "[parameters('VirtualNetworkResourceGroupName')]"
-          },
-          "VmSize": {
-            "value": "[parameters('VmSize')]"
+          "UserAssignedIdentityResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           }
         },
         "template": {
@@ -1129,153 +1074,64 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "17979751517210361347"
+              "templateHash": "16940725594451854027"
             }
           },
           "parameters": {
-            "_artifactsLocation": {
-              "type": "string"
-            },
-            "_artifactsLocationSasToken": {
-              "type": "securestring"
-            },
-            "Availability": {
-              "type": "string"
-            },
-            "DeploymentScriptNamePrefix": {
-              "type": "string"
-            },
-            "DiskEncryption": {
-              "type": "bool"
-            },
-            "DiskSku": {
-              "type": "string"
-            },
-            "DomainName": {
-              "type": "string"
-            },
-            "DomainServices": {
-              "type": "string"
-            },
-            "EphemeralOsDisk": {
-              "type": "bool"
-            },
-            "ImageSku": {
-              "type": "string"
-            },
-            "KerberosEncryption": {
+            "Arguments": {
               "type": "string"
             },
             "Location": {
               "type": "string"
             },
-            "ManagedIdentityResourceId": {
+            "Name": {
               "type": "string"
             },
-            "PooledHostPool": {
-              "type": "bool"
-            },
-            "RecoveryServices": {
-              "type": "bool"
-            },
-            "SecurityPrincipalIds": {
-              "type": "array"
-            },
-            "SecurityPrincipalNames": {
-              "type": "array"
-            },
-            "SessionHostCount": {
-              "type": "int"
-            },
-            "SessionHostIndex": {
-              "type": "int"
-            },
-            "StartVmOnConnect": {
-              "type": "bool"
-            },
-            "StorageCount": {
-              "type": "int"
-            },
-            "StorageSolution": {
+            "ScriptContainerUri": {
               "type": "string"
             },
-            "Tags": {
-              "type": "object"
+            "ScriptContainerSasToken": {
+              "type": "securestring"
+            },
+            "ScriptName": {
+              "type": "string"
             },
             "Timestamp": {
               "type": "string"
             },
-            "VirtualNetwork": {
-              "type": "string"
-            },
-            "VirtualNetworkResourceGroup": {
-              "type": "string"
-            },
-            "VmSize": {
+            "UserAssignedIdentityResourceId": {
               "type": "string"
             }
-          },
-          "variables": {
-            "SecurityPrincipalIdsCount": "[length(parameters('SecurityPrincipalIds'))]",
-            "SecurityPrincipalNamesCount": "[length(parameters('SecurityPrincipalNames'))]"
           },
           "resources": [
             {
               "type": "Microsoft.Resources/deploymentScripts",
               "apiVersion": "2020-10-01",
-              "name": "[format('{0}validation', parameters('DeploymentScriptNamePrefix'))]",
-              "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
-              "kind": "AzurePowerShell",
+              "name": "[parameters('Name')]",
               "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
-                  "[format('{0}', parameters('ManagedIdentityResourceId'))]": {}
+                  "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
                 }
               },
+              "location": "[parameters('Location')]",
+              "kind": "AzurePowerShell",
+              "tags": {},
               "properties": {
+                "azPowerShellVersion": "9.4",
+                "cleanupPreference": "Always",
+                "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
+                "arguments": "[parameters('Arguments')]",
                 "forceUpdateTag": "[parameters('Timestamp')]",
-                "azPowerShellVersion": "5.4",
-                "arguments": "[format('-Availability {0} -DiskEncryption {1} -DiskSku {2} -DomainName {3} -DomainServices {4} -Environment {5} -EphemeralOsDisk {6} -ImageSku {7} -KerberosEncryption {8} -Location {9} -PooledHostPool {10} -RecoveryServices {11} -SecurityPrincipalIdsCount {12} -SecurityPrincipalNamesCount {13} -SessionHostCount {14} -SessionHostIndex {15} -StartVmOnConnect {16} -StorageCount {17} -StorageSolution {18} -VmSize {19} -VnetName {20} -VnetResourceGroupName {21}', parameters('Availability'), parameters('DiskEncryption'), parameters('DiskSku'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('EphemeralOsDisk'), parameters('ImageSku'), parameters('KerberosEncryption'), parameters('Location'), parameters('PooledHostPool'), parameters('RecoveryServices'), variables('SecurityPrincipalIdsCount'), variables('SecurityPrincipalNamesCount'), parameters('SessionHostCount'), parameters('SessionHostIndex'), parameters('StartVmOnConnect'), parameters('StorageCount'), parameters('StorageSolution'), parameters('VmSize'), parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]",
-                "primaryScriptUri": "[format('{0}Get-Validation.ps1{1}', parameters('_artifactsLocation'), parameters('_artifactsLocationSasToken'))]",
-                "timeout": "PT2H",
-                "cleanupPreference": "OnSuccess",
-                "retentionInterval": "P1D"
+                "retentionInterval": "PT2H",
+                "timeout": "PT30M"
               }
             }
           ],
           "outputs": {
-            "acceleratedNetworking": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.acceleratedNetworking]"
-            },
-            "anfActiveDirectory": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfActiveDirectory]"
-            },
-            "anfDnsServers": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfDnsServers]"
-            },
-            "anfSubnetId": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfSubnetId]"
-            },
-            "dnsForwarders": {
-              "type": "array",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.dnsForwarders]"
-            },
-            "dnsServerSize": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.dnsServerSize]"
-            },
-            "ephemeralOsDisk": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.ephemeralOsDisk]"
-            },
-            "trustedLaunch": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.trustedLaunch]"
+            "properties": {
+              "type": "object",
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
             }
           }
         }
@@ -2205,7 +2061,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "12450347755939274233"
+              "templateHash": "14488308976369550999"
             }
           },
           "parameters": {
@@ -2302,7 +2158,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "7158975045101659830"
+                      "templateHash": "16940725594451854027"
                     }
                   },
                   "parameters": {
@@ -2355,7 +2211,13 @@
                         "timeout": "PT30M"
                       }
                     }
-                  ]
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
                 }
               }
             }
@@ -2569,13 +2431,13 @@
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
           "ActiveDirectoryConnection": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfActiveDirectory.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfActiveDirectory]"
           },
           "ClientId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.clientId.value]"
           },
           "DelegatedSubnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfSubnetId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfSubnetId]"
           },
           "DeploymentScriptNamePrefix": {
             "value": "[variables('DeploymentScriptNamePrefix')]"
@@ -2584,13 +2446,13 @@
             "value": "[parameters('DiskEncryption')]"
           },
           "DnsServerForwarderIPAddresses": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.dnsForwarders.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.dnsForwarders]"
           },
           "DnsServers": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfDnsServers.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfDnsServers]"
           },
           "DnsServerSize": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.dnsServerSize.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.dnsServerSize]"
           },
           "DomainJoinPassword": {
             "value": "[parameters('DomainJoinPassword')]"
@@ -2729,7 +2591,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "13801191335867211900"
+              "templateHash": "15928695460597410276"
             }
           },
           "parameters": {
@@ -3272,7 +3134,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "13649546776276573408"
+                      "templateHash": "15310489042384934030"
                     }
                   },
                   "parameters": {
@@ -3461,7 +3323,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "17273839528339420962"
+                              "templateHash": "5030154594170746408"
                             }
                           },
                           "parameters": {
@@ -3558,7 +3420,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.16.2.56959",
-                                      "templateHash": "7158975045101659830"
+                                      "templateHash": "16940725594451854027"
                                     }
                                   },
                                   "parameters": {
@@ -3611,7 +3473,13 @@
                                         "timeout": "PT30M"
                                       }
                                     }
-                                  ]
+                                  ],
+                                  "outputs": {
+                                    "properties": {
+                                      "type": "object",
+                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                                    }
+                                  }
                                 }
                               },
                               "dependsOn": [
@@ -3793,7 +3661,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "14215066860593975264"
+                      "templateHash": "1078451714050188759"
                     }
                   },
                   "parameters": {
@@ -4358,7 +4226,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "4351176608957148325"
+                              "templateHash": "17473872087734721963"
                             }
                           },
                           "parameters": {
@@ -4624,7 +4492,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.16.2.56959",
-                                      "templateHash": "7158975045101659830"
+                                      "templateHash": "16940725594451854027"
                                     }
                                   },
                                   "parameters": {
@@ -4677,7 +4545,13 @@
                                         "timeout": "PT30M"
                                       }
                                     }
-                                  ]
+                                  ],
+                                  "outputs": {
+                                    "properties": {
+                                      "type": "object",
+                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                                    }
+                                  }
                                 }
                               }
                             },
@@ -4809,7 +4683,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.16.2.56959",
-                                      "templateHash": "7158975045101659830"
+                                      "templateHash": "16940725594451854027"
                                     }
                                   },
                                   "parameters": {
@@ -4862,7 +4736,13 @@
                                         "timeout": "PT30M"
                                       }
                                     }
-                                  ]
+                                  ],
+                                  "outputs": {
+                                    "properties": {
+                                      "type": "object",
+                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                                    }
+                                  }
                                 }
                               },
                               "dependsOn": [
@@ -4921,7 +4801,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "17273839528339420962"
+                              "templateHash": "5030154594170746408"
                             }
                           },
                           "parameters": {
@@ -5018,7 +4898,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.16.2.56959",
-                                      "templateHash": "7158975045101659830"
+                                      "templateHash": "16940725594451854027"
                                     }
                                   },
                                   "parameters": {
@@ -5071,7 +4951,13 @@
                                         "timeout": "PT30M"
                                       }
                                     }
-                                  ]
+                                  ],
+                                  "outputs": {
+                                    "properties": {
+                                      "type": "object",
+                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                                    }
+                                  }
                                 }
                               },
                               "dependsOn": [
@@ -5107,7 +4993,7 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('STIG_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp')))]"
       ]
     },
     {
@@ -5188,7 +5074,7 @@
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
           "AcceleratedNetworking": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.acceleratedNetworking.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.acceleratedNetworking]"
           },
           "AutomationAccountName": {
             "value": "[variables('AutomationAccountName')]"
@@ -5242,7 +5128,7 @@
             "value": "[parameters('DrainMode')]"
           },
           "EphemeralOsDisk": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.ephemeralOsDisk.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.ephemeralOsDisk]"
           },
           "Fslogix": {
             "value": "[variables('Fslogix')]"
@@ -5354,7 +5240,7 @@
             "value": "[parameters('Timestamp')]"
           },
           "TrustedLaunch": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.trustedLaunch.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.trustedLaunch]"
           },
           "VirtualNetwork": {
             "value": "[parameters('VirtualNetworkName')]"
@@ -5382,7 +5268,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "8538639644349800899"
+              "templateHash": "13173245107852497634"
             }
           },
           "parameters": {
@@ -5915,7 +5801,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "9413873007210338742"
+                      "templateHash": "5702632270636857870"
                     }
                   },
                   "parameters": {
@@ -6570,7 +6456,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "7158975045101659830"
+                              "templateHash": "16940725594451854027"
                             }
                           },
                           "parameters": {
@@ -6623,7 +6509,13 @@
                                 "timeout": "PT30M"
                               }
                             }
-                          ]
+                          ],
+                          "outputs": {
+                            "properties": {
+                              "type": "object",
+                              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                            }
+                          }
                         }
                       },
                       "dependsOn": [
@@ -6649,7 +6541,7 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('STIG_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp')))]"
       ]
     },
     {

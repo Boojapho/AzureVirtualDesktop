@@ -322,6 +322,8 @@ var ResourceGroups = Fslogix ? [
   ResourceGroupManagement
   ResourceGroupHosts
 ]
+var SecurityPrincipalIdsCount = length(SecurityPrincipalObjectIds)
+var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
 var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
 var StampIndexFull = padLeft(StampIndex, 2, '0')
@@ -368,43 +370,24 @@ resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
+
 // Validation Deployment Script
 // This module validates the selected parameter values and collects required data
-module validation 'modules/validation.bicep' = {
-  name: 'Validation_${Timestamp}'
+module validation 'modules/deploymentScript.bicep' = {
   scope: resourceGroup(ResourceGroupManagement)
+  name: 'DeploymentScript_Validation_${Timestamp}'
   params: {
-    _artifactsLocation: _artifactsLocation    
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    Availability: Availability
-    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
-    DiskEncryption: DiskEncryption
-    DiskSku: DiskSku
-    DomainName: DomainName
-    DomainServices: DomainServices
-    EphemeralOsDisk: EphemeralOsDisk
-    ImageSku: ImageSku
-    KerberosEncryption: KerberosEncryption
+    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -EphemeralOsDisk ${EphemeralOsDisk} -ImageSku ${ImageSku} -KerberosEncryption ${KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
     Location: Location
-    ManagedIdentityResourceId: userAssignedIdentity.outputs.id
-    PooledHostPool: PooledHostPool
-    RecoveryServices: RecoveryServices
-    SecurityPrincipalIds: SecurityPrincipalObjectIds
-    SecurityPrincipalNames: SecurityPrincipalNames
-    SessionHostCount: SessionHostCount
-    SessionHostIndex: SessionHostIndex
-    StartVmOnConnect: StartVmOnConnect
-    StorageCount: StorageCount
-    StorageSolution: StorageSolution
-    Tags: Tags
+    Name: '${DeploymentScriptNamePrefix}validation'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'Get-Validation.ps1'
     Timestamp: Timestamp
-    VirtualNetwork: VirtualNetworkName
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
-    VmSize: VmSize
+    UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
   }
   dependsOn: [
     resourceGroups
-    userAssignedIdentity
   ]
 }
 
@@ -511,14 +494,14 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    ActiveDirectoryConnection: validation.outputs.anfActiveDirectory
+    ActiveDirectoryConnection: validation.outputs.properties.anfActiveDirectory
     ClientId: userAssignedIdentity.outputs.clientId
-    DelegatedSubnetId: validation.outputs.anfSubnetId
+    DelegatedSubnetId: validation.outputs.properties.anfSubnetId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
-    DnsServerForwarderIPAddresses: validation.outputs.dnsForwarders
-    DnsServers: validation.outputs.anfDnsServers
-    DnsServerSize: validation.outputs.dnsServerSize
+    DnsServerForwarderIPAddresses: validation.outputs.properties.dnsForwarders
+    DnsServers: validation.outputs.properties.anfDnsServers
+    DnsServerSize: validation.outputs.properties.dnsServerSize
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
@@ -589,7 +572,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    AcceleratedNetworking: validation.outputs.acceleratedNetworking
+    AcceleratedNetworking: validation.outputs.properties.acceleratedNetworking
     AutomationAccountName: AutomationAccountName
     Availability: Availability
     AvailabilitySetCount: AvailabilitySetCount
@@ -607,7 +590,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     DomainName: DomainName
     DomainServices: DomainServices
     DrainMode: DrainMode
-    EphemeralOsDisk: validation.outputs.ephemeralOsDisk
+    EphemeralOsDisk: validation.outputs.properties.ephemeralOsDisk
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution
     HostPoolName: HostPoolName
@@ -647,7 +630,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
-    TrustedLaunch: validation.outputs.trustedLaunch
+    TrustedLaunch: validation.outputs.properties.trustedLaunch
     VirtualNetwork: VirtualNetworkName
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmName: VmName

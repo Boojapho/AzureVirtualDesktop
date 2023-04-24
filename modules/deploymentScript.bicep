@@ -30,3 +30,5 @@ resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     timeout: 'PT30M'
   }
 }
+
+output properties object = deploymentScript.properties.outputs
