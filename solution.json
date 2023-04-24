@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "11715316311116751089"
+      "templateHash": "17320199473480420776"
     }
   },
   "parameters": {
@@ -906,7 +906,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "286575974856006340"
+              "templateHash": "2635291830057766753"
             }
           },
           "parameters": {
@@ -1013,13 +1013,17 @@
             }
           ],
           "outputs": {
-            "principalId": {
+            "clientId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName')), '2018-11-30').principalId]"
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName')), '2018-11-30').clientId]"
             },
             "id": {
               "type": "string",
               "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]"
+            },
+            "principalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName')), '2018-11-30').principalId]"
             }
           }
         }
@@ -2567,6 +2571,9 @@
           "ActiveDirectoryConnection": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfActiveDirectory.value]"
           },
+          "ClientId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.clientId.value]"
+          },
           "DelegatedSubnetId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfSubnetId.value]"
           },
@@ -2722,7 +2729,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "9829021473587469020"
+              "templateHash": "13801191335867211900"
             }
           },
           "parameters": {
@@ -2733,6 +2740,9 @@
               "type": "securestring"
             },
             "ActiveDirectoryConnection": {
+              "type": "string"
+            },
+            "ClientId": {
               "type": "string"
             },
             "DelegatedSubnetId": {
@@ -3646,6 +3656,9 @@
                   "_artifactsLocationSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
                   },
+                  "ClientId": {
+                    "value": "[parameters('ClientId')]"
+                  },
                   "DeploymentScriptNamePrefix": {
                     "value": "[parameters('DeploymentScriptNamePrefix')]"
                   },
@@ -3780,7 +3793,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "6178430857411425488"
+                      "templateHash": "14215066860593975264"
                     }
                   },
                   "parameters": {
@@ -3789,6 +3802,9 @@
                     },
                     "_artifactsLocationSasToken": {
                       "type": "securestring"
+                    },
+                    "ClientId": {
+                      "type": "string"
                     },
                     "DeploymentScriptNamePrefix": {
                       "type": "string"
@@ -4877,7 +4893,7 @@
                             "value": "[parameters('_artifactsLocationSasToken')]"
                           },
                           "CommandToExecute": {
-                            "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword \"{0}\" -DomainJoinUserPrincipalName {1} -DomainServices {2} -Environment {3} -FslogixSolution {4} -KerberosEncryptionType {5} -Netbios {6} -OuPath \"{7}\" -SecurityPrincipalNames \"{8}\" -StorageAccountPrefix {9} -StorageAccountResourceGroupName {10} -StorageCount {11} -StorageIndex {12} -StorageSolution {13} -StorageSuffix {14} -SubscriptionId {15} -TenantId {16}', parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('DomainServices'), environment().name, parameters('FslogixSolution'), parameters('KerberosEncryption'), parameters('Netbios'), parameters('OuPath'), parameters('SecurityPrincipalNames'), parameters('StorageAccountPrefix'), parameters('ResourceGroupStorage'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), environment().suffixes.storage, subscription().subscriptionId, subscription().tenantId)]"
+                            "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -ClientId {0} -DomainJoinPassword \"{1}\" -DomainJoinUserPrincipalName {2} -DomainServices {3} -Environment {4} -FslogixSolution {5} -KerberosEncryptionType {6} -Netbios {7} -OuPath \"{8}\" -SecurityPrincipalNames \"{9}\" -StorageAccountPrefix {10} -StorageAccountResourceGroupName {11} -StorageCount {12} -StorageIndex {13} -StorageSolution {14} -StorageSuffix {15} -SubscriptionId {16} -TenantId {17}', parameters('ClientId'), parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('DomainServices'), environment().name, parameters('FslogixSolution'), parameters('KerberosEncryption'), parameters('Netbios'), parameters('OuPath'), parameters('SecurityPrincipalNames'), parameters('StorageAccountPrefix'), parameters('ResourceGroupStorage'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), environment().suffixes.storage, subscription().subscriptionId, subscription().tenantId)]"
                           },
                           "DeploymentScriptNamePrefix": {
                             "value": "[parameters('DeploymentScriptNamePrefix')]"

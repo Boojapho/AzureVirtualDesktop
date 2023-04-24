@@ -1,5 +1,8 @@
 param 
 (
+    [Parameter(Mandatory)]
+    [String]$ClientId,
+
     [Parameter(Mandatory=$false)]
     [String]$DomainAccountType = "ComputerAccount",
 
@@ -190,7 +193,7 @@ try
                 $FileServer = '\\' + $StorageAccountName + $FilesSuffix
 
                 # Connects to Azure using a User Assigned Managed Identity
-                Connect-AzAccount -Identity -Environment $Environment -Tenant $TenantId -Subscription $SubscriptionId
+                Connect-AzAccount -Identity -AccountId $ClientId -Environment $Environment -Tenant $TenantId -Subscription $SubscriptionId
                 Write-Log -Message "Authenticated to Azure" -Type 'INFO'
 
                 # Get the storage account key

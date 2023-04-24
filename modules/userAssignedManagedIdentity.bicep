@@ -53,5 +53,6 @@ module roleAssignments 'roleAssignment.bicep' = [for i in range(0, length(RoleAs
   }
 }]
 
-output principalId string = userAssignedIdentity.properties.principalId
+output clientId string = userAssignedIdentity.properties.clientId
 output id string = userAssignedIdentity.id
+output principalId string = userAssignedIdentity.properties.principalId

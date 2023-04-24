@@ -512,6 +512,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
     ActiveDirectoryConnection: validation.outputs.anfActiveDirectory
+    ClientId: userAssignedIdentity.outputs.clientId
     DelegatedSubnetId: validation.outputs.anfSubnetId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption

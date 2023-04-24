@@ -5,6 +5,7 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param ActiveDirectoryConnection string
+param ClientId string
 param DelegatedSubnetId string
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
@@ -128,6 +129,7 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    ClientId: ClientId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DnsServerForwarderIPAddresses: DnsServerForwarderIPAddresses
     DnsServerSize: DnsServerSize
