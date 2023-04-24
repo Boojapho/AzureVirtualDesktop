@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "3047128047420126753"
+      "templateHash": "7826056251255817179"
     }
   },
   "parameters": {
@@ -842,7 +842,7 @@
       "apiVersion": "2022-04-01",
       "name": "[guid(variables('UserAssignedIdentityName'), variables('ReaderRoleDefinitionResourceId'), subscription().id)]",
       "properties": {
-        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('ReaderRoleDefinitionResourceId'))]",
+        "roleDefinitionId": "[variables('ReaderRoleDefinitionResourceId')]",
         "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]",
         "principalType": "ServicePrincipal"
       },
@@ -856,7 +856,7 @@
       "apiVersion": "2022-04-01",
       "name": "[guid(parameters('AvdObjectId'), variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId'), subscription().id)]",
       "properties": {
-        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId'))]",
+        "roleDefinitionId": "[variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId')]",
         "principalId": "[parameters('AvdObjectId')]"
       }
     },

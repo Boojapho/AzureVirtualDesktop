@@ -362,7 +362,7 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
 resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(UserAssignedIdentityName, ReaderRoleDefinitionResourceId, subscription().id)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', ReaderRoleDefinitionResourceId)
+    roleDefinitionId: ReaderRoleDefinitionResourceId
     principalId: userAssignedIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
   }
@@ -411,7 +411,7 @@ module validation 'modules/validation.bicep' = {
 resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(StartVmOnConnect) {
   name: guid(AvdObjectId, DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId, subscription().id)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId)
+    roleDefinitionId: DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId
     principalId: AvdObjectId
   }
 }
