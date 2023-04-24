@@ -12,6 +12,9 @@ try
         -Name $VirtualMachineName `
         -ForceDeletion $true `
         -Force
+
+    $DeploymentScriptOutputs = @{}
+    $DeploymentScriptOutputs['virtualMachineName'] = $VirtualMachineName
 }
 catch 
 {

@@ -13,3 +13,4 @@ foreach($SessionHost in $SessionHosts)
     Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False
 }
 $DeploymentScriptOutputs = @{}
+$DeploymentScriptOutputs['hostPool'] = $HostPool
