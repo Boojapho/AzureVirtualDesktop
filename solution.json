@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "17192675131137647909"
+      "templateHash": "9830785629403094082"
     }
   },
   "parameters": {
@@ -5382,7 +5382,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "4374357522679209578"
+              "templateHash": "8538639644349800899"
             }
           },
           "parameters": {
@@ -5915,7 +5915,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "3689149556856061294"
+                      "templateHash": "9413873007210338742"
                     }
                   },
                   "parameters": {
@@ -6268,6 +6268,37 @@
                     },
                     {
                       "copy": {
+                        "name": "extension_AzureDiskEncryption",
+                        "count": "[length(range(0, parameters('SessionHostCount')))]"
+                      },
+                      "condition": "[parameters('DiskEncryption')]",
+                      "type": "Microsoft.Compute/virtualMachines/extensions",
+                      "apiVersion": "2017-03-30",
+                      "name": "[format('{0}{1}/AzureDiskEncryption', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "publisher": "Microsoft.Azure.Security",
+                        "type": "AzureDiskEncryption",
+                        "typeHandlerVersion": "2.2",
+                        "autoUpgradeMinorVersion": true,
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "settings": {
+                          "EncryptionOperation": "EnableEncryption",
+                          "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2022-07-01').vaultUri, '')]",
+                          "KeyVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
+                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.text, '')]",
+                          "KekVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
+                          "KeyEncryptionAlgorithm": "RSA-OAEP",
+                          "VolumeType": "All",
+                          "ResizeOSDisk": false
+                        }
+                      },
+                      "dependsOn": [
+                        "virtualMachine"
+                      ]
+                    },
+                    {
+                      "copy": {
                         "name": "extension_MicrosoftMonitoringAgent",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
                       },
@@ -6318,6 +6349,7 @@
                         }
                       },
                       "dependsOn": [
+                        "extension_AzureDiskEncryption",
                         "extension_MicrosoftMonitoringAgent",
                         "virtualMachine"
                       ]
@@ -6428,38 +6460,6 @@
                     },
                     {
                       "copy": {
-                        "name": "extension_AzureDiskEncryption",
-                        "count": "[length(range(0, parameters('SessionHostCount')))]"
-                      },
-                      "condition": "[parameters('DiskEncryption')]",
-                      "type": "Microsoft.Compute/virtualMachines/extensions",
-                      "apiVersion": "2017-03-30",
-                      "name": "[format('{0}{1}/AzureDiskEncryption', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "publisher": "Microsoft.Azure.Security",
-                        "type": "AzureDiskEncryption",
-                        "typeHandlerVersion": "2.2",
-                        "autoUpgradeMinorVersion": true,
-                        "forceUpdateTag": "[parameters('Timestamp')]",
-                        "settings": {
-                          "EncryptionOperation": "EnableEncryption",
-                          "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2022-07-01').vaultUri, '')]",
-                          "KeyVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
-                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.text, '')]",
-                          "KekVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
-                          "KeyEncryptionAlgorithm": "RSA-OAEP",
-                          "VolumeType": "All",
-                          "ResizeOSDisk": false
-                        }
-                      },
-                      "dependsOn": [
-                        "extension_AmdGpuDriverWindows",
-                        "extension_NvidiaGpuDriverWindows"
-                      ]
-                    },
-                    {
-                      "copy": {
                         "name": "extension_DSC",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
                       },
@@ -6522,7 +6522,8 @@
                         }
                       },
                       "dependsOn": [
-                        "extension_AzureDiskEncryption"
+                        "extension_AmdGpuDriverWindows",
+                        "extension_NvidiaGpuDriverWindows"
                       ]
                     },
                     {

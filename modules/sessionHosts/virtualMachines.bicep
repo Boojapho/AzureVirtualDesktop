@@ -229,6 +229,41 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
   ]
 }]
 
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if(DiskEncryption) {
+  name: KeyVaultName
+  scope: resourceGroup(ResourceGroupManagement)
+}
+
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if(DiskEncryption) {
+  name: '${DeploymentScriptNamePrefix}kek'
+  scope: resourceGroup(ResourceGroupManagement)
+}
+
+resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if(DiskEncryption) {
+  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AzureDiskEncryption'
+  location: Location
+  properties: {
+    publisher: 'Microsoft.Azure.Security'
+    type: 'AzureDiskEncryption'
+    typeHandlerVersion: '2.2'
+    autoUpgradeMinorVersion: true
+    forceUpdateTag: Timestamp
+    settings: {
+      EncryptionOperation: 'EnableEncryption'
+      KeyVaultURL: DiskEncryption ? keyVault.properties.vaultUri : ''
+      KeyVaultResourceId: DiskEncryption ? keyVault.id : ''
+      KeyEncryptionKeyURL: DiskEncryption ? deploymentScript.properties.outputs.text : ''
+      KekVaultResourceId: DiskEncryption ? keyVault.id : ''
+      KeyEncryptionAlgorithm: 'RSA-OAEP'
+      VolumeType: 'All'
+      ResizeOSDisk: false
+    }
+  }
+  dependsOn: [
+    virtualMachine
+  ]
+}]
+
 resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if(Monitoring) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/MicrosoftMonitoringAgent'
   location: Location
@@ -269,8 +304,9 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
     }
   }
   dependsOn: [
-    virtualMachine
+    extension_AzureDiskEncryption
     extension_MicrosoftMonitoringAgent
+    virtualMachine
   ]
 }]
 
@@ -289,8 +325,8 @@ module drainMode '../deploymentScript.bicep' = if(DrainMode) {
     UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
   dependsOn: [
-    virtualMachine
     extension_CustomScriptExtension
+    virtualMachine
   ]
 }
 
@@ -316,8 +352,8 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
     }
   }
   dependsOn: [
-    virtualMachine
     drainMode
+    virtualMachine
   ]
 }]
 
@@ -335,8 +371,8 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
     } : null
   }
   dependsOn: [
-    virtualMachine
     extension_CustomScriptExtension
+    virtualMachine
   ]
 }]
 
@@ -352,9 +388,9 @@ resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extens
     settings: {}
   }
   dependsOn: [
-    virtualMachine
-    extension_JsonADDomainExtension
     extension_AADLoginForWindows
+    extension_JsonADDomainExtension
+    virtualMachine
   ]
 }]
 
@@ -370,45 +406,9 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
     settings: {}
   }
   dependsOn: [
-    virtualMachine
-    extension_JsonADDomainExtension
     extension_AADLoginForWindows
-  ]
-}]
-
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if(DiskEncryption) {
-  name: KeyVaultName
-  scope: resourceGroup(ResourceGroupManagement)
-}
-
-resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if(DiskEncryption) {
-  name: '${DeploymentScriptNamePrefix}kek'
-  scope: resourceGroup(ResourceGroupManagement)
-}
-
-resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if(DiskEncryption) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AzureDiskEncryption'
-  location: Location
-  properties: {
-    publisher: 'Microsoft.Azure.Security'
-    type: 'AzureDiskEncryption'
-    typeHandlerVersion: '2.2'
-    autoUpgradeMinorVersion: true
-    forceUpdateTag: Timestamp
-    settings: {
-      EncryptionOperation: 'EnableEncryption'
-      KeyVaultURL: DiskEncryption ? keyVault.properties.vaultUri : ''
-      KeyVaultResourceId: DiskEncryption ? keyVault.id : ''
-      KeyEncryptionKeyURL: DiskEncryption ? deploymentScript.properties.outputs.text : ''
-      KekVaultResourceId: DiskEncryption ? keyVault.id : ''
-      KeyEncryptionAlgorithm: 'RSA-OAEP'
-      VolumeType: 'All'
-      ResizeOSDisk: false
-    }
-  }
-  dependsOn: [
-    extension_AmdGpuDriverWindows
-    extension_NvidiaGpuDriverWindows
+    extension_JsonADDomainExtension
+    virtualMachine
   ]
 }]
 
@@ -469,6 +469,7 @@ resource extension_DSC 'Microsoft.Compute/virtualMachines/extensions@2019-07-01'
     }
   }
   dependsOn: [
-    extension_AzureDiskEncryption
+    extension_AmdGpuDriverWindows
+    extension_NvidiaGpuDriverWindows
   ]
 }]
