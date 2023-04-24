@@ -376,6 +376,16 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
   ]
 }]
 
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if(DiskEncryption) {
+  name: KeyVaultName
+  scope: resourceGroup(ResourceGroupManagement)
+}
+
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if(DiskEncryption) {
+  name: '${DeploymentScriptNamePrefix}kek'
+  scope: resourceGroup(ResourceGroupManagement)
+}
+
 resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if(DiskEncryption) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AzureDiskEncryption'
   location: Location
@@ -387,10 +397,10 @@ resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extens
     forceUpdateTag: Timestamp
     settings: {
       EncryptionOperation: 'EnableEncryption'
-      KeyVaultURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
-      KeyVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', '${DeploymentScriptNamePrefix}kek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
-      KekVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
+      KeyVaultURL: DiskEncryption ? keyVault.properties.vaultUri : ''
+      KeyVaultResourceId: DiskEncryption ? keyVault.id : ''
+      KeyEncryptionKeyURL: DiskEncryption ? deploymentScript.properties.outputs.text : ''
+      KekVaultResourceId: DiskEncryption ? keyVault.id : ''
       KeyEncryptionAlgorithm: 'RSA-OAEP'
       VolumeType: 'All'
       ResizeOSDisk: false
