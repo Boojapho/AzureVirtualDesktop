@@ -3,6 +3,7 @@ param _artifactsLocation string
 param _artifactsLocationSasToken string
 param ActiveDirectoryConnection string
 param DelegatedSubnetId string
+param DeploymentScriptNamePrefix string
 param DnsServers string
 @secure()
 param DomainJoinPassword string
@@ -12,7 +13,6 @@ param FileShares array
 param FslogixSolution string
 param Location string
 param ManagementVmName string
-param NamingStandard string
 param NetAppAccountName string
 param NetAppCapacityPoolName string
 param OuPath string
@@ -24,7 +24,6 @@ param StorageSolution string
 param Tags object
 param Timestamp string
 param UserAssignedIdentityResourceId string
-
 
 resource netAppAccount 'Microsoft.NetApp/netAppAccounts@2021-06-01' = {
   name: NetAppAccountName
@@ -49,7 +48,7 @@ resource netAppAccount 'Microsoft.NetApp/netAppAccounts@2021-06-01' = {
 }
 
 resource capacityPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2021-06-01' = {
-  parent:netAppAccount
+  parent: netAppAccount
   name: NetAppCapacityPoolName
   location: Location
   tags: Tags
@@ -116,8 +115,8 @@ resource volumes 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2021-06-
     kerberosEnabled: false
     ldapEnabled: false
     networkFeatures: 'Basic'
-    protocolTypes: [ 
-       'CIFS' 
+    protocolTypes: [
+      'CIFS'
     ]
     securityStyle: 'ntfs'
     serviceLevel: StorageSku
@@ -138,12 +137,12 @@ module ntfsPermissions 'ntfsPermissions.bicep' = {
   name: 'FslogixNtfsPermissions_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
-    _artifactsLocation: _artifactsLocation    
+    _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -FslogixSolution ${FslogixSolution} -SecurityPrincipalNames "${SecurityPrincipalNames}" -SmbServerLocation ${SmbServerLocation} -StorageSolution ${StorageSolution}'
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     Location: Location
     ManagementVmName: ManagementVmName
-    NamingStandard: NamingStandard
     Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId

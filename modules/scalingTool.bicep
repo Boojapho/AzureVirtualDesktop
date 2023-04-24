@@ -11,7 +11,6 @@ param Location string
 param MinimumNumberOfRdsh string
 param ResourceGroupHosts string
 param ResourceGroupManagement string
-param RoleDefinitionIds object
 param SessionThresholdPerCPU string
 param TimeDifference string
 param Time string = utcNow('u')
@@ -89,11 +88,11 @@ resource jobSchedules 'Microsoft.Automation/automationAccounts/jobSchedules@2022
 }]
 
 // Gives the Automation Account the "Desktop Virtualization Power On Off Contributor" role on the resource groups containing the hosts and host pool
-module roleAssignments 'roleAssignment.bicep' = [for i in range(0, length(RoleAssignments)): {
+module roleAssignment 'roleAssignment.bicep' = [for i in range(0, length(RoleAssignments)): {
   name: 'RoleAssignment_${i}_${RoleAssignments[i]}'
   scope: resourceGroup(RoleAssignments[i])
   params: {
     PrincipalId: automationAccount.identity.principalId
-    RoleDefinitionId: RoleDefinitionIds.desktopVirtualizationPowerOnOffContributor
+    RoleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '40c5ff49-9181-41f8-ae61-143b0e78555e') // Desktop Virtualization Power On Off Contributor
   }
 }]

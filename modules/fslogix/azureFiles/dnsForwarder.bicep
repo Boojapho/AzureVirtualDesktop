@@ -1,6 +1,7 @@
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
+param DeploymentScriptNamePrefix string
 param DnsServerForwarderIPAddresses array
 param DnsServerSize string
 @secure()
@@ -12,13 +13,13 @@ param HybridUseBenefit bool
 param Identifier string
 param Location string
 param LocationShortName string
-param ManagedIdentityResourceId string
 param NamingStandard string
 param StampIndexFull string
 param StorageSuffix string
 param Subnet string
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
@@ -30,24 +31,17 @@ var SubnetId = resourceId(VirtualNetworkResourceGroup, 'Microsoft.Network/virtua
 var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndexFull}dns'
 
 
-resource deploymentScript_GetDns 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: 'ds-${NamingStandard}-getDns'
-  location: Location
-  kind: 'AzurePowerShell'
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${ManagedIdentityResourceId}': {}
-    }
-  }
-  properties: {
-    forceUpdateTag: Timestamp
-    azPowerShellVersion: '5.4'
-    arguments: '-Subnet ${Subnet} -VirtualNetwork ${VirtualNetwork} -VirtualNetworkResourceGroup ${VirtualNetworkResourceGroup}'
-    primaryScriptUri: '${_artifactsLocation}Get-AzureVirtualNetworkDns.ps1${_artifactsLocationSasToken}'
-    timeout: 'PT4H'
-    cleanupPreference: 'OnSuccess'
-    retentionInterval: 'P1D'
+module deploymentScript_GetDns '../../deploymentScript.bicep' = {
+  name: 'DeploymentScript_Get-DNS_${Timestamp}'
+  params: {
+    Arguments: '-Subnet ${Subnet} -VirtualNetwork ${VirtualNetwork} -VirtualNetworkResourceGroup ${VirtualNetworkResourceGroup}'
+    Location: Location
+    Name: '${DeploymentScriptNamePrefix}dns-get'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'Get-AzureVirtualNetworkDns.ps1'
+    Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
 }
 
@@ -128,7 +122,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2019-07-01' = {
         }
       ]
     }
-    licenseType: HybridUseBenefit ? 'Windows_Server' : json('null')
+    licenseType: HybridUseBenefit ? 'Windows_Server' : null
   }
   dependsOn: [
     staticIpAddress
@@ -136,7 +130,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2019-07-01' = {
 }
 
 resource domainJoinExt 'Microsoft.Compute/virtualMachines/extensions@2019-07-01' = {
-  name: '${vm.name}/JsonADDomainExtension'
+  parent: vm
+  name: 'JsonADDomainExtension'
   location: Location
   tags: Tags
   properties: {
@@ -158,7 +153,8 @@ resource domainJoinExt 'Microsoft.Compute/virtualMachines/extensions@2019-07-01'
 }
 
 resource dscExt 'Microsoft.Compute/virtualMachines/extensions@2019-07-01' = {
-  name: '${vm.name}/DSC'
+  parent: vm
+  name: 'DSC'
   location: Location
   tags: Tags
   properties: {
@@ -195,24 +191,17 @@ resource dscExt 'Microsoft.Compute/virtualMachines/extensions@2019-07-01' = {
   ]
 }
 
-resource deploymentScript_SetDns 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: 'ds-${NamingStandard}-setDns'
-  location: Location
-  kind: 'AzurePowerShell'
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${ManagedIdentityResourceId}': {}
-    }
-  }
-  properties: {
-    forceUpdateTag: Timestamp
-    azPowerShellVersion: '5.4'
-    arguments: '-Dns ${nic.properties.ipConfigurations[0].properties.privateIPAddress} -VirtualNetwork ${VirtualNetwork} -VirtualNetworkResourceGroup ${VirtualNetworkResourceGroup}'
-    primaryScriptUri: '${_artifactsLocation}Set-AzureVirtualNetworkDns.ps1${_artifactsLocationSasToken}'
-    timeout: 'PT4H'
-    cleanupPreference: 'OnSuccess'
-    retentionInterval: 'P1D'
+module deploymentScript_SetDns '../../deploymentScript.bicep' = {
+  name: 'DeploymentScript_Set-DNS_${Timestamp}'
+  params: {
+    Arguments: '-Dns ${nic.properties.ipConfigurations[0].properties.privateIPAddress} -VirtualNetwork ${VirtualNetwork} -VirtualNetworkResourceGroup ${VirtualNetworkResourceGroup}'
+    Location: Location
+    Name: '${DeploymentScriptNamePrefix}dns-set'
+    ScriptContainerSasToken: _artifactsLocationSasToken
+    ScriptContainerUri: _artifactsLocation
+    ScriptName: 'Set-AzureVirtualNetworkDns.ps1'
+    Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
   dependsOn: [
     dscExt

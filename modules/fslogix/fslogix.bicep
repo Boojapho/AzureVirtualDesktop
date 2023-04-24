@@ -6,6 +6,7 @@ param _artifactsLocation string
 param _artifactsLocationSasToken string
 param ActiveDirectoryConnection string
 param DelegatedSubnetId string
+param DeploymentScriptNamePrefix string
 param DiskEncryption bool
 param DnsServerForwarderIPAddresses array
 param DnsServers string
@@ -26,7 +27,6 @@ param KerberosEncryption string
 param KeyVaultName string
 param Location string
 param LocationShortName string
-param ManagedIdentityResourceId string
 param ManagementVmName string
 param NamingStandard string
 param NetAppAccountName string
@@ -48,9 +48,9 @@ param StorageSku string
 param StorageSolution string
 param StorageSuffix string
 param Subnet string
-param RoleDefinitionIds object
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
@@ -64,6 +64,7 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(
   name: 'ManagementVirtualMachine_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
@@ -76,6 +77,7 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
     VmPassword: VmPassword
@@ -93,6 +95,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     _artifactsLocationSasToken: _artifactsLocationSasToken
     ActiveDirectoryConnection: ActiveDirectoryConnection
     DelegatedSubnetId: DelegatedSubnetId
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DnsServers: DnsServers
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
@@ -101,7 +104,6 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     FslogixSolution: FslogixSolution
     Location: Location
     ManagementVmName: ManagementVmName
-    NamingStandard: NamingStandard
     NetAppAccountName: NetAppAccountName
     NetAppCapacityPoolName: NetAppCapacityPoolName
     OuPath: OuPath
@@ -112,7 +114,7 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
     StorageSolution: StorageSolution
     Tags: Tags
     Timestamp: Timestamp
-    UserAssignedIdentityResourceId: ManagedIdentityResourceId
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
   dependsOn: [
     managementVirtualMachine
@@ -126,6 +128,7 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DnsServerForwarderIPAddresses: DnsServerForwarderIPAddresses
     DnsServerSize: DnsServerSize
     DomainJoinPassword: DomainJoinPassword
@@ -142,7 +145,6 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
     KerberosEncryption: KerberosEncryption
     Location: Location
     LocationShortName: LocationShortName
-    ManagedIdentityResourceId: ManagedIdentityResourceId
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
     Netbios: Netbios
@@ -151,7 +153,6 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
     PrivateEndpoint: PrivateEndpoint
     ResourceGroupManagement: ResourceGroupManagement
     ResourceGroupStorage: ResourceGroupStorage
-    RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalIds
     SecurityPrincipalNames: SecurityPrincipalNames
     StampIndexFull: StampIndexFull
@@ -164,6 +165,7 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureSt
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
     VmPassword: VmPassword

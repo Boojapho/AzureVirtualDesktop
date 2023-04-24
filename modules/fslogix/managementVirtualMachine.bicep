@@ -1,3 +1,4 @@
+param DeploymentScriptNamePrefix string
 param DiskEncryption bool
 @secure()
 param DomainJoinPassword string
@@ -11,6 +12,7 @@ param ResourceGroupManagement string
 param Subnet string
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
@@ -100,7 +102,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     licenseType: 'Windows_Server'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${UserAssignedIdentityResourceId}': {}
+    }
   }
 }
 
@@ -141,7 +146,7 @@ resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extens
       EncryptionOperation: 'EnableEncryption'
       KeyVaultURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
       KeyVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', 'ds-${NamingStandard}-bitlockerKek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
+      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', '${DeploymentScriptNamePrefix}kek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
       KekVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
       KeyEncryptionAlgorithm: 'RSA-OAEP'
       VolumeType: 'All'

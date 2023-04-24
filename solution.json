@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "16717203428864473809"
+      "templateHash": "3880894207325016098"
     }
   },
   "parameters": {
@@ -772,6 +772,8 @@
     "AvailabilitySetPrefix": "[format('as-{0}', variables('NamingStandard'))]",
     "AutomationAccountName": "[format('aa-{0}', variables('NamingStandard'))]",
     "ConfigurationName": "Windows10",
+    "DeploymentScriptNamePrefix": "[format('ds-{0}-', variables('NamingStandard'))]",
+    "DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')]",
     "DiskName": "[format('disk-{0}', variables('NamingStandard'))]",
     "FileShareNames": {
       "CloudCacheProfileContainer": [
@@ -796,7 +798,7 @@
     "Locations": "[variables('$fxv#0')]",
     "LocationShortName": "[variables('Locations')[parameters('Location')].acronym]",
     "LogAnalyticsWorkspaceName": "[format('law-{0}', variables('NamingStandard'))]",
-    "ManagedIdentityName": "[format('uami-{0}', variables('NamingStandard'))]",
+    "UserAssignedIdentityName": "[format('uami-{0}', variables('NamingStandard'))]",
     "ManagementVmName": "[format('{0}mgt', variables('VmName'))]",
     "NamingStandard": "[format('{0}-{1}-{2}-{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), variables('StampIndexFull'))]",
     "NetAppAccountName": "[format('naa-{0}', variables('NamingStandard'))]",
@@ -806,23 +808,12 @@
     "PooledHostPool": "[if(equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled'), true(), false())]",
     "PrivateDnsZoneName": "[format('privatelink.file.{0}', variables('StorageSuffix'))]",
     "PrivateEndpoint": "[if(contains(parameters('FslogixStorage'), 'PrivateEndpoint'), true(), false())]",
+    "ReaderRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
     "RecoveryServicesVaultName": "[format('rsv-{0}', variables('NamingStandard'))]",
     "ResourceGroupHosts": "[format('rg-{0}-hosts', variables('NamingStandard'))]",
     "ResourceGroupManagement": "[format('rg-{0}-management', variables('NamingStandard'))]",
     "ResourceGroupStorage": "[format('rg-{0}-storage', variables('NamingStandard'))]",
     "ResourceGroups": "[if(variables('Fslogix'), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts'), variables('ResourceGroupStorage')), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts')))]",
-    "RoleDefinitionIds": {
-      "contributor": "b24988ac-6180-42a0-ab88-20f7382dd24c",
-      "desktopVirtualizationPowerOnContributor": "489581de-a3bd-480d-9518-53dea7416b33",
-      "desktopVirtualizationPowerOnOffContributor": "40c5ff49-9181-41f8-ae61-143b0e78555e",
-      "desktopVirtualizationSessionHostOperator": "2ad6aaab-ead9-4eaa-8ac5-da422f562408",
-      "desktopVirtualizationUser": "1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63",
-      "networkContributor": "4d97b98b-1d4f-4787-a291-c67834d212e7",
-      "reader": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-      "storageAccountContributor": "17d1049b-9a84-46fb-8f53-869881c3d3ab",
-      "storageFileDataSMBShareContributor": "0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb",
-      "virtualMachineUserLogin": "fb879df8-f326-4884-b1cf-06f3ad86be52"
-    },
     "Sentinel": "[if(or(empty(parameters('SentinelLogAnalyticsWorkspaceName')), empty(parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'))), false(), true())]",
     "SentinelResourceGroup": "[if(variables('Sentinel'), parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'), variables('ResourceGroupManagement'))]",
     "StampIndexFull": "[padLeft(parameters('StampIndex'), 2, '0')]",
@@ -847,28 +838,47 @@
       "tags": "[parameters('Tags')]"
     },
     {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('UserAssignedIdentityName'), variables('ReaderRoleDefinitionResourceId'), subscription().id)]",
+      "properties": {
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('ReaderRoleDefinitionResourceId'))]",
+        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]"
+      ]
+    },
+    {
       "condition": "[parameters('StartVmOnConnect')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
-      "name": "[guid(parameters('AvdObjectId'), variables('RoleDefinitionIds').desktopVirtualizationPowerOnContributor, subscription().id)]",
+      "name": "[guid(parameters('AvdObjectId'), variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId'), subscription().id)]",
       "properties": {
-        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('RoleDefinitionIds').desktopVirtualizationPowerOnContributor)]",
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId'))]",
         "principalId": "[parameters('AvdObjectId')]"
       }
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('ManagedIdentity_{0}', parameters('Timestamp'))]",
-      "location": "[deployment().location]",
+      "name": "[format('UserAssignedIdentity_{0}', parameters('Timestamp'))]",
+      "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
         },
         "mode": "Incremental",
         "parameters": {
+          "DiskEncryption": {
+            "value": "[parameters('DiskEncryption')]"
+          },
           "DrainMode": {
             "value": "[parameters('DrainMode')]"
+          },
+          "Fslogix": {
+            "value": "[variables('Fslogix')]"
           },
           "FslogixStorage": {
             "value": "[parameters('FslogixStorage')]"
@@ -876,14 +886,11 @@
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "ManagedIdentityName": {
-            "value": "[variables('ManagedIdentityName')]"
+          "UserAssignedIdentityName": {
+            "value": "[variables('UserAssignedIdentityName')]"
           },
-          "ResourceGroupManagement": {
-            "value": "[variables('ResourceGroupManagement')]"
-          },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
+          "ResourceGroupStorage": {
+            "value": "[variables('ResourceGroupStorage')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -893,17 +900,23 @@
           }
         },
         "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
           "metadata": {
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "11800387364043969251"
+              "templateHash": "17277478524551920087"
             }
           },
           "parameters": {
+            "DiskEncryption": {
+              "type": "bool"
+            },
             "DrainMode": {
+              "type": "bool"
+            },
+            "Fslogix": {
               "type": "bool"
             },
             "FslogixStorage": {
@@ -912,16 +925,13 @@
             "Location": {
               "type": "string"
             },
-            "ManagedIdentityName": {
+            "ResourceGroupStorage": {
               "type": "string"
-            },
-            "ResourceGroupManagement": {
-              "type": "string"
-            },
-            "RoleDefinitionIds": {
-              "type": "object"
             },
             "Timestamp": {
+              "type": "string"
+            },
+            "UserAssignedIdentityName": {
               "type": "string"
             },
             "VirtualNetworkResourceGroupName": {
@@ -929,80 +939,19 @@
             }
           },
           "variables": {
-            "DrainModeRoleAssignment": "[if(parameters('DrainMode'), createArray(createObject('condition', parameters('DrainMode'), 'resourceGroup', parameters('ResourceGroupManagement'), 'roleDefinitionId', parameters('RoleDefinitionIds').desktopVirtualizationSessionHostOperator)), createArray())]",
-            "PrivateEndpointRoleAssignment": "[if(contains(parameters('FslogixStorage'), 'PrivateEndpoint'), createArray(createObject('condition', contains(parameters('FslogixStorage'), 'PrivateEndpoint'), 'resourceGroup', parameters('VirtualNetworkResourceGroupName'), 'roleDefinitionId', parameters('RoleDefinitionIds').networkContributor)), createArray())]",
-            "RoleAssignments": "[union(variables('DrainModeRoleAssignment'), variables('PrivateEndpointRoleAssignment'))]"
+            "DiskEncryptionRoleAssignment": "[if(parameters('DiskEncryption'), createArray(createObject('roleDefinitionId', '14b46e9e-c2b7-41b4-b07b-48a6ebf60603', 'scope', resourceGroup().name)), createArray())]",
+            "DrainModeRoleAssignment": "[if(parameters('DrainMode'), createArray(createObject('roleDefinitionId', '2ad6aaab-ead9-4eaa-8ac5-da422f562408', 'scope', resourceGroup().name)), createArray())]",
+            "FSLogixNtfsRoleAssignments": "[if(parameters('Fslogix'), createArray(createObject('roleDefinitionId', 'a959dbd1-f747-45e3-8ba6-dd80f235f97c', 'scope', resourceGroup().name), createObject('roleDefinitionId', 'c12c1c16-33a1-487b-954d-41c89c60f349', 'scope', parameters('ResourceGroupStorage'))), createArray())]",
+            "FSLogixPrivateEndpointRoleAssignment": "[if(contains(parameters('FslogixStorage'), 'PrivateEndpoint'), createArray(createObject('roleDefinitionId', '4d97b98b-1d4f-4787-a291-c67834d212e7', 'scope', parameters('VirtualNetworkResourceGroupName'))), createArray())]",
+            "FSLogixRoleAssignments": "[union(variables('FSLogixNtfsRoleAssignments'), variables('FSLogixPrivateEndpointRoleAssignment'))]",
+            "RoleAssignments": "[union(variables('DiskEncryptionRoleAssignment'), variables('DrainModeRoleAssignment'), variables('FSLogixRoleAssignments'))]"
           },
           "resources": [
             {
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "name": "[guid(parameters('ManagedIdentityName'), parameters('RoleDefinitionIds').reader, subscription().id)]",
-              "properties": {
-                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionIds').reader)]",
-                "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]",
-                "principalType": "ServicePrincipal"
-              },
-              "dependsOn": [
-                "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp')))]"
-              ]
-            },
-            {
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "[format('UserAssignedManagedIdentity_{0}', parameters('Timestamp'))]",
-              "resourceGroup": "[parameters('ResourceGroupManagement')]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "Location": {
-                    "value": "[parameters('Location')]"
-                  },
-                  "ManagedIdentityName": {
-                    "value": "[parameters('ManagedIdentityName')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.16.2.56959",
-                      "templateHash": "3182124165124529360"
-                    }
-                  },
-                  "parameters": {
-                    "Location": {
-                      "type": "string"
-                    },
-                    "ManagedIdentityName": {
-                      "type": "string"
-                    }
-                  },
-                  "resources": [
-                    {
-                      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-                      "apiVersion": "2018-11-30",
-                      "name": "[parameters('ManagedIdentityName')]",
-                      "location": "[parameters('Location')]"
-                    }
-                  ],
-                  "outputs": {
-                    "principalId": {
-                      "type": "string",
-                      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('ManagedIdentityName')), '2018-11-30').principalId]"
-                    },
-                    "resourceIdentifier": {
-                      "type": "string",
-                      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('ManagedIdentityName'))]"
-                    }
-                  }
-                }
-              }
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2018-11-30",
+              "name": "[parameters('UserAssignedIdentityName')]",
+              "location": "[parameters('Location')]"
             },
             {
               "copy": {
@@ -1011,8 +960,8 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('RoleAssignments_{0}_{1}', variables('RoleAssignments')[range(0, length(variables('RoleAssignments')))[copyIndex()]].resourceGroup, parameters('Timestamp'))]",
-              "resourceGroup": "[variables('RoleAssignments')[range(0, length(variables('RoleAssignments')))[copyIndex()]].resourceGroup]",
+              "name": "[format('UAI_RoleAssignment_{0}_{1}', range(0, length(variables('RoleAssignments')))[copyIndex()], parameters('Timestamp'))]",
+              "resourceGroup": "[variables('RoleAssignments')[range(0, length(variables('RoleAssignments')))[copyIndex()]].scope]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1020,7 +969,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "PrincipalId": {
-                    "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]"
+                    "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName')), '2018-11-30').principalId]"
                   },
                   "RoleDefinitionId": {
                     "value": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('RoleAssignments')[range(0, length(variables('RoleAssignments')))[copyIndex()]].roleDefinitionId)]"
@@ -1059,25 +1008,22 @@
                 }
               },
               "dependsOn": [
-                "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp')))]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]"
               ]
             }
           ],
           "outputs": {
             "principalId": {
               "type": "string",
-              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]"
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName')), '2018-11-30').principalId]"
             },
-            "resourceIdentifier": {
+            "id": {
               "type": "string",
-              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.resourceIdentifier.value]"
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UserAssignedIdentityName'))]"
             }
           }
         }
-      },
-      "dependsOn": [
-        "resourceGroups"
-      ]
+      }
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -1098,6 +1044,9 @@
           },
           "Availability": {
             "value": "[parameters('Availability')]"
+          },
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
           },
           "DiskEncryption": {
             "value": "[parameters('DiskEncryption')]"
@@ -1124,10 +1073,7 @@
             "value": "[parameters('Location')]"
           },
           "ManagedIdentityResourceId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.resourceIdentifier.value]"
-          },
-          "NamingStandard": {
-            "value": "[variables('NamingStandard')]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           },
           "PooledHostPool": {
             "value": "[variables('PooledHostPool')]"
@@ -1179,7 +1125,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "1546661280389584892"
+              "templateHash": "17979751517210361347"
             }
           },
           "parameters": {
@@ -1190,6 +1136,9 @@
               "type": "securestring"
             },
             "Availability": {
+              "type": "string"
+            },
+            "DeploymentScriptNamePrefix": {
               "type": "string"
             },
             "DiskEncryption": {
@@ -1217,9 +1166,6 @@
               "type": "string"
             },
             "ManagedIdentityResourceId": {
-              "type": "string"
-            },
-            "NamingStandard": {
               "type": "string"
             },
             "PooledHostPool": {
@@ -1273,7 +1219,7 @@
             {
               "type": "Microsoft.Resources/deploymentScripts",
               "apiVersion": "2020-10-01",
-              "name": "[format('ds-{0}-validation', parameters('NamingStandard'))]",
+              "name": "[format('{0}validation', parameters('DeploymentScriptNamePrefix'))]",
               "location": "[parameters('Location')]",
               "tags": "[parameters('Tags')]",
               "kind": "AzurePowerShell",
@@ -1297,42 +1243,42 @@
           "outputs": {
             "acceleratedNetworking": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.acceleratedNetworking]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.acceleratedNetworking]"
             },
             "anfActiveDirectory": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.anfActiveDirectory]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfActiveDirectory]"
             },
             "anfDnsServers": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.anfDnsServers]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfDnsServers]"
             },
             "anfSubnetId": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.anfSubnetId]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.anfSubnetId]"
             },
             "dnsForwarders": {
               "type": "array",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.dnsForwarders]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.dnsForwarders]"
             },
             "dnsServerSize": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.dnsServerSize]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.dnsServerSize]"
             },
             "ephemeralOsDisk": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.ephemeralOsDisk]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.ephemeralOsDisk]"
             },
             "trustedLaunch": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-{0}-validation', parameters('NamingStandard'))), '2020-10-01').outputs.trustedLaunch]"
+              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('{0}validation', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.trustedLaunch]"
             }
           }
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp')))]",
-        "resourceGroups"
+        "resourceGroups",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]"
       ]
     },
     {
@@ -1467,9 +1413,6 @@
           "MaxSessionLimit": {
             "value": "[parameters('MaxSessionLimit')]"
           },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
-          },
           "SecurityPrincipalIds": {
             "value": "[parameters('SecurityPrincipalObjectIds')]"
           },
@@ -1496,7 +1439,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "12145100459502967184"
+              "templateHash": "15096266836960694794"
             }
           },
           "parameters": {
@@ -1524,9 +1467,6 @@
             "MaxSessionLimit": {
               "type": "int"
             },
-            "RoleDefinitionIds": {
-              "type": "object"
-            },
             "SecurityPrincipalIds": {
               "type": "array"
             },
@@ -1552,6 +1492,7 @@
           },
           "variables": {
             "CustomRdpProperty_Complete": "[if(contains(parameters('DomainServices'), 'None'), format('{0}targetisaadjoined:i:1', parameters('CustomRdpProperty')), parameters('CustomRdpProperty'))]",
+            "DesktopVirtualizationUserRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', '1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63')]",
             "HostPoolLogs": [
               {
                 "category": "Checkpoint",
@@ -1637,9 +1578,9 @@
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
               "scope": "[format('Microsoft.DesktopVirtualization/applicationGroups/{0}', parameters('AppGroupName'))]",
-              "name": "[guid(parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]], parameters('RoleDefinitionIds').desktopVirtualizationUser, parameters('AppGroupName'))]",
+              "name": "[guid(parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]], variables('DesktopVirtualizationUserRoleDefinitionResourceId'), parameters('AppGroupName'))]",
               "properties": {
-                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionIds').desktopVirtualizationUser)]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('DesktopVirtualizationUserRoleDefinitionResourceId'))]",
                 "principalId": "[parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]]]"
               },
               "dependsOn": [
@@ -2231,8 +2172,11 @@
           "_artifactsLocationSasToken": {
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
-          "ResourceGroupManagement": {
-            "value": "[variables('ResourceGroupManagement')]"
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
+          },
+          "Environment": {
+            "value": "[parameters('Environment')]"
           },
           "KeyVaultName": {
             "value": "[variables('KeyVaultName')]"
@@ -2240,14 +2184,11 @@
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "ManagedIdentityPrincipalId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]"
-          },
           "ManagedIdentityResourceId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.resourceIdentifier.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           },
-          "NamingStandard": {
-            "value": "[variables('NamingStandard')]"
+          "ResourceGroupManagement": {
+            "value": "[variables('ResourceGroupManagement')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -2260,7 +2201,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "10874246084290429910"
+              "templateHash": "18126914644344423609"
             }
           },
           "parameters": {
@@ -2270,19 +2211,19 @@
             "_artifactsLocationSasToken": {
               "type": "securestring"
             },
+            "DeploymentScriptNamePrefix": {
+              "type": "string"
+            },
+            "Environment": {
+              "type": "string"
+            },
             "KeyVaultName": {
               "type": "string"
             },
             "Location": {
               "type": "string"
             },
-            "ManagedIdentityPrincipalId": {
-              "type": "string"
-            },
             "ManagedIdentityResourceId": {
-              "type": "string"
-            },
-            "NamingStandard": {
               "type": "string"
             },
             "ResourceGroupManagement": {
@@ -2295,39 +2236,29 @@
           "resources": [
             {
               "type": "Microsoft.KeyVault/vaults",
-              "apiVersion": "2016-10-01",
+              "apiVersion": "2022-07-01",
               "name": "[parameters('KeyVaultName')]",
               "location": "[parameters('Location')]",
               "tags": {},
               "properties": {
-                "tenantId": "[subscription().tenantId]",
+                "enabledForDeployment": false,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": false,
+                "enablePurgeProtection": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), false(), true())]",
+                "enableRbacAuthorization": true,
+                "enableSoftDelete": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), false(), true())]",
                 "sku": {
                   "family": "A",
                   "name": "standard"
                 },
-                "accessPolicies": [
-                  {
-                    "tenantId": "[subscription().tenantId]",
-                    "objectId": "[parameters('ManagedIdentityPrincipalId')]",
-                    "permissions": {
-                      "keys": [
-                        "get",
-                        "list",
-                        "create"
-                      ],
-                      "secrets": []
-                    }
-                  }
-                ],
-                "enabledForDeployment": false,
-                "enabledForTemplateDeployment": false,
-                "enabledForDiskEncryption": true
+                "softDeleteRetentionInDays": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), null(), 90)]",
+                "tenantId": "[subscription().tenantId]"
               }
             },
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('DeploymentScript_{0}', parameters('Timestamp'))]",
+              "name": "[format('DeploymentScript_KeyVault-KEK_{0}', parameters('Timestamp'))]",
               "resourceGroup": "[parameters('ResourceGroupManagement')]",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -2342,7 +2273,7 @@
                     "value": "[parameters('Location')]"
                   },
                   "Name": {
-                    "value": "[format('ds-{0}-bitlockerKek', parameters('NamingStandard'))]"
+                    "value": "[format('{0}kek', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "ScriptContainerSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
@@ -2428,7 +2359,7 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]"
       ]
     },
     {
@@ -2639,6 +2570,9 @@
           "DelegatedSubnetId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfSubnetId.value]"
           },
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
+          },
           "DiskEncryption": {
             "value": "[parameters('DiskEncryption')]"
           },
@@ -2696,9 +2630,6 @@
           "LocationShortName": {
             "value": "[variables('LocationShortName')]"
           },
-          "ManagedIdentityResourceId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.resourceIdentifier.value]"
-          },
           "ManagementVmName": {
             "value": "[variables('ManagementVmName')]"
           },
@@ -2728,9 +2659,6 @@
           },
           "ResourceGroupStorage": {
             "value": "[variables('ResourceGroupStorage')]"
-          },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
           },
           "SecurityPrincipalIds": {
             "value": "[parameters('SecurityPrincipalObjectIds')]"
@@ -2771,6 +2699,9 @@
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
           },
+          "UserAssignedIdentityResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
+          },
           "VirtualNetwork": {
             "value": "[parameters('VirtualNetworkName')]"
           },
@@ -2791,7 +2722,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "3308138553215460673"
+              "templateHash": "9829021473587469020"
             }
           },
           "parameters": {
@@ -2805,6 +2736,9 @@
               "type": "string"
             },
             "DelegatedSubnetId": {
+              "type": "string"
+            },
+            "DeploymentScriptNamePrefix": {
               "type": "string"
             },
             "DiskEncryption": {
@@ -2862,9 +2796,6 @@
               "type": "string"
             },
             "LocationShortName": {
-              "type": "string"
-            },
-            "ManagedIdentityResourceId": {
               "type": "string"
             },
             "ManagementVmName": {
@@ -2930,13 +2861,13 @@
             "Subnet": {
               "type": "string"
             },
-            "RoleDefinitionIds": {
-              "type": "object"
-            },
             "Tags": {
               "type": "object"
             },
             "Timestamp": {
+              "type": "string"
+            },
+            "UserAssignedIdentityResourceId": {
               "type": "string"
             },
             "VirtualNetwork": {
@@ -2965,6 +2896,9 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
+                  "DeploymentScriptNamePrefix": {
+                    "value": "[parameters('DeploymentScriptNamePrefix')]"
+                  },
                   "DiskEncryption": {
                     "value": "[parameters('DiskEncryption')]"
                   },
@@ -3001,6 +2935,9 @@
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  },
                   "VirtualNetwork": {
                     "value": "[parameters('VirtualNetwork')]"
                   },
@@ -3021,10 +2958,13 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "16083851316692783773"
+                      "templateHash": "420749607996591727"
                     }
                   },
                   "parameters": {
+                    "DeploymentScriptNamePrefix": {
+                      "type": "string"
+                    },
                     "DiskEncryption": {
                       "type": "bool"
                     },
@@ -3059,6 +2999,9 @@
                       "type": "object"
                     },
                     "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
                       "type": "string"
                     },
                     "VirtualNetwork": {
@@ -3160,7 +3103,10 @@
                         "licenseType": "Windows_Server"
                       },
                       "identity": {
-                        "type": "SystemAssigned"
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
                       },
                       "dependsOn": [
                         "[resourceId('Microsoft.Network/networkInterfaces', variables('NicName'))]"
@@ -3208,7 +3154,7 @@
                           "EncryptionOperation": "EnableEncryption",
                           "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2016-10-01', 'Full').properties.vaultUri, null())]",
                           "KeyVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
-                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Resources/deploymentScripts', format('ds-{0}-bitlockerKek', parameters('NamingStandard'))), '2019-10-01-preview', 'Full').properties.outputs.text, null())]",
+                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2019-10-01-preview', 'Full').properties.outputs.text, null())]",
                           "KekVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
                           "KeyEncryptionAlgorithm": "RSA-OAEP",
                           "VolumeType": "All",
@@ -3248,6 +3194,9 @@
                   "DelegatedSubnetId": {
                     "value": "[parameters('DelegatedSubnetId')]"
                   },
+                  "DeploymentScriptNamePrefix": {
+                    "value": "[parameters('DeploymentScriptNamePrefix')]"
+                  },
                   "DnsServers": {
                     "value": "[parameters('DnsServers')]"
                   },
@@ -3271,9 +3220,6 @@
                   },
                   "ManagementVmName": {
                     "value": "[parameters('ManagementVmName')]"
-                  },
-                  "NamingStandard": {
-                    "value": "[parameters('NamingStandard')]"
                   },
                   "NetAppAccountName": {
                     "value": "[parameters('NetAppAccountName')]"
@@ -3306,7 +3252,7 @@
                     "value": "[parameters('Timestamp')]"
                   },
                   "UserAssignedIdentityResourceId": {
-                    "value": "[parameters('ManagedIdentityResourceId')]"
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
                   }
                 },
                 "template": {
@@ -3316,7 +3262,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "1450864334826910265"
+                      "templateHash": "13649546776276573408"
                     }
                   },
                   "parameters": {
@@ -3330,6 +3276,9 @@
                       "type": "string"
                     },
                     "DelegatedSubnetId": {
+                      "type": "string"
+                    },
+                    "DeploymentScriptNamePrefix": {
                       "type": "string"
                     },
                     "DnsServers": {
@@ -3354,9 +3303,6 @@
                       "type": "string"
                     },
                     "ManagementVmName": {
-                      "type": "string"
-                    },
-                    "NamingStandard": {
                       "type": "string"
                     },
                     "NetAppAccountName": {
@@ -3479,14 +3425,14 @@
                           "CommandToExecute": {
                             "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword \"{0}\" -DomainJoinUserPrincipalName {1} -FslogixSolution {2} -SecurityPrincipalNames \"{3}\" -SmbServerLocation {4} -StorageSolution {5}', parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('FslogixSolution'), parameters('SecurityPrincipalNames'), parameters('SmbServerLocation'), parameters('StorageSolution'))]"
                           },
+                          "DeploymentScriptNamePrefix": {
+                            "value": "[parameters('DeploymentScriptNamePrefix')]"
+                          },
                           "Location": {
                             "value": "[parameters('Location')]"
                           },
                           "ManagementVmName": {
                             "value": "[parameters('ManagementVmName')]"
-                          },
-                          "NamingStandard": {
-                            "value": "[parameters('NamingStandard')]"
                           },
                           "Tags": {
                             "value": "[parameters('Tags')]"
@@ -3505,7 +3451,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "14280348576657789691"
+                              "templateHash": "17273839528339420962"
                             }
                           },
                           "parameters": {
@@ -3518,13 +3464,13 @@
                             "CommandToExecute": {
                               "type": "securestring"
                             },
+                            "DeploymentScriptNamePrefix": {
+                              "type": "string"
+                            },
                             "Location": {
                               "type": "string"
                             },
                             "ManagementVmName": {
-                              "type": "string"
-                            },
-                            "NamingStandard": {
                               "type": "string"
                             },
                             "Tags": {
@@ -3563,7 +3509,7 @@
                             {
                               "type": "Microsoft.Resources/deployments",
                               "apiVersion": "2022-09-01",
-                              "name": "[format('DeploymentScript_FSLogixCleanUp_{0}', parameters('Timestamp'))]",
+                              "name": "[format('DeploymentScript_FSLogix-CleanUp_{0}', parameters('Timestamp'))]",
                               "properties": {
                                 "expressionEvaluationOptions": {
                                   "scope": "inner"
@@ -3577,7 +3523,7 @@
                                     "value": "[parameters('Location')]"
                                   },
                                   "Name": {
-                                    "value": "[format('ds-{0}-fslogixCleanUp', parameters('NamingStandard'))]"
+                                    "value": "[format('{0}fslogix', parameters('DeploymentScriptNamePrefix'))]"
                                   },
                                   "ScriptContainerSasToken": {
                                     "value": "[parameters('_artifactsLocationSasToken')]"
@@ -3700,6 +3646,9 @@
                   "_artifactsLocationSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
                   },
+                  "DeploymentScriptNamePrefix": {
+                    "value": "[parameters('DeploymentScriptNamePrefix')]"
+                  },
                   "DnsServerForwarderIPAddresses": {
                     "value": "[parameters('DnsServerForwarderIPAddresses')]"
                   },
@@ -3748,9 +3697,6 @@
                   "LocationShortName": {
                     "value": "[parameters('LocationShortName')]"
                   },
-                  "ManagedIdentityResourceId": {
-                    "value": "[parameters('ManagedIdentityResourceId')]"
-                  },
                   "ManagementVmName": {
                     "value": "[parameters('ManagementVmName')]"
                   },
@@ -3774,9 +3720,6 @@
                   },
                   "ResourceGroupStorage": {
                     "value": "[parameters('ResourceGroupStorage')]"
-                  },
-                  "RoleDefinitionIds": {
-                    "value": "[parameters('RoleDefinitionIds')]"
                   },
                   "SecurityPrincipalIds": {
                     "value": "[parameters('SecurityPrincipalIds')]"
@@ -3814,6 +3757,9 @@
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  },
                   "VirtualNetwork": {
                     "value": "[parameters('VirtualNetwork')]"
                   },
@@ -3834,7 +3780,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "9620540083578325562"
+                      "templateHash": "6178430857411425488"
                     }
                   },
                   "parameters": {
@@ -3843,6 +3789,9 @@
                     },
                     "_artifactsLocationSasToken": {
                       "type": "securestring"
+                    },
+                    "DeploymentScriptNamePrefix": {
+                      "type": "string"
                     },
                     "DnsServerForwarderIPAddresses": {
                       "type": "array"
@@ -3892,9 +3841,6 @@
                     "LocationShortName": {
                       "type": "string"
                     },
-                    "ManagedIdentityResourceId": {
-                      "type": "string"
-                    },
                     "ManagementVmName": {
                       "type": "string"
                     },
@@ -3918,9 +3864,6 @@
                     },
                     "ResourceGroupStorage": {
                       "type": "string"
-                    },
-                    "RoleDefinitionIds": {
-                      "type": "object"
                     },
                     "SecurityPrincipalIds": {
                       "type": "array"
@@ -3958,6 +3901,9 @@
                     "Timestamp": {
                       "type": "string"
                     },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    },
                     "VirtualNetwork": {
                       "type": "string"
                     },
@@ -3973,7 +3919,7 @@
                   },
                   "variables": {
                     "Endpoint": "[split(parameters('FslogixStorage'), ' ')[2]]",
-                    "ResourceGroupName": "[resourceGroup().name]",
+                    "RoleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb')]",
                     "SmbMultiChannel": {
                       "multichannel": {
                         "enabled": true
@@ -4038,38 +3984,18 @@
                     },
                     {
                       "copy": {
-                        "name": "roleAssignment_Vm",
+                        "name": "roleAssignment",
                         "count": "[length(range(0, parameters('StorageCount')))]"
                       },
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
                       "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                      "name": "[guid(format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')), parameters('RoleDefinitionIds').contributor, parameters('ManagementVmName'))]",
+                      "name": "[guid(parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]], variables('RoleDefinitionId'), resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0'))))]",
                       "properties": {
-                        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionIds').contributor)]",
-                        "principalId": "[reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Compute/virtualMachines', parameters('ManagementVmName')), '2020-12-01', 'Full').identity.principalId]",
-                        "principalType": "ServicePrincipal"
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
-                      ]
-                    },
-                    {
-                      "copy": {
-                        "name": "roleAssignment_Users",
-                        "count": "[length(range(0, parameters('StorageCount')))]"
-                      },
-                      "type": "Microsoft.Authorization/roleAssignments",
-                      "apiVersion": "2022-04-01",
-                      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                      "name": "[guid(parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]], parameters('RoleDefinitionIds').storageFileDataSMBShareContributor, format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                      "properties": {
-                        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionIds').storageFileDataSMBShareContributor)]",
+                        "roleDefinitionId": "[variables('RoleDefinitionId')]",
                         "principalId": "[parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]]]"
                       },
                       "dependsOn": [
-                        "roleAssignment_Vm",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
                       ]
@@ -4091,7 +4017,6 @@
                         }
                       },
                       "dependsOn": [
-                        "roleAssignment_Vm",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
                       ]
                     },
@@ -4166,7 +4091,7 @@
                         }
                       },
                       "dependsOn": [
-                        "roleAssignment_Users",
+                        "roleAssignment",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
                       ]
                     },
@@ -4179,7 +4104,7 @@
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('PrivateEndpoints_{0}_{1}', range(0, parameters('StorageCount'))[copyIndex()], parameters('Timestamp'))]",
-                      "resourceGroup": "[variables('ResourceGroupName')]",
+                      "resourceGroup": "[parameters('ResourceGroupManagement')]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -4330,7 +4255,7 @@
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('DnsForwarder_{0}', parameters('Timestamp'))]",
-                      "resourceGroup": "[variables('ResourceGroupName')]",
+                      "resourceGroup": "[parameters('ResourceGroupManagement')]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -4342,6 +4267,9 @@
                           },
                           "_artifactsLocationSasToken": {
                             "value": "[parameters('_artifactsLocationSasToken')]"
+                          },
+                          "DeploymentScriptNamePrefix": {
+                            "value": "[parameters('DeploymentScriptNamePrefix')]"
                           },
                           "DnsServerForwarderIPAddresses": {
                             "value": "[parameters('DnsServerForwarderIPAddresses')]"
@@ -4373,9 +4301,6 @@
                           "LocationShortName": {
                             "value": "[parameters('LocationShortName')]"
                           },
-                          "ManagedIdentityResourceId": {
-                            "value": "[parameters('ManagedIdentityResourceId')]"
-                          },
                           "NamingStandard": {
                             "value": "[parameters('NamingStandard')]"
                           },
@@ -4393,6 +4318,9 @@
                           },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
+                          },
+                          "UserAssignedIdentityResourceId": {
+                            "value": "[parameters('UserAssignedIdentityResourceId')]"
                           },
                           "VirtualNetwork": {
                             "value": "[parameters('VirtualNetwork')]"
@@ -4414,7 +4342,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "15955603054722864770"
+                              "templateHash": "4351176608957148325"
                             }
                           },
                           "parameters": {
@@ -4423,6 +4351,9 @@
                             },
                             "_artifactsLocationSasToken": {
                               "type": "securestring"
+                            },
+                            "DeploymentScriptNamePrefix": {
+                              "type": "string"
                             },
                             "DnsServerForwarderIPAddresses": {
                               "type": "array"
@@ -4454,9 +4385,6 @@
                             "LocationShortName": {
                               "type": "string"
                             },
-                            "ManagedIdentityResourceId": {
-                              "type": "string"
-                            },
                             "NamingStandard": {
                               "type": "string"
                             },
@@ -4473,6 +4401,9 @@
                               "type": "object"
                             },
                             "Timestamp": {
+                              "type": "string"
+                            },
+                            "UserAssignedIdentityResourceId": {
                               "type": "string"
                             },
                             "VirtualNetwork": {
@@ -4493,28 +4424,6 @@
                             "VmName": "[format('vm{0}{1}{2}{3}dns', parameters('Identifier'), parameters('Environment'), parameters('LocationShortName'), parameters('StampIndexFull'))]"
                           },
                           "resources": [
-                            {
-                              "type": "Microsoft.Resources/deploymentScripts",
-                              "apiVersion": "2020-10-01",
-                              "name": "[format('ds-{0}-getDns', parameters('NamingStandard'))]",
-                              "location": "[parameters('Location')]",
-                              "kind": "AzurePowerShell",
-                              "identity": {
-                                "type": "UserAssigned",
-                                "userAssignedIdentities": {
-                                  "[format('{0}', parameters('ManagedIdentityResourceId'))]": {}
-                                }
-                              },
-                              "properties": {
-                                "forceUpdateTag": "[parameters('Timestamp')]",
-                                "azPowerShellVersion": "5.4",
-                                "arguments": "[format('-Subnet {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', parameters('Subnet'), parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]",
-                                "primaryScriptUri": "[format('{0}Get-AzureVirtualNetworkDns.ps1{1}', parameters('_artifactsLocation'), parameters('_artifactsLocationSasToken'))]",
-                                "timeout": "PT4H",
-                                "cleanupPreference": "OnSuccess",
-                                "retentionInterval": "P1D"
-                              }
-                            },
                             {
                               "type": "Microsoft.Network/networkInterfaces",
                               "apiVersion": "2020-05-01",
@@ -4584,7 +4493,7 @@
                                     }
                                   ]
                                 },
-                                "licenseType": "[if(parameters('HybridUseBenefit'), 'Windows_Server', json('null'))]"
+                                "licenseType": "[if(parameters('HybridUseBenefit'), 'Windows_Server', null())]"
                               },
                               "dependsOn": [
                                 "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]",
@@ -4594,7 +4503,7 @@
                             {
                               "type": "Microsoft.Compute/virtualMachines/extensions",
                               "apiVersion": "2019-07-01",
-                              "name": "[format('{0}/JsonADDomainExtension', variables('VmName'))]",
+                              "name": "[format('{0}/{1}', variables('VmName'), 'JsonADDomainExtension')]",
                               "location": "[parameters('Location')]",
                               "tags": "[parameters('Tags')]",
                               "properties": {
@@ -4620,7 +4529,7 @@
                             {
                               "type": "Microsoft.Compute/virtualMachines/extensions",
                               "apiVersion": "2019-07-01",
-                              "name": "[format('{0}/DSC', variables('VmName'))]",
+                              "name": "[format('{0}/{1}', variables('VmName'), 'DSC')]",
                               "location": "[parameters('Location')]",
                               "tags": "[parameters('Tags')]",
                               "properties": {
@@ -4653,35 +4562,108 @@
                                 "protectedSettings": {}
                               },
                               "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/JsonADDomainExtension', variables('VmName')), '/')[0], split(format('{0}/JsonADDomainExtension', variables('VmName')), '/')[1])]",
+                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('VmName'), 'JsonADDomainExtension')]",
                                 "[resourceId('Microsoft.Compute/virtualMachines', variables('VmName'))]"
                               ]
                             },
                             {
-                              "type": "Microsoft.Resources/deploymentScripts",
-                              "apiVersion": "2020-10-01",
-                              "name": "[format('ds-{0}-setDns', parameters('NamingStandard'))]",
-                              "location": "[parameters('Location')]",
-                              "kind": "AzurePowerShell",
-                              "identity": {
-                                "type": "UserAssigned",
-                                "userAssignedIdentities": {
-                                  "[format('{0}', parameters('ManagedIdentityResourceId'))]": {}
-                                }
-                              },
+                              "type": "Microsoft.Resources/deployments",
+                              "apiVersion": "2022-09-01",
+                              "name": "[format('DeploymentScript_Get-DNS_{0}', parameters('Timestamp'))]",
                               "properties": {
-                                "forceUpdateTag": "[parameters('Timestamp')]",
-                                "azPowerShellVersion": "5.4",
-                                "arguments": "[format('-Dns {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', reference(resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard'))), '2020-05-01').ipConfigurations[0].properties.privateIPAddress, parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]",
-                                "primaryScriptUri": "[format('{0}Set-AzureVirtualNetworkDns.ps1{1}', parameters('_artifactsLocation'), parameters('_artifactsLocationSasToken'))]",
-                                "timeout": "PT4H",
-                                "cleanupPreference": "OnSuccess",
-                                "retentionInterval": "P1D"
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', split(format('{0}/DSC', variables('VmName')), '/')[0], split(format('{0}/DSC', variables('VmName')), '/')[1])]",
-                                "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
-                              ]
+                                "expressionEvaluationOptions": {
+                                  "scope": "inner"
+                                },
+                                "mode": "Incremental",
+                                "parameters": {
+                                  "Arguments": {
+                                    "value": "[format('-Subnet {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', parameters('Subnet'), parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]"
+                                  },
+                                  "Location": {
+                                    "value": "[parameters('Location')]"
+                                  },
+                                  "Name": {
+                                    "value": "[format('{0}dns-get', parameters('DeploymentScriptNamePrefix'))]"
+                                  },
+                                  "ScriptContainerSasToken": {
+                                    "value": "[parameters('_artifactsLocationSasToken')]"
+                                  },
+                                  "ScriptContainerUri": {
+                                    "value": "[parameters('_artifactsLocation')]"
+                                  },
+                                  "ScriptName": {
+                                    "value": "Get-AzureVirtualNetworkDns.ps1"
+                                  },
+                                  "Timestamp": {
+                                    "value": "[parameters('Timestamp')]"
+                                  },
+                                  "UserAssignedIdentityResourceId": {
+                                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                                  }
+                                },
+                                "template": {
+                                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                  "contentVersion": "1.0.0.0",
+                                  "metadata": {
+                                    "_generator": {
+                                      "name": "bicep",
+                                      "version": "0.16.2.56959",
+                                      "templateHash": "7158975045101659830"
+                                    }
+                                  },
+                                  "parameters": {
+                                    "Arguments": {
+                                      "type": "string"
+                                    },
+                                    "Location": {
+                                      "type": "string"
+                                    },
+                                    "Name": {
+                                      "type": "string"
+                                    },
+                                    "ScriptContainerUri": {
+                                      "type": "string"
+                                    },
+                                    "ScriptContainerSasToken": {
+                                      "type": "securestring"
+                                    },
+                                    "ScriptName": {
+                                      "type": "string"
+                                    },
+                                    "Timestamp": {
+                                      "type": "string"
+                                    },
+                                    "UserAssignedIdentityResourceId": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "resources": [
+                                    {
+                                      "type": "Microsoft.Resources/deploymentScripts",
+                                      "apiVersion": "2020-10-01",
+                                      "name": "[parameters('Name')]",
+                                      "identity": {
+                                        "type": "UserAssigned",
+                                        "userAssignedIdentities": {
+                                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                                        }
+                                      },
+                                      "location": "[parameters('Location')]",
+                                      "kind": "AzurePowerShell",
+                                      "tags": {},
+                                      "properties": {
+                                        "azPowerShellVersion": "9.4",
+                                        "cleanupPreference": "Always",
+                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
+                                        "arguments": "[parameters('Arguments')]",
+                                        "forceUpdateTag": "[parameters('Timestamp')]",
+                                        "retentionInterval": "PT2H",
+                                        "timeout": "PT30M"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
                             },
                             {
                               "type": "Microsoft.Resources/deployments",
@@ -4768,6 +4750,109 @@
                               "dependsOn": [
                                 "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
                               ]
+                            },
+                            {
+                              "type": "Microsoft.Resources/deployments",
+                              "apiVersion": "2022-09-01",
+                              "name": "[format('DeploymentScript_Set-DNS_{0}', parameters('Timestamp'))]",
+                              "properties": {
+                                "expressionEvaluationOptions": {
+                                  "scope": "inner"
+                                },
+                                "mode": "Incremental",
+                                "parameters": {
+                                  "Arguments": {
+                                    "value": "[format('-Dns {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', reference(resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard'))), '2020-05-01').ipConfigurations[0].properties.privateIPAddress, parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]"
+                                  },
+                                  "Location": {
+                                    "value": "[parameters('Location')]"
+                                  },
+                                  "Name": {
+                                    "value": "[format('{0}dns-set', parameters('DeploymentScriptNamePrefix'))]"
+                                  },
+                                  "ScriptContainerSasToken": {
+                                    "value": "[parameters('_artifactsLocationSasToken')]"
+                                  },
+                                  "ScriptContainerUri": {
+                                    "value": "[parameters('_artifactsLocation')]"
+                                  },
+                                  "ScriptName": {
+                                    "value": "Set-AzureVirtualNetworkDns.ps1"
+                                  },
+                                  "Timestamp": {
+                                    "value": "[parameters('Timestamp')]"
+                                  },
+                                  "UserAssignedIdentityResourceId": {
+                                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                                  }
+                                },
+                                "template": {
+                                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                                  "contentVersion": "1.0.0.0",
+                                  "metadata": {
+                                    "_generator": {
+                                      "name": "bicep",
+                                      "version": "0.16.2.56959",
+                                      "templateHash": "7158975045101659830"
+                                    }
+                                  },
+                                  "parameters": {
+                                    "Arguments": {
+                                      "type": "string"
+                                    },
+                                    "Location": {
+                                      "type": "string"
+                                    },
+                                    "Name": {
+                                      "type": "string"
+                                    },
+                                    "ScriptContainerUri": {
+                                      "type": "string"
+                                    },
+                                    "ScriptContainerSasToken": {
+                                      "type": "securestring"
+                                    },
+                                    "ScriptName": {
+                                      "type": "string"
+                                    },
+                                    "Timestamp": {
+                                      "type": "string"
+                                    },
+                                    "UserAssignedIdentityResourceId": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "resources": [
+                                    {
+                                      "type": "Microsoft.Resources/deploymentScripts",
+                                      "apiVersion": "2020-10-01",
+                                      "name": "[parameters('Name')]",
+                                      "identity": {
+                                        "type": "UserAssigned",
+                                        "userAssignedIdentities": {
+                                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                                        }
+                                      },
+                                      "location": "[parameters('Location')]",
+                                      "kind": "AzurePowerShell",
+                                      "tags": {},
+                                      "properties": {
+                                        "azPowerShellVersion": "9.4",
+                                        "cleanupPreference": "Always",
+                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
+                                        "arguments": "[parameters('Arguments')]",
+                                        "forceUpdateTag": "[parameters('Timestamp')]",
+                                        "retentionInterval": "PT2H",
+                                        "timeout": "PT30M"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('VmName'), 'DSC')]",
+                                "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
+                              ]
                             }
                           ]
                         }
@@ -4794,14 +4879,14 @@
                           "CommandToExecute": {
                             "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword \"{0}\" -DomainJoinUserPrincipalName {1} -DomainServices {2} -Environment {3} -FslogixSolution {4} -KerberosEncryptionType {5} -Netbios {6} -OuPath \"{7}\" -SecurityPrincipalNames \"{8}\" -StorageAccountPrefix {9} -StorageAccountResourceGroupName {10} -StorageCount {11} -StorageIndex {12} -StorageSolution {13} -StorageSuffix {14} -SubscriptionId {15} -TenantId {16}', parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('DomainServices'), environment().name, parameters('FslogixSolution'), parameters('KerberosEncryption'), parameters('Netbios'), parameters('OuPath'), parameters('SecurityPrincipalNames'), parameters('StorageAccountPrefix'), parameters('ResourceGroupStorage'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), environment().suffixes.storage, subscription().subscriptionId, subscription().tenantId)]"
                           },
+                          "DeploymentScriptNamePrefix": {
+                            "value": "[parameters('DeploymentScriptNamePrefix')]"
+                          },
                           "Location": {
                             "value": "[parameters('Location')]"
                           },
                           "ManagementVmName": {
                             "value": "[parameters('ManagementVmName')]"
-                          },
-                          "NamingStandard": {
-                            "value": "[parameters('NamingStandard')]"
                           },
                           "Tags": {
                             "value": "[parameters('Tags')]"
@@ -4810,7 +4895,7 @@
                             "value": "[parameters('Timestamp')]"
                           },
                           "UserAssignedIdentityResourceId": {
-                            "value": "[parameters('ManagedIdentityResourceId')]"
+                            "value": "[parameters('UserAssignedIdentityResourceId')]"
                           }
                         },
                         "template": {
@@ -4820,7 +4905,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.16.2.56959",
-                              "templateHash": "14280348576657789691"
+                              "templateHash": "17273839528339420962"
                             }
                           },
                           "parameters": {
@@ -4833,13 +4918,13 @@
                             "CommandToExecute": {
                               "type": "securestring"
                             },
+                            "DeploymentScriptNamePrefix": {
+                              "type": "string"
+                            },
                             "Location": {
                               "type": "string"
                             },
                             "ManagementVmName": {
-                              "type": "string"
-                            },
-                            "NamingStandard": {
                               "type": "string"
                             },
                             "Tags": {
@@ -4878,7 +4963,7 @@
                             {
                               "type": "Microsoft.Resources/deployments",
                               "apiVersion": "2022-09-01",
-                              "name": "[format('DeploymentScript_FSLogixCleanUp_{0}', parameters('Timestamp'))]",
+                              "name": "[format('DeploymentScript_FSLogix-CleanUp_{0}', parameters('Timestamp'))]",
                               "properties": {
                                 "expressionEvaluationOptions": {
                                   "scope": "inner"
@@ -4892,7 +4977,7 @@
                                     "value": "[parameters('Location')]"
                                   },
                                   "Name": {
-                                    "value": "[format('ds-{0}-fslogixCleanUp', parameters('NamingStandard'))]"
+                                    "value": "[format('{0}fslogix', parameters('DeploymentScriptNamePrefix'))]"
                                   },
                                   "ScriptContainerSasToken": {
                                     "value": "[parameters('_artifactsLocationSasToken')]"
@@ -4981,7 +5066,7 @@
                         }
                       },
                       "dependsOn": [
-                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', format('DnsForwarder_{0}', parameters('Timestamp')))]",
+                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DnsForwarder_{0}', parameters('Timestamp')))]",
                         "privateEndpoint",
                         "shares"
                       ]
@@ -5004,8 +5089,8 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('BitLocker_{0}', parameters('Timestamp')))]",
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('STIG_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp')))]"
       ]
     },
@@ -5107,6 +5192,9 @@
           "ConfigurationName": {
             "value": "[variables('ConfigurationName')]"
           },
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
+          },
           "DisaStigCompliance": {
             "value": "[parameters('DisaStigCompliance')]"
           },
@@ -5174,7 +5262,7 @@
             "value": "[variables('LogAnalyticsWorkspaceName')]"
           },
           "ManagedIdentityResourceId": {
-            "value": "[reference(subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.resourceIdentifier.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           },
           "MaxResourcesPerTemplateDeployment": {
             "value": "[variables('MaxResourcesPerTemplateDeployment')]"
@@ -5203,9 +5291,6 @@
           },
           "ResourceGroupManagement": {
             "value": "[variables('ResourceGroupManagement')]"
-          },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
           },
           "ScreenCaptureProtection": {
             "value": "[parameters('ScreenCaptureProtection')]"
@@ -5281,7 +5366,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "14795850312544391984"
+              "templateHash": "10512605338835897252"
             }
           },
           "parameters": {
@@ -5310,6 +5395,9 @@
               "type": "string"
             },
             "ConfigurationName": {
+              "type": "string"
+            },
+            "DeploymentScriptNamePrefix": {
               "type": "string"
             },
             "DisaStigCompliance": {
@@ -5411,9 +5499,6 @@
             "ResourceGroupManagement": {
               "type": "string"
             },
-            "RoleDefinitionIds": {
-              "type": "object"
-            },
             "ScreenCaptureProtection": {
               "type": "bool"
             },
@@ -5480,6 +5565,9 @@
             "VmUsername": {
               "type": "string"
             }
+          },
+          "variables": {
+            "VirtualMachineUserLoginRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')]"
           },
           "resources": [
             {
@@ -5561,10 +5649,14 @@
               }
             },
             {
+              "copy": {
+                "name": "roleAssignments",
+                "count": "[length(range(0, length(parameters('SecurityPrincipalObjectIds'))))]"
+              },
               "condition": "[contains(parameters('DomainServices'), 'None')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('RoleAssignments_{0}', parameters('Timestamp'))]",
+              "name": "[format('RoleAssignments_{0}_{1}', range(0, length(parameters('SecurityPrincipalObjectIds')))[copyIndex()], parameters('Timestamp'))]",
               "resourceGroup": "[parameters('ResourceGroupHosts')]",
               "properties": {
                 "expressionEvaluationOptions": {
@@ -5572,11 +5664,11 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "RoleDefinitionId": {
-                    "value": "[parameters('RoleDefinitionIds').virtualMachineUserLogin]"
+                  "PrincipalId": {
+                    "value": "[parameters('SecurityPrincipalObjectIds')[range(0, length(parameters('SecurityPrincipalObjectIds')))[copyIndex()]]]"
                   },
-                  "SecurityPrincipalIds": {
-                    "value": "[parameters('SecurityPrincipalObjectIds')]"
+                  "RoleDefinitionId": {
+                    "value": "[variables('VirtualMachineUserLoginRoleDefinitionResourceId')]"
                   }
                 },
                 "template": {
@@ -5586,29 +5678,26 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "16455348711434609869"
+                      "templateHash": "7200534500754601917"
                     }
                   },
                   "parameters": {
-                    "RoleDefinitionId": {
+                    "PrincipalId": {
                       "type": "string"
                     },
-                    "SecurityPrincipalIds": {
-                      "type": "array"
+                    "RoleDefinitionId": {
+                      "type": "string"
                     }
                   },
                   "resources": [
                     {
-                      "copy": {
-                        "name": "roleAssignments",
-                        "count": "[length(range(0, length(parameters('SecurityPrincipalIds'))))]"
-                      },
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
-                      "name": "[guid(string(range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]), parameters('RoleDefinitionId'), resourceGroup().id)]",
+                      "name": "[guid(parameters('PrincipalId'), parameters('RoleDefinitionId'), resourceGroup().id)]",
                       "properties": {
-                        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionId'))]",
-                        "principalId": "[parameters('SecurityPrincipalIds')[range(0, length(parameters('SecurityPrincipalIds')))[copyIndex()]]]"
+                        "roleDefinitionId": "[parameters('RoleDefinitionId')]",
+                        "principalId": "[parameters('PrincipalId')]",
+                        "principalType": "ServicePrincipal"
                       }
                     }
                   ]
@@ -5652,6 +5741,9 @@
                   },
                   "ConfigurationName": {
                     "value": "[parameters('ConfigurationName')]"
+                  },
+                  "DeploymentScriptNamePrefix": {
+                    "value": "[parameters('DeploymentScriptNamePrefix')]"
                   },
                   "DisaStigCompliance": {
                     "value": "[parameters('DisaStigCompliance')]"
@@ -5807,7 +5899,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.16.2.56959",
-                      "templateHash": "7457494807007828409"
+                      "templateHash": "1259893603537414309"
                     }
                   },
                   "parameters": {
@@ -5830,6 +5922,9 @@
                       "type": "string"
                     },
                     "ConfigurationName": {
+                      "type": "string"
+                    },
+                    "DeploymentScriptNamePrefix": {
                       "type": "string"
                     },
                     "DisaStigCompliance": {
@@ -6240,7 +6335,7 @@
                         }
                       },
                       "dependsOn": [
-                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DrainMode_{0}', parameters('Timestamp')))]",
+                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_DrainMode_{0}', parameters('Timestamp')))]",
                         "virtualMachine"
                       ]
                     },
@@ -6335,7 +6430,7 @@
                           "EncryptionOperation": "EnableEncryption",
                           "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2016-10-01', 'Full').properties.vaultUri, null())]",
                           "KeyVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
-                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Resources/deploymentScripts', format('ds-{0}-bitlockerKek', parameters('NamingStandard'))), '2019-10-01-preview', 'Full').properties.outputs.text, null())]",
+                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2019-10-01-preview', 'Full').properties.outputs.text, null())]",
                           "KekVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
                           "KeyEncryptionAlgorithm": "RSA-OAEP",
                           "VolumeType": "All",
@@ -6418,7 +6513,7 @@
                       "condition": "[parameters('DrainMode')]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('DrainMode_{0}', parameters('Timestamp'))]",
+                      "name": "[format('DeploymentScript_DrainMode_{0}', parameters('Timestamp'))]",
                       "resourceGroup": "[parameters('ResourceGroupManagement')]",
                       "properties": {
                         "expressionEvaluationOptions": {
@@ -6433,7 +6528,7 @@
                             "value": "[parameters('Location')]"
                           },
                           "Name": {
-                            "value": "[format('ds-{0}-drainMode', parameters('NamingStandard'))]"
+                            "value": "[format('{0}drainMode', parameters('DeploymentScriptNamePrefix'))]"
                           },
                           "ScriptContainerSasToken": {
                             "value": "[parameters('_artifactsLocationSasToken')]"
@@ -6530,13 +6625,13 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('BitLocker_{0}', parameters('Timestamp')))]",
         "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('BitLocker_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp')))]",
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('ManagedIdentity_{0}', parameters('Timestamp')))]",
         "resourceGroups",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('STIG_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validation_{0}', parameters('Timestamp')))]"
       ]
     },
@@ -7010,9 +7105,6 @@
           "ResourceGroupManagement": {
             "value": "[variables('ResourceGroupManagement')]"
           },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
-          },
           "SessionThresholdPerCPU": {
             "value": "[parameters('ScalingSessionThresholdPerCPU')]"
           },
@@ -7030,7 +7122,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "6820882369985144424"
+              "templateHash": "177483229448393679"
             }
           },
           "parameters": {
@@ -7069,9 +7161,6 @@
             },
             "ResourceGroupManagement": {
               "type": "string"
-            },
-            "RoleDefinitionIds": {
-              "type": "object"
             },
             "SessionThresholdPerCPU": {
               "type": "string"
@@ -7167,7 +7256,7 @@
             },
             {
               "copy": {
-                "name": "roleAssignments",
+                "name": "roleAssignment",
                 "count": "[length(range(0, length(variables('RoleAssignments'))))]"
               },
               "type": "Microsoft.Resources/deployments",
@@ -7184,7 +7273,7 @@
                     "value": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName')), '2022-08-08', 'full').identity.principalId]"
                   },
                   "RoleDefinitionId": {
-                    "value": "[parameters('RoleDefinitionIds').desktopVirtualizationPowerOnOffContributor]"
+                    "value": "[resourceId('Microsoft.Authorization/roleDefinitions', '40c5ff49-9181-41f8-ae61-143b0e78555e')]"
                   }
                 },
                 "template": {
@@ -7256,9 +7345,6 @@
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "RoleDefinitionIds": {
-            "value": "[variables('RoleDefinitionIds')]"
-          },
           "StorageAccountPrefix": {
             "value": "[variables('StorageAccountPrefix')]"
           },
@@ -7288,7 +7374,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "12575327241792374753"
+              "templateHash": "15170291447163967711"
             }
           },
           "parameters": {
@@ -7306,9 +7392,6 @@
             },
             "Location": {
               "type": "string"
-            },
-            "RoleDefinitionIds": {
-              "type": "object"
             },
             "StorageAccountPrefix": {
               "type": "string"
@@ -7586,7 +7669,7 @@
                     "value": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName')), '2022-08-08', 'full').identity.principalId]"
                   },
                   "RoleDefinitionId": {
-                    "value": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinitionIds').storageAccountContributor)]"
+                    "value": "[resourceId('Microsoft.Authorization/roleDefinitions', '17d1049b-9a84-46fb-8f53-869881c3d3ab')]"
                   }
                 },
                 "template": {

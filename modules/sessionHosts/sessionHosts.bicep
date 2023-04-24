@@ -8,6 +8,7 @@ param AvailabilitySetPrefix string
 param AutomationAccountName string
 param Availability string
 param ConfigurationName string
+param DeploymentScriptNamePrefix string
 param DisaStigCompliance bool
 param DiskEncryption bool
 param DiskName string
@@ -42,7 +43,6 @@ param PooledHostPool bool
 param RdpShortPath bool
 param ResourceGroupHosts string
 param ResourceGroupManagement string
-param RoleDefinitionIds object
 param ScreenCaptureProtection bool
 param SecurityPrincipalObjectIds array
 param Sentinel bool
@@ -67,6 +67,7 @@ param VmPassword string
 param VmSize string
 param VmUsername string
 
+var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')
 
 module availabilitySets 'availabilitySets.bicep' = if (PooledHostPool && Availability == 'AvailabilitySet') {
   name: 'AvailabilitySets_${Timestamp}'
@@ -82,27 +83,28 @@ module availabilitySets 'availabilitySets.bicep' = if (PooledHostPool && Availab
 
 // Role Assignment for Virtual Machine Login User
 // This module deploys the role assignments to login to Azure AD joined session hosts
-module roleAssignments 'roleAssignments.bicep' = if (contains(DomainServices, 'None')) {
-  name: 'RoleAssignments_${Timestamp}'
+module roleAssignments '../roleAssignment.bicep' = [for i in range(0, length(SecurityPrincipalObjectIds)): if (contains(DomainServices, 'None')) {
+  name: 'RoleAssignments_${i}_${Timestamp}'
   scope: resourceGroup(ResourceGroupHosts)
   params: {
-    RoleDefinitionId: RoleDefinitionIds.virtualMachineUserLogin
-    SecurityPrincipalIds: SecurityPrincipalObjectIds
+    PrincipalId: SecurityPrincipalObjectIds[i]
+    RoleDefinitionId: VirtualMachineUserLoginRoleDefinitionResourceId
   }
-}
+}]
 
 @batchSize(1)
 module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostBatchCount): {
-  name: 'VirtualMachines_${i-1}_${Timestamp}'
+  name: 'VirtualMachines_${i - 1}_${Timestamp}'
   scope: resourceGroup(ResourceGroupHosts)
   params: {
-    _artifactsLocation: _artifactsLocation    
+    _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AcceleratedNetworking: AcceleratedNetworking
     AutomationAccountName: AutomationAccountName
     Availability: Availability
     AvailabilitySetPrefix: AvailabilitySetPrefix
     ConfigurationName: ConfigurationName
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DisaStigCompliance: DisaStigCompliance
     DiskEncryption: DiskEncryption
     DiskName: DiskName
@@ -131,7 +133,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
     RdpShortPath: RdpShortPath
-    ResourceGroupManagement :ResourceGroupManagement
+    ResourceGroupManagement: ResourceGroupManagement
     ScreenCaptureProtection: ScreenCaptureProtection
     Sentinel: Sentinel
     SentinelWorkspaceId: SentinelWorkspaceId
@@ -140,7 +142,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     SessionHostIndex: i == 1 ? SessionHostIndex : ((i - 1) * MaxResourcesPerTemplateDeployment) + SessionHostIndex
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
-    StorageIndex: StorageIndex 
+    StorageIndex: StorageIndex
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
     Subnet: Subnet

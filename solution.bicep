@@ -273,6 +273,8 @@ var AppGroupName = 'dag-${NamingStandard}'
 var AvailabilitySetPrefix = 'as-${NamingStandard}'
 var AutomationAccountName = 'aa-${NamingStandard}'
 var ConfigurationName = 'Windows10'
+var DeploymentScriptNamePrefix = 'ds-${NamingStandard}-'
+var DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')
 var DiskName = 'disk-${NamingStandard}'
 var FileShareNames = {
   CloudCacheProfileContainer: [
@@ -297,7 +299,7 @@ var KeyVaultName = 'kv-${NamingStandard}'
 var Locations = loadJsonContent('artifacts/locations.json')
 var LocationShortName = Locations[Location].acronym
 var LogAnalyticsWorkspaceName = 'law-${NamingStandard}'
-var ManagedIdentityName = 'uami-${NamingStandard}'
+var UserAssignedIdentityName = 'uami-${NamingStandard}'
 var ManagementVmName = '${VmName}mgt'
 var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndexFull}'
 var NetAppAccountName = 'naa-${NamingStandard}'
@@ -307,6 +309,7 @@ var NetworkSecurityGroupName = 'nsg-${NamingStandard}'
 var PooledHostPool = split(HostPoolType, ' ')[0] == 'Pooled' ? true : false
 var PrivateDnsZoneName = 'privatelink.file.${StorageSuffix}'
 var PrivateEndpoint = contains(FslogixStorage, 'PrivateEndpoint') ? true : false
+var ReaderRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
 var RecoveryServicesVaultName = 'rsv-${NamingStandard}'
 var ResourceGroupHosts = 'rg-${NamingStandard}-hosts'
 var ResourceGroupManagement = 'rg-${NamingStandard}-management'
@@ -319,18 +322,6 @@ var ResourceGroups = Fslogix ? [
   ResourceGroupManagement
   ResourceGroupHosts
 ]
-var RoleDefinitionIds = {
-  contributor: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-  desktopVirtualizationPowerOnContributor: '489581de-a3bd-480d-9518-53dea7416b33'
-  desktopVirtualizationPowerOnOffContributor: '40c5ff49-9181-41f8-ae61-143b0e78555e'
-  desktopVirtualizationSessionHostOperator: '2ad6aaab-ead9-4eaa-8ac5-da422f562408'
-  desktopVirtualizationUser: '1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63'
-  networkContributor: '4d97b98b-1d4f-4787-a291-c67834d212e7'
-  reader: 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
-  storageAccountContributor: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
-  storageFileDataSMBShareContributor: '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb'
-  virtualMachineUserLogin: 'fb879df8-f326-4884-b1cf-06f3ad86be52'
-}
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
 var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
 var StampIndexFull = padLeft(StampIndex, 2, '0')
@@ -350,23 +341,31 @@ resource resourceGroups 'Microsoft.Resources/resourceGroups@2020-10-01' = [for i
   tags: Tags
 }]
 
-// User Assigned Managed Identity
-// This resource is needed to run several deployment scripts and to set the NTFS permissions on Azure Files
-module managedIdentity 'modules/managedIdentity/managedIdentity.bicep' = {
-  name: 'ManagedIdentity_${Timestamp}'
+module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
+  scope: resourceGroup(ResourceGroupManagement)
+  name: 'UserAssignedIdentity_${Timestamp}'
   params: {
+    DiskEncryption: DiskEncryption
     DrainMode: DrainMode
+    Fslogix: Fslogix
     FslogixStorage: FslogixStorage
     Location: Location
-    ManagedIdentityName: ManagedIdentityName
-    ResourceGroupManagement: ResourceGroupManagement
-    RoleDefinitionIds: RoleDefinitionIds
+    UserAssignedIdentityName: UserAssignedIdentityName
+    ResourceGroupStorage: ResourceGroupStorage
     Timestamp: Timestamp
     VirtualNetworkResourceGroupName: VirtualNetworkResourceGroupName
   }
-  dependsOn: [
-    resourceGroups
-  ]
+}
+
+// Role Assignment for Validation
+// This role assignment is required to collect validation information
+resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(UserAssignedIdentityName, ReaderRoleDefinitionResourceId, subscription().id)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', ReaderRoleDefinitionResourceId)
+    principalId: userAssignedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
 
 // Validation Deployment Script
@@ -378,6 +377,7 @@ module validation 'modules/validation.bicep' = {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
     Availability: Availability
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DiskSku: DiskSku
     DomainName: DomainName
@@ -386,8 +386,7 @@ module validation 'modules/validation.bicep' = {
     ImageSku: ImageSku
     KerberosEncryption: KerberosEncryption
     Location: Location
-    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
-    NamingStandard: NamingStandard
+    ManagedIdentityResourceId: userAssignedIdentity.outputs.id
     PooledHostPool: PooledHostPool
     RecoveryServices: RecoveryServices
     SecurityPrincipalIds: SecurityPrincipalObjectIds
@@ -405,14 +404,14 @@ module validation 'modules/validation.bicep' = {
   }
   dependsOn: [
     resourceGroups
-    managedIdentity
+    userAssignedIdentity
   ]
 }
 
 resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(StartVmOnConnect) {
-  name: guid(AvdObjectId, RoleDefinitionIds.desktopVirtualizationPowerOnContributor, subscription().id)
+  name: guid(AvdObjectId, DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId, subscription().id)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleDefinitionIds.desktopVirtualizationPowerOnContributor)
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId)
     principalId: AvdObjectId
   }
 }
@@ -445,7 +444,6 @@ module hostPool 'modules/hostPool.bicep' = {
     Location: Location
     LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
-    RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalObjectIds
     StartVmOnConnect: StartVmOnConnect
     Tags: Tags
@@ -475,19 +473,18 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if(Monitori
   ]
 }
 
-module bitLocker 'modules/bitLocker.bicep' = if(DiskEncryption) {
+module keyVault 'modules/keyVault.bicep' = if(DiskEncryption) {
   name: 'BitLocker_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    ResourceGroupManagement: ResourceGroupManagement
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
+    Environment: Environment
     KeyVaultName: KeyVaultName
     Location: Location
-    //ManagedIdentityName: managedIdentity.name
-    ManagedIdentityPrincipalId: managedIdentity.outputs.principalId
-    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
-    NamingStandard: NamingStandard
+    ManagedIdentityResourceId: userAssignedIdentity.outputs.id
+    ResourceGroupManagement: ResourceGroupManagement
     Timestamp: Timestamp
   }
 }
@@ -516,6 +513,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     _artifactsLocationSasToken: _artifactsLocationSasToken
     ActiveDirectoryConnection: validation.outputs.anfActiveDirectory
     DelegatedSubnetId: validation.outputs.anfSubnetId
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DnsServerForwarderIPAddresses: validation.outputs.dnsForwarders
     DnsServers: validation.outputs.anfDnsServers
@@ -535,7 +533,6 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     KeyVaultName: KeyVaultName
     Location: Location
     LocationShortName: LocationShortName
-    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
     NetAppAccountName: NetAppAccountName
@@ -546,7 +543,6 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     PrivateEndpoint: PrivateEndpoint
     ResourceGroupManagement: ResourceGroupManagement
     ResourceGroupStorage: ResourceGroupStorage
-    RoleDefinitionIds: RoleDefinitionIds
     SecurityPrincipalIds: SecurityPrincipalObjectIds
     SecurityPrincipalNames: SecurityPrincipalNames
     SmbServerLocation: LocationShortName
@@ -560,15 +556,16 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
     VirtualNetwork: VirtualNetworkName
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmPassword: VmPassword
     VmUsername: VmUsername
   }
   dependsOn: [
-    bitLocker
-    managedIdentity
+    keyVault
     stig
+    userAssignedIdentity
   ]
 }
 
@@ -598,6 +595,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     AvailabilitySetPrefix: AvailabilitySetPrefix
     AvailabilitySetIndex: BeginAvSetRange
     ConfigurationName: ConfigurationName
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DisaStigCompliance: DisaStigCompliance
     DiskEncryption: DiskEncryption
     DiskName: DiskName
@@ -620,7 +618,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     KeyVaultName: KeyVaultName
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
-    ManagedIdentityResourceId: managedIdentity.outputs.resourceIdentifier
+    ManagedIdentityResourceId: userAssignedIdentity.outputs.id
     MaxResourcesPerTemplateDeployment: MaxResourcesPerTemplateDeployment
     Monitoring: Monitoring
     NamingStandard: NamingStandard
@@ -633,7 +631,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     RdpShortPath: RdpShortPath
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
-    RoleDefinitionIds: RoleDefinitionIds
     ScreenCaptureProtection: ScreenCaptureProtection
     SecurityPrincipalObjectIds: SecurityPrincipalObjectIds
     Sentinel: Sentinel
@@ -658,7 +655,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     VmUsername: VmUsername
   }
   dependsOn: [
-    bitLocker
+    keyVault
     logAnalyticsWorkspace
     resourceGroups
     stig
@@ -710,7 +707,6 @@ module scalingTool 'modules/scalingTool.bicep' = if(ScalingTool && PooledHostPoo
     MinimumNumberOfRdsh: ScalingMinimumNumberOfRdsh
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
-    RoleDefinitionIds: RoleDefinitionIds
     SessionThresholdPerCPU: ScalingSessionThresholdPerCPU
     TimeDifference: Locations[Location].timeDifference
     TimeZone: Locations[Location].timeZone
@@ -731,7 +727,6 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
     AutomationAccountName: AutomationAccountName
     Environment: Environment
     Location: Location
-    RoleDefinitionIds: RoleDefinitionIds
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex

@@ -6,6 +6,7 @@ param AvailabilitySetPrefix string
 param AutomationAccountName string
 param Availability string
 param ConfigurationName string
+param DeploymentScriptNamePrefix string
 param DisaStigCompliance bool
 param DiskEncryption bool
 param DiskName string
@@ -275,12 +276,12 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
 
 // Enables drain mode on the session hosts so users cannot login to hosts immediately after the deployment
 module drainMode '../deploymentScript.bicep' = if(DrainMode) {
-  name: 'DrainMode_${Timestamp}'
+  name: 'DeploymentScript_DrainMode_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement) 
   params: {
     Arguments: '-ResourceGroup ${ResourceGroupManagement} -HostPool ${HostPoolName}'
     Location: Location
-    Name: 'ds-${NamingStandard}-drainMode'
+    Name: '${DeploymentScriptNamePrefix}drainMode'
     ScriptContainerSasToken: _artifactsLocationSasToken
     ScriptContainerUri: _artifactsLocation
     ScriptName: 'Set-AvdDrainMode.ps1'
@@ -388,7 +389,7 @@ resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extens
       EncryptionOperation: 'EnableEncryption'
       KeyVaultURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
       KeyVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', 'ds-${NamingStandard}-bitlockerKek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
+      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', '${DeploymentScriptNamePrefix}kek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
       KekVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
       KeyEncryptionAlgorithm: 'RSA-OAEP'
       VolumeType: 'All'

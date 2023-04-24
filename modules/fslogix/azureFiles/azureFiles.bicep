@@ -1,6 +1,7 @@
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
+param DeploymentScriptNamePrefix string
 param DnsServerForwarderIPAddresses array
 param DnsServerSize string
 @secure()
@@ -18,7 +19,6 @@ param Identifier string
 param KerberosEncryption string
 param Location string
 param LocationShortName string
-param ManagedIdentityResourceId string
 param ManagementVmName string
 param NamingStandard string
 param Netbios string
@@ -27,7 +27,6 @@ param PrivateDnsZoneName string
 param PrivateEndpoint bool
 param ResourceGroupManagement string
 param ResourceGroupStorage string
-param RoleDefinitionIds object
 param SecurityPrincipalIds array
 param SecurityPrincipalNames array
 param StampIndexFull string
@@ -40,6 +39,7 @@ param StorageSuffix string
 param Subnet string
 param Tags object
 param Timestamp string
+param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
@@ -48,7 +48,7 @@ param VmUsername string
 
 
 var Endpoint = split(FslogixStorage, ' ')[2]
-var ResourceGroupName = resourceGroup().name
+var RoleDefinitionId = resourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb') // Storage File Data SMB Share Contributor 
 var SmbMultiChannel = {
   multichannel: {
     enabled: true
@@ -106,29 +106,14 @@ resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i
   }
 }]
 
-// Assigns the Mgmt VM's managed identity to the storage account
-// This is needed so the custom script extension can domain join the storage account, change the Kerberos encryption if needed, and update the NTFS permissions
-resource roleAssignment_Vm 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for i in range(0, StorageCount): {
-  scope: storageAccounts[i]
-  name: guid(storageAccounts[i].name, RoleDefinitionIds.contributor, ManagementVmName)
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleDefinitionIds.contributor)
-    principalId: reference(resourceId(ResourceGroupManagement, 'Microsoft.Compute/virtualMachines', ManagementVmName), '2020-12-01', 'Full').identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}]
-
 // Assigns the SMB Contributor role to the Storage Account so users can save their profiles to the file share using FSLogix
-resource roleAssignment_Users 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for i in range(0, StorageCount): {
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for i in range(0, StorageCount): {
   scope: storageAccounts[i]
-  name: guid(SecurityPrincipalIds[i], RoleDefinitionIds.storageFileDataSMBShareContributor, storageAccounts[i].name)
+  name: guid(SecurityPrincipalIds[i], RoleDefinitionId, storageAccounts[i].id)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', RoleDefinitionIds.storageFileDataSMBShareContributor)
+    roleDefinitionId: RoleDefinitionId
     principalId: SecurityPrincipalIds[i]
   }
-  dependsOn: [
-    roleAssignment_Vm
-  ]
 }]
 
 resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2021-02-01' = [for i in range(0, StorageCount): {
@@ -142,9 +127,6 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2021-02-01
       enabled: false
     }
   }
-  dependsOn: [
-    roleAssignment_Vm
-  ]
 }]
 
 module shares 'shares.bicep' = [for i in range(0, StorageCount): {
@@ -157,13 +139,13 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
     StorageSku: StorageSku
   }
   dependsOn: [
-    roleAssignment_Users
+    roleAssignment
   ]
 }]
 
 module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount): if(PrivateEndpoint) {
   name: 'PrivateEndpoints_${i}_${Timestamp}'
-  scope: resourceGroup(ResourceGroupName)
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     Location: Location
     PrivateDnsZoneName: PrivateDnsZoneName
@@ -178,10 +160,11 @@ module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount
 
 module dnsForwarder 'dnsForwarder.bicep' = if(PrivateEndpoint) {
   name: 'DnsForwarder_${Timestamp}'
-  scope: resourceGroup(ResourceGroupName)
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DnsServerForwarderIPAddresses: DnsServerForwarderIPAddresses
     DnsServerSize: DnsServerSize
     DomainJoinPassword: DomainJoinPassword
@@ -192,13 +175,13 @@ module dnsForwarder 'dnsForwarder.bicep' = if(PrivateEndpoint) {
     Identifier: Identifier
     Location: Location
     LocationShortName: LocationShortName
-    ManagedIdentityResourceId: ManagedIdentityResourceId
     NamingStandard: NamingStandard
     StampIndexFull: StampIndexFull
     StorageSuffix: StorageSuffix
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
     VmPassword: VmPassword
@@ -213,12 +196,12 @@ module ntfsPermissions '../ntfsPermissions.bicep' = if(!contains(DomainServices,
     _artifactsLocation: _artifactsLocation    
     _artifactsLocationSasToken: _artifactsLocationSasToken
     CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -DomainServices ${DomainServices} -Environment ${environment().name} -FslogixSolution ${FslogixSolution} -KerberosEncryptionType ${KerberosEncryption} -Netbios ${Netbios} -OuPath "${OuPath}" -SecurityPrincipalNames "${SecurityPrincipalNames}" -StorageAccountPrefix ${StorageAccountPrefix} -StorageAccountResourceGroupName ${ResourceGroupStorage} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${environment().suffixes.storage} -SubscriptionId ${subscription().subscriptionId} -TenantId ${subscription().tenantId}'
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     Location: Location
     ManagementVmName: ManagementVmName
-    NamingStandard: NamingStandard
     Tags: Tags
     Timestamp: Timestamp
-    UserAssignedIdentityResourceId: ManagedIdentityResourceId
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
   dependsOn: [
     shares

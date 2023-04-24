@@ -2,6 +2,7 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param Availability string
+param DeploymentScriptNamePrefix string
 param DiskEncryption bool
 param DiskSku string
 param DomainName string
@@ -11,7 +12,6 @@ param ImageSku string
 param KerberosEncryption string
 param Location string
 param ManagedIdentityResourceId string
-param NamingStandard string
 param PooledHostPool bool
 param RecoveryServices bool
 param SecurityPrincipalIds array
@@ -33,7 +33,7 @@ var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
 
 
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
-  name: 'ds-${NamingStandard}-validation'
+  name: '${DeploymentScriptNamePrefix}validation'
   location: Location
   tags: Tags
   kind: 'AzurePowerShell'
