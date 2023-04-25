@@ -245,7 +245,7 @@ param VirtualNetworkResourceGroupName string
 param VmPassword string
 
 @description('The VM SKU for the AVD session hosts.')
-param VmSize string = 'Standard_D4s_v4'
+param VmSize string = 'Standard_D4ds_v4'
 
 @description('The Local Administrator Username for the Session Hosts')
 param VmUsername string
