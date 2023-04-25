@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "16161271788352898491"
+      "templateHash": "16247464250883508100"
     }
   },
   "parameters": {
@@ -1043,7 +1043,7 @@
         "mode": "Incremental",
         "parameters": {
           "Arguments": {
-            "value": "[format('-Availability {0} -DiskEncryption {1} -DiskSku {2} -DomainName {3} -DomainServices {4} -Environment {5} -EphemeralOsDisk {6} -ImageSku {7} -KerberosEncryption {8} -Location {9} -PooledHostPool {10} -RecoveryServices {11} -SecurityPrincipalIdsCount {12} -SecurityPrincipalNamesCount {13} -SessionHostCount {14} -SessionHostIndex {15} -StartVmOnConnect {16} -StorageCount {17} -StorageSolution {18} -VmSize {19} -VnetName {20} -VnetResourceGroupName {21}', parameters('Availability'), parameters('DiskEncryption'), parameters('DiskSku'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('EphemeralOsDisk'), parameters('ImageSku'), parameters('KerberosEncryption'), parameters('Location'), variables('PooledHostPool'), parameters('RecoveryServices'), variables('SecurityPrincipalIdsCount'), variables('SecurityPrincipalNamesCount'), parameters('SessionHostCount'), parameters('SessionHostIndex'), parameters('StartVmOnConnect'), parameters('StorageCount'), variables('StorageSolution'), parameters('VmSize'), parameters('VirtualNetworkName'), parameters('VirtualNetworkResourceGroupName'))]"
+            "value": "[format('-Availability {0} -DiskEncryption {1} -DiskSku {2} -DomainName {3} -DomainServices {4} -Environment {5} -EphemeralOsDisk {6} -ImageSku {7} -KerberosEncryption {8} -Location {9} -PooledHostPool {10} -RecoveryServices {11} -SecurityPrincipalIdsCount {12} -SecurityPrincipalNamesCount {13} -SessionHostCount {14} -SessionHostIndex {15} -StartVmOnConnect {16} -StorageCount {17} -StorageSolution {18} -VmSize {19} -VnetName {20} -VnetResourceGroupName {21}', parameters('Availability'), parameters('DiskEncryption'), parameters('DiskSku'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('EphemeralOsDisk'), parameters('ImageSku'), if(parameters('DisaStigCompliance'), 'AES256', parameters('KerberosEncryption')), parameters('Location'), variables('PooledHostPool'), parameters('RecoveryServices'), variables('SecurityPrincipalIdsCount'), variables('SecurityPrincipalNamesCount'), parameters('SessionHostCount'), parameters('SessionHostIndex'), parameters('StartVmOnConnect'), parameters('StorageCount'), variables('StorageSolution'), parameters('VmSize'), parameters('VirtualNetworkName'), parameters('VirtualNetworkResourceGroupName'))]"
           },
           "Location": {
             "value": "[parameters('Location')]"
@@ -2487,9 +2487,7 @@
           "Identifier": {
             "value": "[parameters('Identifier')]"
           },
-          "KerberosEncryption": {
-            "value": "[parameters('KerberosEncryption')]"
-          },
+          "KerberosEncryption": "[if(parameters('DisaStigCompliance'), createObject('value', 'AES256'), createObject('value', parameters('KerberosEncryption')))]",
           "KeyVaultName": {
             "value": "[variables('KeyVaultName')]"
           },
@@ -7031,7 +7029,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "177483229448393679"
+              "templateHash": "18179490385525519872"
             }
           },
           "parameters": {
@@ -7135,20 +7133,20 @@
               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), guid(parameters('Time'), 'AVD-Scaling-Tool', parameters('HostPoolName'), string(range(0, 4)[copyIndex()])))]",
               "properties": {
                 "parameters": {
-                  "TenantId": "[subscription().tenantId]",
-                  "SubscriptionId": "[subscription().subscriptionId]",
-                  "EnvironmentName": "[environment().name]",
-                  "ResourceGroupName": "[parameters('HostPoolResourceGroupName')]",
-                  "HostPoolName": "[parameters('HostPoolName')]",
-                  "MaintenanceTagName": "Maintenance",
-                  "TimeDifference": "[parameters('TimeDifference')]",
                   "BeginPeakTime": "[parameters('BeginPeakTime')]",
                   "EndPeakTime": "[parameters('EndPeakTime')]",
-                  "SessionThresholdPerCPU": "[parameters('SessionThresholdPerCPU')]",
-                  "MinimumNumberOfRDSH": "[parameters('MinimumNumberOfRdsh')]",
+                  "EnvironmentName": "[environment().name]",
+                  "HostPoolName": "[parameters('HostPoolName')]",
                   "LimitSecondsToForceLogOffUser": "[parameters('LimitSecondsToForceLogOffUser')]",
+                  "LogOffMessageBody": "Your session will be logged off. Please save and close everything.",
                   "LogOffMessageTitle": "Machine is about to shutdown.",
-                  "LogOffMessageBody": "Your session will be logged off. Please save and close everything."
+                  "MaintenanceTagName": "Maintenance",
+                  "MinimumNumberOfRDSH": "[parameters('MinimumNumberOfRdsh')]",
+                  "ResourceGroupName": "[parameters('HostPoolResourceGroupName')]",
+                  "SessionThresholdPerCPU": "[parameters('SessionThresholdPerCPU')]",
+                  "SubscriptionId": "[subscription().subscriptionId]",
+                  "TenantId": "[subscription().tenantId]",
+                  "TimeDifference": "[parameters('TimeDifference')]"
                 },
                 "runbook": {
                   "name": "AVD-Scaling-Tool"

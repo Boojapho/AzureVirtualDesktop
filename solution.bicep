@@ -377,7 +377,7 @@ module validation 'modules/deploymentScript.bicep' = {
   scope: resourceGroup(ResourceGroupManagement)
   name: 'DeploymentScript_Validation_${Timestamp}'
   params: {
-    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -EphemeralOsDisk ${EphemeralOsDisk} -ImageSku ${ImageSku} -KerberosEncryption ${KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
+    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -EphemeralOsDisk ${EphemeralOsDisk} -ImageSku ${ImageSku} -KerberosEncryption ${DisaStigCompliance ? 'AES256' : KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}validation'
     ScriptContainerSasToken: _artifactsLocationSasToken
@@ -513,7 +513,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     FslogixStorage: FslogixStorage
     HybridUseBenefit: HybridUseBenefit
     Identifier: Identifier
-    KerberosEncryption: KerberosEncryption
+    KerberosEncryption: DisaStigCompliance ? 'AES256' : KerberosEncryption
     KeyVaultName: KeyVaultName
     Location: Location
     LocationShortName: LocationShortName
