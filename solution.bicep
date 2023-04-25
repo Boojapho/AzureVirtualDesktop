@@ -260,13 +260,13 @@ var SessionHostBatchCount = DivisionRemainderValue > 0 ? DivisionValue + 1 : Div
 /*  END BATCHING SESSION HOSTS */
 
 
-/*  BEGIN AVAILABILITY SET COUNT */
+/*  BEGIN BATCHING AVAILABILITY SETS */
 // The following variables are used to determine the number of availability sets.
 var MaxAvSetMembers = 200 // This is the max number of session hosts that can be deployed in an availability set.
 var BeginAvSetRange = SessionHostIndex / MaxAvSetMembers // This determines the availability set to start with.
 var EndAvSetRange = (SessionHostCount + SessionHostIndex) / MaxAvSetMembers // This determines the availability set to end with.
 var AvailabilitySetCount = length(range(BeginAvSetRange, (EndAvSetRange - BeginAvSetRange) + 1))
-/*  END AVAILABILITY SET COUNT */
+/*  END BATCHING AVAILABILITY SETS */
 
 
 var AppGroupName = 'dag-${NamingStandard}'
