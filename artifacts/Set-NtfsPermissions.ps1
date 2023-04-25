@@ -242,6 +242,12 @@ try
                     Write-Log -Message "Computer object creation succeeded" -Type 'INFO'
 
                     # Update the Azure Storage Account with the domain join 'INFO'
+                    $SamAccountName = switch($KerberosEncryptionType)
+                    {
+                        'AES256' {$StorageAccountName}
+                        'RC4' {$ComputerObject.SamAccountName}
+                    }
+
                     Set-AzStorageAccount `
                         -ResourceGroupName $StorageAccountResourceGroupName `
                         -Name $StorageAccountName `
@@ -252,7 +258,7 @@ try
                         -ActiveDirectoryDomainGuid $Domain.ObjectGUID `
                         -ActiveDirectoryDomainsid $Domain.DomainSID `
                         -ActiveDirectoryAzureStorageSid $ComputerObject.SID.Value `
-                        -ActiveDirectorySamAccountName $ComputerObject.SamAccountName `
+                        -ActiveDirectorySamAccountName $SamAccountName `
                         -ActiveDirectoryAccountType 'Computer'
                     Write-Log -Message "Storage Account update with domain join info succeeded" -Type 'INFO'
                 
