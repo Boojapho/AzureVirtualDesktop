@@ -34,6 +34,12 @@ param(
 	[double]$SessionThresholdPerCPU,
 
 	[Parameter(Mandatory)]
+	[string]$SubscriptionId,
+
+    [Parameter(Mandatory)]
+	[string]$TenantId,
+
+	[Parameter(Mandatory)]
 	[string]$TimeDifference
 )
 
@@ -315,7 +321,7 @@ try
     $AzContext = $null
     try
     {
-        $AzAuth = Connect-AzAccount -Environment $EnvironmentName -Identity
+        $AzAuth = Connect-AzAccount -Environment $EnvironmentName -Tenant $TenantId -Subscription $SubscriptionId -Identity
         if (!$AzAuth -or !$AzAuth.Context) {
             throw $AzAuth
         }
