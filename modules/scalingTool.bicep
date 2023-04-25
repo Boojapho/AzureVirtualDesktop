@@ -62,20 +62,20 @@ resource jobSchedules 'Microsoft.Automation/automationAccounts/jobSchedules@2022
   name: guid(Time, runbook.name, HostPoolName, string(i))
   properties: {
     parameters: {
-      TenantId: subscription().tenantId
-      SubscriptionId: subscription().subscriptionId
-      EnvironmentName: environment().name
-      ResourceGroupName: HostPoolResourceGroupName
-      HostPoolName: HostPoolName
-      MaintenanceTagName: 'Maintenance'
-      TimeDifference: TimeDifference
       BeginPeakTime: BeginPeakTime
       EndPeakTime: EndPeakTime
-      SessionThresholdPerCPU: SessionThresholdPerCPU
-      MinimumNumberOfRDSH: MinimumNumberOfRdsh
+      EnvironmentName: environment().name
+      HostPoolName: HostPoolName
       LimitSecondsToForceLogOffUser: LimitSecondsToForceLogOffUser
-      LogOffMessageTitle: 'Machine is about to shutdown.'
       LogOffMessageBody: 'Your session will be logged off. Please save and close everything.'
+      LogOffMessageTitle: 'Machine is about to shutdown.'
+      MaintenanceTagName: 'Maintenance'
+      MinimumNumberOfRDSH: MinimumNumberOfRdsh
+      ResourceGroupName: HostPoolResourceGroupName
+      SessionThresholdPerCPU: SessionThresholdPerCPU
+      SubscriptionId: subscription().subscriptionId
+      TenantId: subscription().tenantId
+      TimeDifference: TimeDifference
     }
     runbook: {
       name: runbook.name
