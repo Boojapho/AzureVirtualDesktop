@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "7050497433400836871"
+      "templateHash": "15230844559903299618"
     }
   },
   "parameters": {
@@ -212,7 +212,7 @@
     },
     "ImageSku": {
       "type": "string",
-      "defaultValue": "21h1-evd-o365pp",
+      "defaultValue": "win11-22h2-avd-m365",
       "metadata": {
         "description": "SKU for the virtual machine image"
       }

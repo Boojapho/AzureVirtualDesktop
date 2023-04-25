@@ -119,7 +119,7 @@ param ImageOffer string = 'office-365'
 param ImagePublisher string = 'MicrosoftWindowsDesktop'
 
 @description('SKU for the virtual machine image')
-param ImageSku string = '21h1-evd-o365pp'
+param ImageSku string = 'win11-22h2-avd-m365'
 
 @description('Version for the virtual machine image')
 param ImageVersion string = 'latest'
