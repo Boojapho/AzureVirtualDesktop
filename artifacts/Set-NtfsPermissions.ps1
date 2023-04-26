@@ -124,7 +124,7 @@ try
         $AzStorageModule = Get-Module -ListAvailable | Where-Object {$_.Name -eq 'Az.Storage'}
         if(!$AzStorageModule)
         {
-            Install-Module -Name 'Az.Storage' -Repository 'PSGallery' -Force
+            Install-Module -Name 'Az.Storage' -Repository 'PSGallery' -RequiredVersion '5.5.0' -Force
             Write-Log -Message "Installed the Az.Storage module" -Type 'INFO'
         }
         else 
