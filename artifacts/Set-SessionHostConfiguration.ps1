@@ -599,33 +599,34 @@ try
     ##############################################################
     # Add Defender Exclusions for FSLogix 
     ##############################################################
-    # https://docs.microsoft.com/en-us/azure/architecture/example-scenario/wvd/windows-virtual-desktop-fslogix#antivirus-exclusions
+    # https://learn.microsoft.com/en-us/fslogix/overview-prerequisites#configure-antivirus-file-and-folder-exclusions
     if($Fslogix -eq 'true')
     {
 
         $Files = @(
-            "%ProgramFiles%\FSLogix\Apps\frxdrv.sys",
-            "%ProgramFiles%\FSLogix\Apps\frxdrvvt.sys",
-            "%ProgramFiles%\FSLogix\Apps\frxccd.sys",
-            "%TEMP%\*.VHD",
-            "%TEMP%\*.VHDX",
-            "%Windir%\TEMP\*.VHD",
-            "%Windir%\TEMP\*.VHDX"
+            "%TEMP%\*\*.VHD",
+            "%TEMP%\*\*.VHDX",
+            "%Windir%\TEMP\*\*.VHD",
+            "%Windir%\TEMP\*\*.VHDX"
         )
 
         foreach($Share in $Shares)
         {
-            $Files += "$Share\*.VHD"
-            $Files += "$Share\*.VHDX"
+            $Files += "$Share\*\*.VHD"
+            $Files += "$Share\*\*.VHD.lock"
+            $Files += "$Share\*\*.VHD.meta"
+            $Files += "$Share\*\*.VHD.metadata"
+            $Files += "$Share\*\*.VHDX"
+            $Files += "$Share\*\*.VHDX.lock"
+            $Files += "$Share\*\*.VHDX.meta"
+            $Files += "$Share\*\*.VHDX.metadata"
         }
 
         if($FslogixSolution -like "CloudCache*")
         { 
             $Files += @(
-                "%ProgramData%\FSLogix\Cache\*.VHD"
-                "%ProgramData%\FSLogix\Cache\*.VHDX"
-                "%ProgramData%\FSLogix\Proxy\*.VHD"
-                "%ProgramData%\FSLogix\Proxy\*.VHDX"
+                "%ProgramData%\FSLogix\Cache\*"
+                "%ProgramData%\FSLogix\Proxy\*"
             )
         }
 
@@ -634,18 +635,6 @@ try
             Add-MpPreference -ExclusionPath $File
         }
         Write-Log -Message 'Enabled Defender exlusions for FSLogix paths' -Type 'INFO'
-
-        $Processes = @(
-            "%ProgramFiles%\FSLogix\Apps\frxccd.exe",
-            "%ProgramFiles%\FSLogix\Apps\frxccds.exe",
-            "%ProgramFiles%\FSLogix\Apps\frxsvc.exe"
-        )
-
-        foreach($Process in $Processes)
-        {
-            Add-MpPreference -ExclusionProcess $Process
-        }
-        Write-Log -Message 'Enabled Defender exlusions for FSLogix processes' -Type 'INFO'
     }
 
 
