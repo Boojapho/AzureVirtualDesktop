@@ -32,7 +32,6 @@ param NamingStandard string
 param NetworkSecurityGroupName string
 param NetAppFileShares array
 param OuPath string
-param RdpShortPath bool
 param ResourceGroupManagement string
 param ScreenCaptureProtection bool
 param Sentinel bool
@@ -107,28 +106,6 @@ var VmUserAssignedIdentityProperty = {
 }
 var VmIdentity = ((!empty(UserAssignedIdentity)) ? union(VmIdentityTypeProperty, VmUserAssignedIdentityProperty) : VmIdentityTypeProperty)
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-03-01' = if (RdpShortPath) {
-  name: NetworkSecurityGroupName // Fix name
-  location: Location
-  properties: {
-    securityRules: [
-      {
-        name: 'AllowRdpShortPath'
-        properties: {
-          access: 'Allow'
-          destinationAddressPrefix: '*'
-          destinationPortRange: '3390'
-          direction: 'Inbound'
-          priority: 3390
-          protocol: 'Udp'
-          sourceAddressPrefix: 'VirtualNetwork'
-          sourcePortRange: '*'
-        }
-      }
-    ]
-  }
-}
-
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
   name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 3, '0')}'
   location: Location
@@ -149,9 +126,6 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [fo
     ]
     enableAcceleratedNetworking: AcceleratedNetworking == 'True' ? true : false
     enableIPForwarding: false
-    networkSecurityGroup: RdpShortPath ? {
-      id: networkSecurityGroup.id
-    } : null
   }
 }]
 

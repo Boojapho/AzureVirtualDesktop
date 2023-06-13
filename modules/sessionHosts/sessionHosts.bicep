@@ -39,7 +39,6 @@ param NetworkSecurityGroupName string
 param NetAppFileShares array
 param OuPath string
 param PooledHostPool bool
-param RdpShortPath bool
 param ResourceGroupHosts string
 param ResourceGroupManagement string
 param ScreenCaptureProtection bool
@@ -130,7 +129,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     NetworkSecurityGroupName: NetworkSecurityGroupName
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
-    RdpShortPath: RdpShortPath
     ResourceGroupManagement: ResourceGroupManagement
     ScreenCaptureProtection: ScreenCaptureProtection
     Sentinel: Sentinel

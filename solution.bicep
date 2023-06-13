@@ -156,9 +156,6 @@ param Monitoring bool = true
 @description('The distinguished name for the target Organization Unit in Active Directory Domain Services.')
 param OuPath string
 
-@description('Enables the RDP Short Path feature: https://docs.microsoft.com/en-us/azure/virtual-desktop/shortpath')
-param RdpShortPath bool = false
-
 @description('Enable backups to an Azure Recovery Services vault.  For a pooled host pool this will enable backups on the Azure file share.  For a personal host pool this will enable backups on the AVD sessions hosts.')
 param RecoveryServices bool = false
 
@@ -590,7 +587,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     NetworkSecurityGroupName: NetworkSecurityGroupName
     OuPath: OuPath
     PooledHostPool: PooledHostPool
-    RdpShortPath: RdpShortPath
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
     ScreenCaptureProtection: ScreenCaptureProtection

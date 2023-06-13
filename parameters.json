@@ -105,9 +105,6 @@
         "ouPath": {
             "value": "OU=AVD,DC=jasonmasten,DC=com"
         },
-        "rdpShortPath": {
-            "value": false
-        },
         "recoveryServices": {
             "value": false
         },

@@ -13,7 +13,6 @@
 - [**GPU Drivers & Settings**](./features/gpu.md#gpu-drivers--settings)
 - [**High Availability**](./features/highAvailability.md#high-availability)
 - [**Monitoring**](./features/monitoring.md#monitoring)
-- [**RDP ShortPath for Managed Networks**](./features/rdpShortPath.md#rdp-shortpath-for-managed-networks)
 - [**Scaling Automation**](./features/scalingAutomation.md#scaling-automation)
 - [**Screen Capture Protection**](./features/screenCaptureProtection.md#screen-capture-protection)
 - [**Security Technical Implementation Guides (STIG)**](./features/securityTechnicalImplementationGuides.md#security-technical-implementation-guides-stig)
