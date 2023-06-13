@@ -23,9 +23,6 @@
         "diskSku": {
             "value": "Premium_LRS"
         },
-        "disaStigCompliance": {
-            "value": true
-        },
         "domainJoinPassword": {
             "reference": {
                 "keyVault": {

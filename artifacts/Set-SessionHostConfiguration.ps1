@@ -2,11 +2,7 @@
 Param(
     [parameter(Mandatory)]
     [string]
-    $AmdVmSize, 
-
-    [parameter(Mandatory)]
-    [string]
-    $DisaStigCompliance,
+    $AmdVmSize,
 
     [parameter(Mandatory)]
     [string]
@@ -196,17 +192,6 @@ try
 
 
         Write-Log -Message 'Optimized the operating system using VDOT' -Type 'INFO'
-    }    
-
-    
-    ##############################################################
-    #  DISA STIG Compliance
-    ##############################################################
-    if($DisaStigCompliance -eq 'true')
-    {
-        # Set Local Admin account password expires True (V-205658)
-        $localAdmin = Get-LocalUser | Where-Object Description -eq "Built-in account for administering the computer/domain"
-        Set-LocalUser -name $localAdmin.Name -PasswordNeverExpires $false
     }
 
     ##############################################################

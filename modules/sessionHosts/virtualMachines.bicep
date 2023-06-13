@@ -7,7 +7,6 @@ param AutomationAccountName string
 param Availability string
 param ConfigurationName string
 param DeploymentScriptNamePrefix string
-param DisaStigCompliance bool
 param DiskEncryption bool
 param DiskName string
 param DiskSku string
@@ -300,7 +299,7 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
       timestamp: Timestamp
     }
     protectedSettings: {
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DisaStigCompliance ${DisaStigCompliance} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ResourceGroupManagement, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -RdpShortPath ${RdpShortPath} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
+      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ResourceGroupManagement, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -RdpShortPath ${RdpShortPath} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
     }
   }
   dependsOn: [
@@ -409,67 +408,5 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
     extension_AADLoginForWindows
     extension_JsonADDomainExtension
     virtualMachine
-  ]
-}]
-
-resource extension_DSC 'Microsoft.Compute/virtualMachines/extensions@2019-07-01' = [for i in range(0, SessionHostCount): if(DisaStigCompliance) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/DSC'
-  location: Location
-  properties: {
-    publisher: 'Microsoft.Powershell'
-    type: 'DSC'
-    typeHandlerVersion: '2.77'
-    autoUpgradeMinorVersion: true
-    protectedSettings: {
-      Items: {
-        registrationKeyPrivate: DisaStigCompliance ? listKeys(resourceId(ResourceGroupManagement, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').Keys[0].value : null
-      }
-    }
-    settings: {
-      Properties: [
-        {
-          Name: 'RegistrationKey'
-          Value: {
-            UserName: 'PLACEHOLDER_DONOTUSE'
-            Password: 'PrivateSettingsRef:registrationKeyPrivate'
-          }
-          TypeName: 'System.Management.Automation.PSCredential'
-        }
-        {
-          Name: 'RegistrationUrl'
-          Value: DisaStigCompliance ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Automation/automationAccounts', AutomationAccountName), '2018-06-30').registrationUrl : null
-          TypeName: 'System.String'
-        }
-        {
-          Name: 'NodeConfigurationName'
-          Value: '${ConfigurationName}.localhost'
-          TypeName: 'System.String'
-        }
-        {
-          Name: 'ConfigurationMode'
-          Value: 'ApplyandAutoCorrect'
-          TypeName: 'System.String'
-        }
-        {
-          Name: 'RebootNodeIfNeeded'
-          Value: true
-          TypeName: 'System.Boolean'
-        }
-        {
-          Name: 'ActionAfterReboot'
-          Value: 'ContinueConfiguration'
-          TypeName: 'System.String'
-        }
-        {
-          Name: 'Timestamp'
-          Value: Timestamp
-          TypeName: 'System.String'
-        }
-      ]
-    }
-  }
-  dependsOn: [
-    extension_AmdGpuDriverWindows
-    extension_NvidiaGpuDriverWindows
   ]
 }]

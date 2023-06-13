@@ -32,9 +32,6 @@ param DiskEncryption bool = false
 @description('The storage SKU for the AVD session host disks.  Production deployments should use Premium_LRS.')
 param DiskSku string = 'Standard_LRS'
 
-@description('Deploys an Automation Account and uses State Configuration to deploy and monitor DSC compliance.  PowerSTIG is used for the STIG configurations that adhere to DISAs STIG compliance.')
-param DisaStigCompliance bool = false
-
 @secure()
 @description('The password of the privileged account to domain join the AVD session hosts to your domain')
 param DomainJoinPassword string
@@ -377,7 +374,7 @@ module validation 'modules/deploymentScript.bicep' = {
   scope: resourceGroup(ResourceGroupManagement)
   name: 'DeploymentScript_Validation_${Timestamp}'
   params: {
-    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -EphemeralOsDisk ${EphemeralOsDisk} -ImageSku ${ImageSku} -KerberosEncryption ${DisaStigCompliance ? 'AES256' : KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
+    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -EphemeralOsDisk ${EphemeralOsDisk} -ImageSku ${ImageSku} -KerberosEncryption ${KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}validation'
     ScriptContainerSasToken: _artifactsLocationSasToken
@@ -399,7 +396,7 @@ resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   }
 }
 
-module automationAccount 'modules/automationAccount.bicep' = if(PooledHostPool || DisaStigCompliance) {
+module automationAccount 'modules/automationAccount.bicep' = if(PooledHostPool) {
   name: 'AutomationAccount_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
@@ -472,23 +469,6 @@ module keyVault 'modules/keyVault.bicep' = if(DiskEncryption) {
   }
 }
 
-module stig 'modules/stig.bicep' = if(DisaStigCompliance) {
-  name: 'STIG_${Timestamp}'
-  scope: resourceGroup(ResourceGroupManagement)
-  params: {
-    _artifactsLocation: _artifactsLocation    
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    AutomationAccountName: AutomationAccountName
-    ConfigurationName: ConfigurationName
-    Location: Location
-    Timestamp: Timestamp
-  }
-  dependsOn: [
-    automationAccount
-    resourceGroups
-  ]
-}
-
 module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
   name: 'FSLogix_${Timestamp}'
   params: {
@@ -513,7 +493,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
     FslogixStorage: FslogixStorage
     HybridUseBenefit: HybridUseBenefit
     Identifier: Identifier
-    KerberosEncryption: DisaStigCompliance ? 'AES256' : KerberosEncryption
+    KerberosEncryption: KerberosEncryption
     KeyVaultName: KeyVaultName
     Location: Location
     LocationShortName: LocationShortName
@@ -548,7 +528,6 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if(Fslogix) {
   }
   dependsOn: [
     keyVault
-    stig
     userAssignedIdentity
   ]
 }
@@ -580,7 +559,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     AvailabilitySetIndex: BeginAvSetRange
     ConfigurationName: ConfigurationName
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
-    DisaStigCompliance: DisaStigCompliance
     DiskEncryption: DiskEncryption
     DiskName: DiskName
     DiskSku: DiskSku
@@ -642,7 +620,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     keyVault
     logAnalyticsWorkspace
     resourceGroups
-    stig
   ]
 }
 

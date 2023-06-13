@@ -9,7 +9,6 @@ param AutomationAccountName string
 param Availability string
 param ConfigurationName string
 param DeploymentScriptNamePrefix string
-param DisaStigCompliance bool
 param DiskEncryption bool
 param DiskName string
 param DiskSku string
@@ -105,7 +104,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     AvailabilitySetPrefix: AvailabilitySetPrefix
     ConfigurationName: ConfigurationName
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
-    DisaStigCompliance: DisaStigCompliance
     DiskEncryption: DiskEncryption
     DiskName: DiskName
     DiskSku: DiskSku
