@@ -66,11 +66,11 @@ var AmdVmSizes = [
 ]
 var AmdVmSize = contains(AmdVmSizes, VmSize)
 var FslogixExclusions = '${FslogixExclusionsLocal}${FslogixExclusionsProfileContainersString}${FslogixExclusionsOfficeContainersString}${FslogixExclusionsCloudCache}'
-var FslogixExclusionsCloudCache = contains(FslogixSolution, 'CloudCache') ? ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"' : ''
-var FslogixExclusionsLocal = '"%TEMP%\\*\\*.VHD";"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHD";"%Windir%\\TEMP\\*\\*.VHDX"'
-var FslogixExclusionsOfficeContainersArray = [for Share in FslogixOfficeShares: ';"${Share}*\\*.VHD";"${Share}*\\*.VHD.lock";"${Share}*\\*.VHD.meta";"${Share}*\\*.VHD.metadata";"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
+var FslogixExclusionsCloudCache = ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"'
+var FslogixExclusionsLocal = ';"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHDX"'
+var FslogixExclusionsOfficeContainersArray = [for Share in FslogixOfficeShares: ';"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
 var FslogixExclusionsOfficeContainersString = join(FslogixExclusionsOfficeContainersArray, ';')
-var FslogixExclusionsProfileContainersArray = [for Share in FslogixProfileShares: ';"${Share}*\\*.VHD";"${Share}*\\*.VHD.lock";"${Share}*\\*.VHD.meta";"${Share}*\\*.VHD.metadata";"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
+var FslogixExclusionsProfileContainersArray = [for Share in FslogixProfileShares: ';"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
 var FslogixExclusionsProfileContainersString = join(FslogixExclusionsProfileContainersArray, ';')
 var FslogixOfficeShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\office-containers\\']
 var FslogixProfileShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\profile-containers\\']
