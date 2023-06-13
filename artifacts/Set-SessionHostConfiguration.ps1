@@ -54,10 +54,6 @@ Param(
 
     [parameter(Mandatory)]
     [string]
-    $RdpShortPath,
-
-    [parameter(Mandatory)]
-    [string]
     $ScreenCaptureProtection,
 
     [parameter(Mandatory)]
@@ -199,7 +195,7 @@ try
     ##############################################################
     $Settings = @(
 
-        # Disable Automatic Updates: https://docs.microsoft.com/en-us/azure/virtual-desktop/set-up-customize-master-image#disable-automatic-updates
+        # Disable Automatic Updates: https://learn.microsoft.com/azure/virtual-desktop/set-up-customize-master-image#disable-automatic-updates
         [PSCustomObject]@{
             Name = 'NoAutoUpdate'
             Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
@@ -207,7 +203,7 @@ try
             Value = 1
         },
 
-        # Enable Time Zone Redirection: https://docs.microsoft.com/en-us/azure/virtual-desktop/set-up-customize-master-image#set-up-time-zone-redirection
+        # Enable Time Zone Redirection: https://learn.microsoft.com/azure/virtual-desktop/set-up-customize-master-image#set-up-time-zone-redirection
         [PSCustomObject]@{
             Name = 'fEnableTimeZoneRedirection'
             Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
@@ -225,7 +221,7 @@ try
     {
         $Settings += @(
 
-            # Configure GPU-accelerated app rendering: https://docs.microsoft.com/en-us/azure/virtual-desktop/configure-vm-gpu#configure-gpu-accelerated-app-rendering
+            # Configure GPU-accelerated app rendering: https://learn.microsoft.com/azure/virtual-desktop/configure-vm-gpu#configure-gpu-accelerated-app-rendering
             [PSCustomObject]@{
                 Name = 'bEnumerateHWBeforeSW'
                 Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
@@ -233,7 +229,7 @@ try
                 Value = 1
             },
 
-            # Configure fullscreen video encoding: https://docs.microsoft.com/en-us/azure/virtual-desktop/configure-vm-gpu#configure-fullscreen-video-encoding
+            # Configure fullscreen video encoding: https://learn.microsoft.com/azure/virtual-desktop/configure-vm-gpu#configure-fullscreen-video-encoding
             [PSCustomObject]@{
                 Name = 'AVC444ModePreferred'
                 Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
@@ -248,7 +244,7 @@ try
     {
         $Settings += @(
 
-            # Configure GPU-accelerated frame encoding: https://docs.microsoft.com/en-us/azure/virtual-desktop/configure-vm-gpu#configure-gpu-accelerated-frame-encoding
+            # Configure GPU-accelerated frame encoding: https://learn.microsoft.com/azure/virtual-desktop/configure-vm-gpu#configure-gpu-accelerated-frame-encoding
             [PSCustomObject]@{
                 Name = 'AVChardwareEncodePreferred'
                 Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
@@ -266,7 +262,7 @@ try
     {
         $Settings += @(
 
-            # Enable Screen Capture Protection: https://docs.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection
+            # Enable Screen Capture Protection: https://learn.microsoft.com/azure/virtual-desktop/screen-capture-protection
             [PSCustomObject]@{
                 Name = 'fEnableScreenCaptureProtect'
                 Path = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services'
@@ -314,7 +310,7 @@ try
 
         $Settings += @(
 
-            # Enables Fslogix profile containers: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#enabled
+            # Enables Fslogix profile containers: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#enabled
             [PSCustomObject]@{
                 Name = 'Enabled'
                 Path = 'HKLM:\SOFTWARE\Fslogix\Profiles'
@@ -322,7 +318,7 @@ try
                 Value = 1
             },
 
-            # Deletes a local profile if it exists and matches the profile being loaded from VHD: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#deletelocalprofilewhenvhdshouldapply
+            # Deletes a local profile if it exists and matches the profile being loaded from VHD: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#deletelocalprofilewhenvhdshouldapply
             [PSCustomObject]@{
                 Name = 'DeleteLocalProfileWhenVHDShouldApply'
                 Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
@@ -330,7 +326,7 @@ try
                 Value = 1
             },
 
-            # The folder created in the Fslogix fileshare will begin with the username instead of the SID: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#flipflopprofiledirectoryname
+            # The folder created in the Fslogix fileshare will begin with the username instead of the SID: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#flipflopprofiledirectoryname
             [PSCustomObject]@{
                 Name = 'FlipFlopProfileDirectoryName'
                 Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
@@ -338,27 +334,67 @@ try
                 Value = 1
             },
 
-            # Loads FRXShell if there's a failure attaching to, or using an existing profile VHD(X): https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#preventloginwithfailure
+            # Specifies the number of retries attempted when a VHD(x) file is locked: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#lockedretrycount
             [PSCustomObject]@{
-                Name = 'PreventLoginWithFailure'
+                Name = 'LockedRetryCount'
                 Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
                 PropertyType = 'DWord'
-                Value = 1
+                Value = 3
             },
 
-            # Loads FRXShell if it's determined a temp profile has been created: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#preventloginwithtempprofile
+            # Specifies the number of seconds to wait between retries: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#lockedretryinterval
             [PSCustomObject]@{
-                Name = 'PreventLoginWithTempProfile'
+                Name = 'LockedRetryInterval'
                 Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
                 PropertyType = 'DWord'
-                Value = 1
+                Value = 15
+            },
+
+            # Specifies if the profile container can be accessed concurrently: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#profiletype
+            [PSCustomObject]@{
+                Name = 'ProfileType'
+                Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
+                PropertyType = 'DWord'
+                Value = 0
+            },
+
+            # Specifies the number of seconds to wait between retries when attempting to reattach the VHD(x) container if it's disconnected unexpectedly: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#reattachintervalseconds
+            [PSCustomObject]@{
+                Name = 'ReAttachIntervalSeconds'
+                Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
+                PropertyType = 'DWord'
+                Value = 15
+            },
+
+            # Specifies the number of times the system should attempt to reattach the VHD(x) container if it's disconnected unexpectedly: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#reattachretrycount
+            [PSCustomObject]@{
+                Name = 'ReAttachRetryCount'
+                Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
+                PropertyType = 'DWord'
+                Value = 3
+            },
+
+            # Specifies the maximum size of the user's container in megabytes. Newly created VHD(x) containers are of this size: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#sizeinmbs
+            [PSCustomObject]@{
+                Name = 'SizeInMBs'
+                Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
+                PropertyType = 'DWord'
+                Value = 30000
+            },
+
+            # Specifies the file extension for the profile containers: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=profiles#volumetype
+            [PSCustomObject]@{
+                Name = 'VolumeType'
+                Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
+                PropertyType = 'String'
+                Value = 'VHDX'
             }
         )
 
         if($FslogixSolution -like "CloudCache*")
         {
             $Settings += @(
-                # List of file system locations to search for the user's profile VHD(X) file: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#vhdlocations
+                # List of file system locations to search for the user's profile VHD(X) file: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#vhdlocations
                 [PSCustomObject]@{
                     Name = 'CCDLocations'
                     Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
@@ -370,7 +406,7 @@ try
         else
         {
             $Settings += @(
-                # List of file system locations to search for the user's profile VHD(X) file: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#vhdlocations
+                # List of file system locations to search for the user's profile VHD(X) file: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#vhdlocations
                 [PSCustomObject]@{
                     Name = 'VHDLocations'
                     Path = 'HKLM:\SOFTWARE\FSLogix\Profiles'
@@ -384,7 +420,7 @@ try
         {
             $Settings += @(
 
-                # Enables Fslogix office containers: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#enabled
+                # Enables Fslogix office containers: https://learn.microsoft.com/fslogix/office-container-configuration-reference#enabled
                 [PSCustomObject]@{
                     Name = 'Enabled'
                     Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
@@ -392,80 +428,15 @@ try
                     Value = 1
                 },
 
-                # Deletes a local profile if it exists and matches the profile being loaded from VHD: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#deletelocalprofilewhenvhdshouldapply
-                [PSCustomObject]@{
-                    Name = 'DeleteLocalProfileWhenVHDShouldApply'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },
-
-                # The folder created in the Fslogix fileshare will begin with the username instead of the SID: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#flipflopprofiledirectoryname
+                # The folder created in the Fslogix fileshare will begin with the username instead of the SID: https://learn.microsoft.com/fslogix/office-container-configuration-reference#flipflopprofiledirectoryname
                 [PSCustomObject]@{
                     Name = 'FlipFlopProfileDirectoryName'
                     Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
                     PropertyType = 'DWord'
                     Value = 1
-                },
-
-                # OneDrive cache is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeonedrive
-                [PSCustomObject]@{
-                    Name = 'IncludeOneDrive'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },
-
-                # OneNote notebook files are redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeonenote
-                [PSCustomObject]@{
-                    Name = 'IncludeOneNote'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },                
-
-                # OneNote UWP notebook files are redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeonenote_uwp
-                [PSCustomObject]@{
-                    Name = 'IncludeOneNote_UWP'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },
+                },         
                 
-                # Outlook data is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeoutlook
-                [PSCustomObject]@{
-                    Name = 'IncludeOutlook'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },
-                
-                # Outlook personalization data is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeoutlookpersonalization
-                [PSCustomObject]@{
-                    Name = 'IncludeOutlookPersonalization'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },     
-                
-                # Sharepoint data is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includesharepoint
-                [PSCustomObject]@{
-                    Name = 'IncludeSharepoint'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },          
-                
-                # Skype for Business Global Address List is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeskype
-                [PSCustomObject]@{
-                    Name = 'IncludeSkype'
-                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
-                    PropertyType = 'DWord'
-                    Value = 1
-                },              
-                
-                # Teams data is redirected to the container: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#includeteams
-                # NOTE: Users will be required to sign in to teams at the beginning of each session.
+                # Teams data is redirected to the container: https://learn.microsoft.com/fslogix/office-container-configuration-reference#includeteams
                 [PSCustomObject]@{
                     Name = 'IncludeTeams'
                     Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
@@ -473,27 +444,59 @@ try
                     Value = 1
                 },                  
 
-                # Loads FRXShell if there's a failure attaching to, or using an existing profile VHD(X): https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#preventloginwithfailure
+                # Specifies the number of retries attempted when a VHD(x) file is locked: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#lockedretrycount
                 [PSCustomObject]@{
-                    Name = 'PreventLoginWithFailure'
+                    Name = 'LockedRetryCount'
                     Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
                     PropertyType = 'DWord'
-                    Value = 1
+                    Value = 3
                 },
 
-                # Loads FRXShell if it's determined a temp profile has been created: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#preventloginwithtempprofile
+                # Specifies the number of seconds to wait between retries: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#lockedretryinterval
                 [PSCustomObject]@{
-                    Name = 'PreventLoginWithTempProfile'
+                    Name = 'LockedRetryInterval'
                     Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
                     PropertyType = 'DWord'
-                    Value = 1
+                    Value = 15
+                },
+
+                # Specifies the number of seconds to wait between retries when attempting to reattach the VHD(x) container if it's disconnected unexpectedly: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#reattachintervalseconds
+                [PSCustomObject]@{
+                    Name = 'ReAttachIntervalSeconds'
+                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
+                    PropertyType = 'DWord'
+                    Value = 15
+                },
+
+                # Specifies the number of times the system should attempt to reattach the VHD(x) container if it's disconnected unexpectedly: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#reattachretrycount
+                [PSCustomObject]@{
+                    Name = 'ReAttachRetryCount'
+                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
+                    PropertyType = 'DWord'
+                    Value = 3
+                },
+
+                # Specifies the maximum size of the user's container in megabytes: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#sizeinmbs
+                [PSCustomObject]@{
+                    Name = 'SizeInMBs'
+                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
+                    PropertyType = 'DWord'
+                    Value = 30000
+                },
+
+                # Specifies the type of container: https://learn.microsoft.com/fslogix/reference-configuration-settings?tabs=odfc#volumetype
+                [PSCustomObject]@{
+                    Name = 'VolumeType'
+                    Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
+                    PropertyType = 'String'
+                    Value = 'VHDX'
                 }
             )
 
             if($FslogixSolution -like "CloudCache*")
             {
                 $Settings += @(
-                    # List of file system locations to search for the user's profile VHD(X) file: https://docs.microsoft.com/en-us/fslogix/profile-container-configuration-reference#vhdlocations
+                    # List of file system locations to search for the user's profile VHD(X) file: https://learn.microsoft.com/fslogix/profile-container-configuration-reference#vhdlocations
                     [PSCustomObject]@{
                         Name = 'CCDLocations'
                         Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
@@ -505,7 +508,7 @@ try
             else
             {
                 $Settings += @(
-                    # List of file system locations to search for the user's profile VHD(X) file: https://docs.microsoft.com/en-us/fslogix/office-container-configuration-reference#vhdlocations
+                    # List of file system locations to search for the user's profile VHD(X) file: https://learn.microsoft.com/fslogix/office-container-configuration-reference#vhdlocations
                     [PSCustomObject]@{
                         Name = 'VHDLocations'
                         Path = 'HKLM:\SOFTWARE\Policies\FSLogix\ODFC'
@@ -515,35 +518,6 @@ try
                 )
             }
         }
-    }
-
-
-    ##############################################################
-    #  Add RDP Short Path
-    ##############################################################
-    if($RdpShortPath -eq 'true')
-    {
-        # Allow inbound network traffic for RDP Shortpath
-        New-NetFirewallRule -DisplayName 'Remote Desktop - Shortpath (UDP-In)'  -Action 'Allow' -Description 'Inbound rule for the Remote Desktop service to allow RDP traffic. [UDP 3390]' -Group '@FirewallAPI.dll,-28752' -Name 'RemoteDesktop-UserMode-In-Shortpath-UDP'  -PolicyStore 'PersistentStore' -Profile 'Domain, Private' -Service 'TermService' -Protocol 'udp' -LocalPort 3390 -Program '%SystemRoot%\system32\svchost.exe' -Enabled:True
-
-        $Settings += @(
-
-            # Enable RDP Shortpath for managed networks: https://docs.microsoft.com/en-us/azure/virtual-desktop/shortpath#configure-rdp-shortpath-for-managed-networks
-            [PSCustomObject]@{
-                Name = 'fUseUdpPortRedirector'
-                Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations'
-                PropertyType = 'DWord'
-                Value = 1
-            },
-
-            # Enable the port for RDP Shortpath for managed networks: https://docs.microsoft.com/en-us/azure/virtual-desktop/shortpath#configure-rdp-shortpath-for-managed-networks
-            [PSCustomObject]@{
-                Name = 'UdpPortNumber'
-                Path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations'
-                PropertyType = 'DWord'
-                Value = 3390
-            }
-        )
     }
 
 
