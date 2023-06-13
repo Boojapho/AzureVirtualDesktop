@@ -8,7 +8,6 @@
 - [**Backups**](./backups.md#backups)
 - [**BitLocker Encryption**](./bitlocker.md#bitlocker-encryption)
 - [**Drain Mode**](./drainMode.md#drain-mode)
-- [**Ephemeral OS Disks**](./ephemeralOsDisk.md#ephemeral-os-disks)
 - [**FSLogix**](./fslogix.md#fslogix)
 - [**GPU Drivers & Settings**](./gpu.md#gpu-drivers--settings)
 - [**High Availability**](./highAvailability.md#high-availability)

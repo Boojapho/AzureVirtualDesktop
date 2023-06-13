@@ -1,5 +1,5 @@
+param AzureFilesPrivateDnsZoneResourceId string
 param Location string
-param PrivateDnsZoneName string
 param StorageAccountId string
 param StorageAccountName string
 param Subnet string
@@ -7,16 +7,7 @@ param Tags object
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 
-
 var SubnetId = resourceId(VirtualNetworkResourceGroup, 'Microsoft.Network/virtualNetworks/subnets', VirtualNetwork, Subnet)
-
-
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2018-09-01' = {
-  name: PrivateDnsZoneName
-  location: 'global'
-  tags: Tags
-  properties: {}
-}
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2020-05-01' = {
   name: 'pe-${StorageAccountName}'
@@ -30,7 +21,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2020-05-01' = {
       {
         name: 'pe-${StorageAccountName}_${guid(StorageAccountName)}'
         properties: {
-          privateLinkServiceId:StorageAccountId
+          privateLinkServiceId: StorageAccountId
           groupIds: [
             'file'
           ]
@@ -48,22 +39,9 @@ resource privateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneG
       {
         name: 'ipconfig1'
         properties: {
-          privateDnsZoneId: privateDnsZone.id
+          privateDnsZoneId: AzureFilesPrivateDnsZoneResourceId
         }
       }
     ]
-  }
-}
-
-resource virtualNetworkLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
-  parent: privateDnsZone
-  name: 'link-${VirtualNetwork}'
-  location: 'global'
-  tags: Tags
-  properties: {
-    registrationEnabled: false
-    virtualNetwork: {
-      id: resourceId(VirtualNetworkResourceGroup, 'Microsoft.Network/virtualNetworks', VirtualNetwork)
-    }
   }
 }

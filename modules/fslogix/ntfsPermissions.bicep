@@ -38,9 +38,7 @@ module deploymentScript '../deploymentScript.bicep' = {
     Arguments: '-VirtualMachineName ${ManagementVmName} -ResourceGroupName ${resourceGroup().name}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}fslogix'
-    ScriptContainerSasToken: _artifactsLocationSasToken
-    ScriptContainerUri: _artifactsLocation
-    ScriptName: 'Remove-AzureVirtualMachine.ps1'
+    Script: 'param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["virtualMachineName"] = $VirtualMachineName'
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }

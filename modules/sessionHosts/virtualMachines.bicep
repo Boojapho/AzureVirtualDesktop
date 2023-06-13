@@ -14,7 +14,6 @@ param DomainJoinUserPrincipalName string
 param DomainName string
 param DomainServices string
 param DrainMode bool
-param EphemeralOsDisk string
 param Fslogix bool
 param FslogixSolution string
 param HostPoolName string
@@ -29,7 +28,6 @@ param LogAnalyticsWorkspaceName string
 param ManagedIdentityResourceId string
 param Monitoring bool
 param NamingStandard string
-param NetworkSecurityGroupName string
 param NetAppFileShares array
 param OuPath string
 param ResourceGroupManagement string
@@ -155,14 +153,10 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
         name: '${DiskName}${padLeft((i + SessionHostIndex), 3, '0')}'
         osType: 'Windows'
         createOption: 'FromImage'
-        caching: EphemeralOsDisk == 'None' ? 'ReadWrite' : 'ReadOnly'
+        caching: 'ReadWrite'
         deleteOption: 'Delete'
-        managedDisk: EphemeralOsDisk == 'None' ? {
+        managedDisk: {
           storageAccountType: DiskSku
-        } : null
-        diffDiskSettings: EphemeralOsDisk == 'None' ? null : {
-          option: 'Local'
-          placement: EphemeralOsDisk
         }
       }
       dataDisks: []
@@ -295,7 +289,7 @@ module drainMode '../deploymentScript.bicep' = if (DrainMode) {
   params: {
     Arguments: '-ResourceGroup ${ResourceGroupManagement} -HostPool ${HostPoolName}'
     Location: Location
-    Name: '${DeploymentScriptNamePrefix}drainMode'
+    Name: '${DeploymentScriptNamePrefix}drain'
     Script: 'param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split "/")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["hostPool"] = $HostPool'
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: ManagedIdentityResourceId

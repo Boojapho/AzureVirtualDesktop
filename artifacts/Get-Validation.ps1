@@ -19,9 +19,6 @@ param(
     [string]$Environment,
 
     [parameter(Mandatory)]
-    [string]$EphemeralOsDisk,
-
-    [parameter(Mandatory)]
     [string]$ImageSku,
 
     [parameter(Mandatory)]
@@ -114,17 +111,7 @@ $DeploymentScriptOutputs["acceleratedNetworking"] = ($Sku.capabilities | Where-O
 if($Availability -eq 'AvailabilityZones' -and $Sku.locationInfo.zones.count -lt 3)
 {
     Write-Error -Exception 'INVALID AVAILABILITY: The selected VM Size does not support availability zones in this Azure location. https://docs.microsoft.com/en-us/azure/virtual-machines/windows/create-powershell-availability-zone'
-} 
-
-
-# AVD Object ID Output
-# This cannot be supported until a user-assigned identity can run Get-AzADServicePrincipal with Azure permissions
-# https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect?tabs=azure-portal#assign-the-custom-role-with-the-azure-portal
-<# if($StartVmOnConnect -eq 'true')
-{
-    $AvdObjectId = (Get-AzADServicePrincipal -ApplicationId '9cdead84-a844-4324-93f2-b2e6bb768d07').Id
 }
-$DeploymentScriptOutputs["avdObjectId"] = $AvdObjectId #>
 
 
 # Azure NetApp Files Validation & Output
@@ -164,72 +151,6 @@ if($DiskSku -like "Premium*" -and ($Sku.capabilities | Where-Object {$_.name -eq
 }
 
 
-# DNS Forwarders
-# This information is used to support Azure Private Link and only used when Private Endpoints are selected for the FSLogix storage.
-[array]$DnsForwarders = (Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName).DhcpOptions.DnsServers
-$DeploymentScriptOutputs["dnsForwarders"] = $DnsForwarders
-
-
-# DNS Server Size
-# This information is used to support Azure Private Link and only used when Private Endpoints are selected for the FSLogix storage.
-$Tests = @()
-$DnsServerSizes = (Get-AzVMSize -Location $Location | Where-Object {$_.Name -match "Standard_D[0-9]s_v[3-9]" -and $_.NumberOfCores -eq 2}).Name
-foreach($DnsServerSize in $DnsServerSizes)
-{
-    $Tests += Test-AzureCoreQuota -Location $Location -RequestedCores 2 -VmSize $DnsServerSize
-}
-$Index = [array]::indexof($Tests,$true)
-if($Index -eq -1)
-{
-    Write-Error -Exception 'INSUFFICIENT CORE QUOTA: The selected VM Family does not have adequate core quota in the selected location.'
-}
-$DeploymentScriptOutputs["dnsServerSize"] = $DnsServerSizes[$Index]
-
-
-# Ephemeral Disks Validation & Output
-if($EphemeralOsDisk -eq 'true')
-{
-    # Validate if the VM Size supports Ephemeral Disks
-    if(($Sku.Capabilities | Where-Object {$_.Name -eq 'EphemeralOSDiskSupported'}).value)
-    {
-        # Azure Disk Encryption is not support with Ephemeral Disks
-        if($DiskEncryption -eq 'true')
-        {
-            Write-Error -Exception 'INVALID EPHEMERAL DISK CONFIGURATION: Azure Disk Encryption is not supported with an Ephemeral OS Disk.'
-        }
-
-        # Azure Disk Encryption is not support with Ephemeral Disks
-        if($RecoveryServices -eq 'true' -and $PooledHostPool -eq 'false')
-        {
-            Write-Error -Exception 'INVALID EPHEMERAL DISK CONFIGURATION: Azure Backup is not supported with an Ephemeral OS Disk.'
-        }
-
-        $ImageSize = 127 * 1GB
-        $ResourceVolumeMB = ($Sku.Capabilities | Where-Object {$_.Name -eq 'MaxResourceVolumeMB'}).Value
-        $ResourceVolumeSize = if($ResourceVolumeMB){[int64]$ResourceVolumeMB * 1MB}else{0}
-        $CachedDiskBytes = ($Sku.Capabilities | Where-Object {$_.Name -eq 'CachedDiskBytes'}).Value
-        $CacheVolumeSize = if($CachedDiskBytes){[int64]$CachedDiskBytes}else{0}
-
-        if($ResourceVolumeSize -gt $ImageSize)
-        {
-            $DeploymentScriptOutputs["ephemeralOsDisk"] = 'ResourceDisk'
-        }
-        elseif ($CacheVolumeSize -gt $ImageSize)
-        {
-            $DeploymentScriptOutputs["ephemeralOsDisk"] = 'CacheDisk'
-        }
-    }
-    else
-    {
-        Write-Error -Exception "INVALID VM SIZE: VM Size, $VmSize, does not support Ephemeral Disks."
-    }
-}
-else
-{
-    $DeploymentScriptOutputs["ephemeralOsDisk"] = 'None'
-}
-
-
 # Hyper-V Generation validation
 if($ImageSku -like "*-g2" -and ($Sku.capabilities | Where-Object {$_.name -eq 'HyperVGenerations'}).value -notlike "*2")
 {
@@ -257,7 +178,7 @@ if(($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $Security
 
 
 # Trusted Launch validation
-if($ImageSku -like "*-g2" -and $null -eq ($Sku.capabilities | Where-Object {$_.name -eq 'TrustedLaunchDisabled'}).value -and $Environment -eq 'AzureCloud')
+if(($ImageSku -like "*-g2" -or  $ImageSku -like "win11*") -and $null -eq ($Sku.capabilities | Where-Object {$_.name -eq 'TrustedLaunchDisabled'}).value)
 {
     $DeploymentScriptOutputs["trustedLaunch"] = 'true'
 }

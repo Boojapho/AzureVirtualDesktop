@@ -1,53 +1,44 @@
 targetScope = 'subscription'
 
-
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param ActiveDirectoryConnection string
+param AzureFilesPrivateDnsZoneResourceId string
 param ClientId string
 param DelegatedSubnetId string
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
-param DnsServerForwarderIPAddresses array
 param DnsServers string
-param DnsServerSize string
 @secure()
 param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
 param DomainServices string
-param Environment string
 param FileShares array
 param FslogixShareSizeInGB int
 param FslogixSolution string
 param FslogixStorage string
-param HybridUseBenefit bool
-param Identifier string
 param KerberosEncryption string
 param KeyVaultName string
 param Location string
-param LocationShortName string
 param ManagementVmName string
 param NamingStandard string
 param NetAppAccountName string
 param NetAppCapacityPoolName string
 param Netbios string
 param OuPath string
-param PrivateDnsZoneName string
 param PrivateEndpoint bool
 param ResourceGroupManagement string
 param ResourceGroupStorage string
-param SecurityPrincipalIds array 
+param SecurityPrincipalIds array
 param SecurityPrincipalNames array
 param SmbServerLocation string
-param StampIndexFull string
 param StorageAccountPrefix string
 param StorageCount int
 param StorageIndex int
 param StorageSku string
 param StorageSolution string
-param StorageSuffix string
 param Subnet string
 param Tags object
 param Timestamp string
@@ -58,10 +49,9 @@ param VirtualNetworkResourceGroup string
 param VmPassword string
 param VmUsername string
 
-
 // Fslogix Management VM
 // This module is required to fully configure any storage option for FSLogix
-module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(DomainServices, 'None')) {
+module managementVirtualMachine 'managementVirtualMachine.bicep' = if (!contains(DomainServices, 'None')) {
   name: 'ManagementVirtualMachine_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
@@ -88,11 +78,11 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if(!contains(
 }
 
 // Azure NetApp Files for Fslogix
-module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureNetAppFiles' && !contains(DomainServices, 'None')) {
+module azureNetAppFiles 'azureNetAppFiles.bicep' = if (StorageSolution == 'AzureNetAppFiles' && !contains(DomainServices, 'None')) {
   name: 'AzureNetAppFiles_${Timestamp}'
   scope: resourceGroup(ResourceGroupStorage)
   params: {
-    _artifactsLocation: _artifactsLocation    
+    _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     ActiveDirectoryConnection: ActiveDirectoryConnection
     DelegatedSubnetId: DelegatedSubnetId
@@ -123,55 +113,43 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if(StorageSolution == 'AzureN
 }
 
 // Azure Files for FSLogix
-module azureFiles 'azureFiles/azureFiles.bicep' = if(StorageSolution == 'AzureStorageAccount' && !contains(DomainServices, 'None')) {
+module azureFiles 'azureFiles/azureFiles.bicep' = if (StorageSolution == 'AzureStorageAccount' && !contains(DomainServices, 'None')) {
   name: 'AzureFiles_${Timestamp}'
   scope: resourceGroup(ResourceGroupStorage)
   params: {
-    _artifactsLocation: _artifactsLocation    
+    _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     ClientId: ClientId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
-    DnsServerForwarderIPAddresses: DnsServerForwarderIPAddresses
-    DnsServerSize: DnsServerSize
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
-    DomainName: DomainName
     DomainServices: DomainServices
-    Environment: Environment
     FileShares: FileShares
     FslogixShareSizeInGB: FslogixShareSizeInGB
     FslogixSolution: FslogixSolution
     FslogixStorage: FslogixStorage
-    HybridUseBenefit: HybridUseBenefit
-    Identifier: Identifier
     KerberosEncryption: KerberosEncryption
     Location: Location
-    LocationShortName: LocationShortName
     ManagementVmName: ManagementVmName
-    NamingStandard: NamingStandard
     Netbios: Netbios
     OuPath: OuPath
-    PrivateDnsZoneName: PrivateDnsZoneName
     PrivateEndpoint: PrivateEndpoint
     ResourceGroupManagement: ResourceGroupManagement
     ResourceGroupStorage: ResourceGroupStorage
     SecurityPrincipalIds: SecurityPrincipalIds
     SecurityPrincipalNames: SecurityPrincipalNames
-    StampIndexFull: StampIndexFull
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex
     StorageSku: StorageSku
     StorageSolution: StorageSolution
-    StorageSuffix: StorageSuffix
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
-    VmPassword: VmPassword
-    VmUsername: VmUsername
   }
   dependsOn: [
     managementVirtualMachine

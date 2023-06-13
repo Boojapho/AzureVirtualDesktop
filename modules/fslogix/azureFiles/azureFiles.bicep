@@ -1,52 +1,38 @@
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
+param AzureFilesPrivateDnsZoneResourceId string
 param ClientId string
 param DeploymentScriptNamePrefix string
-param DnsServerForwarderIPAddresses array
-param DnsServerSize string
 @secure()
 param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
-param DomainName string
 param DomainServices string
-param Environment string
 param FileShares array
 param FslogixShareSizeInGB int
 param FslogixSolution string
 param FslogixStorage string
-param HybridUseBenefit bool
-param Identifier string
 param KerberosEncryption string
 param Location string
-param LocationShortName string
 param ManagementVmName string
-param NamingStandard string
 param Netbios string
 param OuPath string
-param PrivateDnsZoneName string
 param PrivateEndpoint bool
 param ResourceGroupManagement string
 param ResourceGroupStorage string
 param SecurityPrincipalIds array
 param SecurityPrincipalNames array
-param StampIndexFull string
 param StorageAccountPrefix string
 param StorageCount int
 param StorageIndex int
 param StorageSku string
 param StorageSolution string
-param StorageSuffix string
 param Subnet string
 param Tags object
 param Timestamp string
 param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
-@secure()
-param VmPassword string
-param VmUsername string
-
 
 var Endpoint = split(FslogixStorage, ' ')[2]
 var RoleDefinitionId = resourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb') // Storage File Data SMB Share Contributor 
@@ -72,7 +58,6 @@ var VirtualNetworkRules = {
     }
   ]
 }
-
 
 resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i in range(0, StorageCount): {
   name: '${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}'
@@ -144,57 +129,26 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
   ]
 }]
 
-module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount): if(PrivateEndpoint) {
+module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
   name: 'PrivateEndpoints_${i}_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     Location: Location
-    PrivateDnsZoneName: PrivateDnsZoneName
+    AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     StorageAccountId: storageAccounts[i].id
     StorageAccountName: storageAccounts[i].name
     Subnet: Subnet
-    Tags: Tags    
+    Tags: Tags
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
   }
 }]
 
-module dnsForwarder 'dnsForwarder.bicep' = if(PrivateEndpoint) {
-  name: 'DnsForwarder_${Timestamp}'
-  scope: resourceGroup(ResourceGroupManagement)
-  params: {
-    _artifactsLocation: _artifactsLocation    
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
-    DnsServerForwarderIPAddresses: DnsServerForwarderIPAddresses
-    DnsServerSize: DnsServerSize
-    DomainJoinPassword: DomainJoinPassword
-    DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
-    DomainName: DomainName
-    Environment: Environment
-    HybridUseBenefit: HybridUseBenefit
-    Identifier: Identifier
-    Location: Location
-    LocationShortName: LocationShortName
-    NamingStandard: NamingStandard
-    StampIndexFull: StampIndexFull
-    StorageSuffix: StorageSuffix
-    Subnet: Subnet
-    Tags: Tags
-    Timestamp: Timestamp
-    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
-    VmPassword: VmPassword
-    VmUsername: VmUsername
-  }
-}
-
-module ntfsPermissions '../ntfsPermissions.bicep' = if(!contains(DomainServices, 'None')) {
+module ntfsPermissions '../ntfsPermissions.bicep' = if (!contains(DomainServices, 'None')) {
   name: 'FslogixNtfsPermissions_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
-    _artifactsLocation: _artifactsLocation    
+    _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     CommandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -ClientId ${ClientId} -DomainJoinPassword "${DomainJoinPassword}" -DomainJoinUserPrincipalName ${DomainJoinUserPrincipalName} -DomainServices ${DomainServices} -Environment ${environment().name} -FslogixSolution ${FslogixSolution} -KerberosEncryptionType ${KerberosEncryption} -Netbios ${Netbios} -OuPath "${OuPath}" -SecurityPrincipalNames "${SecurityPrincipalNames}" -StorageAccountPrefix ${StorageAccountPrefix} -StorageAccountResourceGroupName ${ResourceGroupStorage} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${environment().suffixes.storage} -SubscriptionId ${subscription().subscriptionId} -TenantId ${subscription().tenantId}'
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
@@ -207,6 +161,5 @@ module ntfsPermissions '../ntfsPermissions.bicep' = if(!contains(DomainServices,
   dependsOn: [
     shares
     privateEndpoint
-    dnsForwarder
   ]
 }

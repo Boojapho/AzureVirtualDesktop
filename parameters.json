@@ -14,6 +14,9 @@
         "avdObjectId": {
             "value": "cdcfb416-e2fe-41e2-be12-33813c1cd427"
         },
+        "AzureFilesPrivateDnsZoneResourceId": {
+            "value": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-net-d-eu/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
+        },
         "customRdpProperty": {
             "value": "audiocapturemode:i:1;camerastoredirect:s:*;use multimon:i:0;drivestoredirect:s:;"
         },
@@ -50,9 +53,6 @@
         },
         "environment": {
             "value": "d"
-        },
-        "ephemeralOsDisk": {
-            "value": false
         },
         "fslogixShareSizeInGB": {
             "value": 100

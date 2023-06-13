@@ -5,9 +5,7 @@ param AcceleratedNetworking string
 param AvailabilitySetCount int
 param AvailabilitySetIndex int
 param AvailabilitySetPrefix string
-param AutomationAccountName string
 param Availability string
-param ConfigurationName string
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
 param DiskName string
@@ -19,7 +17,6 @@ param DomainJoinUserPrincipalName string
 param DomainName string
 param DomainServices string
 param DrainMode bool
-param EphemeralOsDisk string
 param FslogixSolution string
 param Fslogix bool
 param HostPoolName string
@@ -35,7 +32,6 @@ param ManagedIdentityResourceId string
 param MaxResourcesPerTemplateDeployment int
 param Monitoring bool
 param NamingStandard string
-param NetworkSecurityGroupName string
 param NetAppFileShares array
 param OuPath string
 param PooledHostPool bool
@@ -98,10 +94,8 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AcceleratedNetworking: AcceleratedNetworking
-    AutomationAccountName: AutomationAccountName
     Availability: Availability
     AvailabilitySetPrefix: AvailabilitySetPrefix
-    ConfigurationName: ConfigurationName
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DiskName: DiskName
@@ -111,7 +105,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     DomainName: DomainName
     DomainServices: DomainServices
     DrainMode: DrainMode
-    EphemeralOsDisk: EphemeralOsDisk
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution
     HostPoolName: HostPoolName
@@ -126,7 +119,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     ManagedIdentityResourceId: ManagedIdentityResourceId
     Monitoring: Monitoring
     NamingStandard: NamingStandard
-    NetworkSecurityGroupName: NetworkSecurityGroupName
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
     ResourceGroupManagement: ResourceGroupManagement
