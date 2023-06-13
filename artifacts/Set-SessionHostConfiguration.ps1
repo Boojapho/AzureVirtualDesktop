@@ -582,48 +582,6 @@ try
 
 
     ##############################################################
-    # Add Defender Exclusions for FSLogix 
-    ##############################################################
-    # https://learn.microsoft.com/en-us/fslogix/overview-prerequisites#configure-antivirus-file-and-folder-exclusions
-    if($Fslogix -eq 'true')
-    {
-
-        $Files = @(
-            "%TEMP%\*\*.VHD",
-            "%TEMP%\*\*.VHDX",
-            "%Windir%\TEMP\*\*.VHD",
-            "%Windir%\TEMP\*\*.VHDX"
-        )
-
-        foreach($Share in $Shares)
-        {
-            $Files += "$Share\*\*.VHD"
-            $Files += "$Share\*\*.VHD.lock"
-            $Files += "$Share\*\*.VHD.meta"
-            $Files += "$Share\*\*.VHD.metadata"
-            $Files += "$Share\*\*.VHDX"
-            $Files += "$Share\*\*.VHDX.lock"
-            $Files += "$Share\*\*.VHDX.meta"
-            $Files += "$Share\*\*.VHDX.metadata"
-        }
-
-        if($FslogixSolution -like "CloudCache*")
-        { 
-            $Files += @(
-                "%ProgramData%\FSLogix\Cache\*"
-                "%ProgramData%\FSLogix\Proxy\*"
-            )
-        }
-
-        foreach($File in $Files)
-        {
-            Add-MpPreference -ExclusionPath $File
-        }
-        Write-Log -Message 'Enabled Defender exlusions for FSLogix paths' -Type 'INFO'
-    }
-
-
-    ##############################################################
     #  Install the AVD Agent
     ##############################################################
     # Disabling this method for installing the AVD agent until AAD Join can completed successfully
