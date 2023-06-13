@@ -3,9 +3,7 @@ param _artifactsLocation string
 param _artifactsLocationSasToken string
 param AcceleratedNetworking string
 param AvailabilitySetPrefix string
-param AutomationAccountName string
 param Availability string
-param ConfigurationName string
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
 param DiskName string
@@ -60,7 +58,6 @@ param VmPassword string
 param VmSize string
 param VmUsername string
 
-
 var AmdVmSizes = [
   'Standard_NV4as_v4'
   'Standard_NV8as_v4'
@@ -68,6 +65,15 @@ var AmdVmSizes = [
   'Standard_NV32as_v4'
 ]
 var AmdVmSize = contains(AmdVmSizes, VmSize)
+var FslogixExclusions = '${FslogixExclusionsLocal}${FslogixExclusionsProfileContainersString}${FslogixExclusionsOfficeContainersString}${FslogixExclusionsCloudCache}'
+var FslogixExclusionsCloudCache = contains(FslogixSolution, 'CloudCache') ? ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"' : ''
+var FslogixExclusionsLocal = '"%TEMP%\\*\\*.VHD";"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHD";"%Windir%\\TEMP\\*\\*.VHDX"'
+var FslogixExclusionsOfficeContainersArray = [for Share in FslogixOfficeShares: ';"${Share}*\\*.VHD";"${Share}*\\*.VHD.lock";"${Share}*\\*.VHD.meta";"${Share}*\\*.VHD.metadata";"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
+var FslogixExclusionsOfficeContainersString = join(FslogixExclusionsOfficeContainersArray, ';')
+var FslogixExclusionsProfileContainersArray = [for Share in FslogixProfileShares: ';"${Share}*\\*.VHD";"${Share}*\\*.VHD.lock";"${Share}*\\*.VHD.meta";"${Share}*\\*.VHD.metadata";"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
+var FslogixExclusionsProfileContainersString = join(FslogixExclusionsProfileContainersArray, ';')
+var FslogixOfficeShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\office-containers\\']
+var FslogixProfileShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\profile-containers\\']
 var Intune = DomainServices == 'NoneWithIntune' ? true : false
 var NvidiaVmSizes = [
   'Standard_NV6'
@@ -100,7 +106,6 @@ var VmUserAssignedIdentityProperty = {
   }
 }
 var VmIdentity = ((!empty(UserAssignedIdentity)) ? union(VmIdentityTypeProperty, VmUserAssignedIdentityProperty) : VmIdentityTypeProperty)
-
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-03-01' = if (RdpShortPath) {
   name: NetworkSecurityGroupName // Fix name
@@ -178,7 +183,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
         createOption: 'FromImage'
         caching: EphemeralOsDisk == 'None' ? 'ReadWrite' : 'ReadOnly'
         deleteOption: 'Delete'
-        managedDisk: EphemeralOsDisk == 'None'? {
+        managedDisk: EphemeralOsDisk == 'None' ? {
           storageAccountType: DiskSku
         } : null
         diffDiskSettings: EphemeralOsDisk == 'None' ? null : {
@@ -228,17 +233,17 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
   ]
 }]
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if(DiskEncryption) {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if (DiskEncryption) {
   name: KeyVaultName
   scope: resourceGroup(ResourceGroupManagement)
 }
 
-resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if(DiskEncryption) {
+resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if (DiskEncryption) {
   name: '${DeploymentScriptNamePrefix}kek'
   scope: resourceGroup(ResourceGroupManagement)
 }
 
-resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if(DiskEncryption) {
+resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if (DiskEncryption) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AzureDiskEncryption'
   location: Location
   properties: {
@@ -263,7 +268,7 @@ resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extens
   ]
 }]
 
-resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if(Monitoring) {
+resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (Monitoring) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/MicrosoftMonitoringAgent'
   location: Location
   properties: {
@@ -299,7 +304,7 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
       timestamp: Timestamp
     }
     protectedSettings: {
-      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ResourceGroupManagement, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -RdpShortPath ${RdpShortPath} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
+      commandToExecute: 'powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize ${AmdVmSize} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -FSLogix ${Fslogix} -FslogixSolution ${FslogixSolution} -HostPoolName ${HostPoolName} -HostPoolRegistrationToken ${reference(resourceId(ResourceGroupManagement, 'Microsoft.DesktopVirtualization/hostpools', HostPoolName), '2019-12-10-preview').registrationInfo.token} -ImageOffer ${ImageOffer} -ImagePublisher ${ImagePublisher} -NetAppFileShares ${NetAppFileShares} -NvidiaVmSize ${NvidiaVmSize} -PooledHostPool ${PooledHostPool} -ScreenCaptureProtection ${ScreenCaptureProtection} -Sentinel ${Sentinel} -SentinelWorkspaceId ${SentinelWorkspaceId} -SentinelWorkspaceKey ${SentinelWorkspaceKey} -StorageAccountPrefix ${StorageAccountPrefix} -StorageCount ${StorageCount} -StorageIndex ${StorageIndex} -StorageSolution ${StorageSolution} -StorageSuffix ${StorageSuffix}'
     }
   }
   dependsOn: [
@@ -310,16 +315,14 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
 }]
 
 // Enables drain mode on the session hosts so users cannot login to hosts immediately after the deployment
-module drainMode '../deploymentScript.bicep' = if(DrainMode) {
+module drainMode '../deploymentScript.bicep' = if (DrainMode) {
   name: 'DeploymentScript_DrainMode_${Timestamp}'
-  scope: resourceGroup(ResourceGroupManagement) 
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     Arguments: '-ResourceGroup ${ResourceGroupManagement} -HostPool ${HostPoolName}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}drainMode'
-    ScriptContainerSasToken: _artifactsLocationSasToken
-    ScriptContainerUri: _artifactsLocation
-    ScriptName: 'Set-AvdDrainMode.ps1'
+    Script: 'param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split "/")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["hostPool"] = $HostPool'
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
@@ -375,7 +378,7 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
   ]
 }]
 
-resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if(AmdVmSize) {
+resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (AmdVmSize) {
   name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AmdGpuDriverWindows'
   location: Location
   tags: Tags
@@ -407,6 +410,35 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
   dependsOn: [
     extension_AADLoginForWindows
     extension_JsonADDomainExtension
+    virtualMachine
+  ]
+}]
+
+resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
+  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/IaaSAntimalware'
+  location: Location
+  tags: Tags
+  properties: {
+    publisher: 'Microsoft.Azure.Security'
+    type: 'IaaSAntimalware'
+    typeHandlerVersion: '1.3'
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: true
+    settings: {
+      AntimalwareEnabled: true
+      RealtimeProtectionEnabled: 'true'
+      ScheduledScanSettings: {
+        isEnabled: 'true'
+        day: '7' // Day of the week for scheduled scan (1-Sunday, 2-Monday, ..., 7-Saturday)
+        time: '120' // When to perform the scheduled scan, measured in minutes from midnight (0-1440). For example: 0 = 12AM, 60 = 1AM, 120 = 2AM.
+        scanType: 'Quick' //Indicates whether scheduled scan setting type is set to Quick or Full (default is Quick)
+      }
+      Exclusions: Fslogix ? {
+        Paths: FslogixExclusions
+      } : {}
+    }
+  }
+  dependsOn: [
     virtualMachine
   ]
 }]
