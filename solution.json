@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "4174177364571075922"
+      "templateHash": "88123572352569250"
     }
   },
   "parameters": {
@@ -25,9 +25,9 @@
     },
     "Availability": {
       "type": "string",
-      "defaultValue": "None",
+      "defaultValue": "AvailabilityZones",
       "metadata": {
-        "description": "Set the desired availability / SLA with a pooled host pool.  Choose \"None\" if deploying a personal host pool."
+        "description": "Set the desired availability / SLA with a pooled host pool.  The best practice is to deploy to Availability Zones for resilency."
       },
       "allowedValues": [
         "AvailabilitySet",
@@ -41,23 +41,30 @@
         "description": "The Object ID for the Windows Virtual Desktop Enterprise Application in Azure AD.  The Object ID can found by selecting Microsoft Applications using the Application type filter in the Enterprise Applications blade of Azure AD."
       }
     },
+    "AzureFilesPrivateDnsZoneResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "If using private endpoints with Azure Files, input the Resource ID for the Private DNS Zone linked to your hub virtual network."
+      }
+    },
     "CustomRdpProperty": {
       "type": "string",
       "defaultValue": "audiocapturemode:i:1;camerastoredirect:s:*;use multimon:i:0;drivestoredirect:s:;",
       "metadata": {
-        "description": "Input RDP properties to add or remove RDP functionality on the AVD host pool. Settings reference: https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files?context=/azure/virtual-desktop/context/context"
+        "description": "Input RDP properties to add or remove RDP functionality on the AVD host pool. Settings reference: https://learn.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files"
       }
     },
     "DiskEncryption": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
-        "description": "Enable BitLocker encrytion on the AVD session hosts and management VM."
+        "description": "Enable Server-Side Encrytion and Encryption at Host on the AVD session hosts and management VM."
       }
     },
     "DiskSku": {
       "type": "string",
-      "defaultValue": "Standard_LRS",
+      "defaultValue": "Premium_LRS",
       "metadata": {
         "description": "The storage SKU for the AVD session host disks.  Production deployments should use Premium_LRS."
       },
@@ -69,19 +76,21 @@
     },
     "DomainJoinPassword": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "The password of the privileged account to domain join the AVD session hosts to your domain"
       }
     },
     "DomainJoinUserPrincipalName": {
       "type": "string",
+      "defaultValue": "",
       "metadata": {
         "description": "The UPN of the privileged account to domain join the AVD session hosts to your domain. This should be an account the resides within the domain you are joining."
       }
     },
     "DomainName": {
       "type": "string",
-      "defaultValue": "jasonmasten.com",
+      "defaultValue": "",
       "metadata": {
         "description": "The name of the domain that provides ADDS to the AVD session hosts and is synchronized with Azure AD"
       }
@@ -118,13 +127,6 @@
         "s",
         "t"
       ]
-    },
-    "EphemeralOsDisk": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Choose whether the session host uses an ephemeral disk for the operating system.  Be sure to select a VM SKU that offers a temporary disk that meets your image requirements. Reference: https://docs.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks"
-      }
     },
     "FslogixShareSizeInGB": {
       "type": "int",
@@ -173,13 +175,6 @@
         "Personal Automatic",
         "Personal Direct"
       ]
-    },
-    "HybridUseBenefit": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Choose whether to enable the Hybrid Use Benefit on the DNS forwarder to support Private Endpoints.  Leave the default value if you are not deploying an Azure Storage Account with a Private Endpoint."
-      }
     },
     "Identifier": {
       "type": "string",
@@ -275,13 +270,6 @@
       "type": "string",
       "metadata": {
         "description": "The distinguished name for the target Organization Unit in Active Directory Domain Services."
-      }
-    },
-    "RdpShortPath": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Enables the RDP Short Path feature: https://docs.microsoft.com/en-us/azure/virtual-desktop/shortpath"
       }
     },
     "RecoveryServices": {
@@ -764,9 +752,9 @@
     "AppGroupName": "[format('dag-{0}', variables('NamingStandard'))]",
     "AvailabilitySetPrefix": "[format('as-{0}', variables('NamingStandard'))]",
     "AutomationAccountName": "[format('aa-{0}', variables('NamingStandard'))]",
-    "ConfigurationName": "Windows10",
     "DeploymentScriptNamePrefix": "[format('ds-{0}-', variables('NamingStandard'))]",
     "DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')]",
+    "DiskEncryptionSetName": "[format('des-{0}', variables('NamingStandard'))]",
     "DiskName": "[format('disk-{0}', variables('NamingStandard'))]",
     "FileShareNames": {
       "CloudCacheProfileContainer": [
@@ -797,9 +785,7 @@
     "NetAppAccountName": "[format('naa-{0}', variables('NamingStandard'))]",
     "NetAppCapacityPoolName": "[format('nacp-{0}', variables('NamingStandard'))]",
     "Netbios": "[split(parameters('DomainName'), '.')[0]]",
-    "NetworkSecurityGroupName": "[format('nsg-{0}', variables('NamingStandard'))]",
     "PooledHostPool": "[if(equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled'), true(), false())]",
-    "PrivateDnsZoneName": "[format('privatelink.file.{0}', variables('StorageSuffix'))]",
     "PrivateEndpoint": "[if(contains(parameters('FslogixStorage'), 'PrivateEndpoint'), true(), false())]",
     "ReaderRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
     "RecoveryServicesVaultName": "[format('rsv-{0}', variables('NamingStandard'))]",
@@ -1027,7 +1013,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('DeploymentScript_Validation_{0}', parameters('Timestamp'))]",
+      "name": "[format('Validations_{0}', parameters('Timestamp'))]",
       "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -1035,29 +1021,62 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "Arguments": {
-            "value": "[format('-Availability {0} -DiskEncryption {1} -DiskSku {2} -DomainName {3} -DomainServices {4} -Environment {5} -EphemeralOsDisk {6} -ImageSku {7} -KerberosEncryption {8} -Location {9} -PooledHostPool {10} -RecoveryServices {11} -SecurityPrincipalIdsCount {12} -SecurityPrincipalNamesCount {13} -SessionHostCount {14} -SessionHostIndex {15} -StartVmOnConnect {16} -StorageCount {17} -StorageSolution {18} -VmSize {19} -VnetName {20} -VnetResourceGroupName {21}', parameters('Availability'), parameters('DiskEncryption'), parameters('DiskSku'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('EphemeralOsDisk'), parameters('ImageSku'), parameters('KerberosEncryption'), parameters('Location'), variables('PooledHostPool'), parameters('RecoveryServices'), variables('SecurityPrincipalIdsCount'), variables('SecurityPrincipalNamesCount'), parameters('SessionHostCount'), parameters('SessionHostIndex'), parameters('StartVmOnConnect'), parameters('StorageCount'), variables('StorageSolution'), parameters('VmSize'), parameters('VirtualNetworkName'), parameters('VirtualNetworkResourceGroupName'))]"
+          "Availability": {
+            "value": "[parameters('Availability')]"
+          },
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
+          },
+          "DiskSku": {
+            "value": "[parameters('DiskSku')]"
+          },
+          "DomainName": {
+            "value": "[variables('DiskName')]"
+          },
+          "DomainServices": {
+            "value": "[parameters('DomainServices')]"
+          },
+          "HostPoolType": {
+            "value": "[parameters('HostPoolType')]"
+          },
+          "ImageSku": {
+            "value": "[parameters('ImageSku')]"
+          },
+          "KerberosEncryption": {
+            "value": "[parameters('KerberosEncryption')]"
           },
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "Name": {
-            "value": "[format('{0}validation', variables('DeploymentScriptNamePrefix'))]"
+          "SecurityPrincipalIdsCount": {
+            "value": "[variables('SecurityPrincipalIdsCount')]"
           },
-          "ScriptContainerSasToken": {
-            "value": "[parameters('_artifactsLocationSasToken')]"
+          "SecurityPrincipalNamesCount": {
+            "value": "[variables('SecurityPrincipalNamesCount')]"
           },
-          "ScriptContainerUri": {
-            "value": "[parameters('_artifactsLocation')]"
+          "SessionHostCount": {
+            "value": "[parameters('SessionHostCount')]"
           },
-          "ScriptName": {
-            "value": "Get-Validation.ps1"
+          "StorageCount": {
+            "value": "[parameters('StorageCount')]"
+          },
+          "StorageSolution": {
+            "value": "[variables('StorageSolution')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
           },
           "UserAssignedIdentityResourceId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
+          },
+          "VmSize": {
+            "value": "[parameters('VmSize')]"
+          },
+          "VnetName": {
+            "value": "[parameters('VirtualNetworkName')]"
+          },
+          "VnetResourceGroupName": {
+            "value": "[parameters('VirtualNetworkResourceGroupName')]"
           }
         },
         "template": {
@@ -1067,26 +1086,50 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "17638610156948651410"
+              "templateHash": "2499603678341537984"
             }
           },
           "parameters": {
-            "Arguments": {
+            "Availability": {
+              "type": "string"
+            },
+            "DeploymentScriptNamePrefix": {
+              "type": "string"
+            },
+            "DiskSku": {
+              "type": "string"
+            },
+            "DomainName": {
+              "type": "string"
+            },
+            "DomainServices": {
+              "type": "string"
+            },
+            "HostPoolType": {
+              "type": "string"
+            },
+            "ImageSku": {
+              "type": "string"
+            },
+            "KerberosEncryption": {
               "type": "string"
             },
             "Location": {
               "type": "string"
             },
-            "Name": {
-              "type": "string"
+            "SecurityPrincipalIdsCount": {
+              "type": "int"
             },
-            "ScriptContainerUri": {
-              "type": "string"
+            "SecurityPrincipalNamesCount": {
+              "type": "int"
             },
-            "ScriptContainerSasToken": {
-              "type": "securestring"
+            "StorageCount": {
+              "type": "int"
             },
-            "ScriptName": {
+            "SessionHostCount": {
+              "type": "int"
+            },
+            "StorageSolution": {
               "type": "string"
             },
             "Timestamp": {
@@ -1094,37 +1137,985 @@
             },
             "UserAssignedIdentityResourceId": {
               "type": "string"
+            },
+            "VmSize": {
+              "type": "string"
+            },
+            "VnetName": {
+              "type": "string"
+            },
+            "VnetResourceGroupName": {
+              "type": "string"
             }
+          },
+          "variables": {
+            "CpuCountMax": "[if(contains(parameters('HostPoolType'), 'Pooled'), 32, 128)]",
+            "CpuCountMin": "[if(contains(parameters('HostPoolType'), 'Pooled'), 4, 2)]"
           },
           "resources": [
             {
-              "type": "Microsoft.Resources/deploymentScripts",
-              "apiVersion": "2020-10-01",
-              "name": "[parameters('Name')]",
-              "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                  "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
-                }
-              },
-              "location": "[parameters('Location')]",
-              "kind": "AzurePowerShell",
-              "tags": {},
+              "condition": "[greater(parameters('SessionHostCount'), 0)]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_AcceleratedNetworkingValidation_{0}', parameters('Timestamp'))]",
               "properties": {
-                "azPowerShellVersion": "9.4",
-                "cleanupPreference": "Always",
-                "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                "arguments": "[parameters('Arguments')]",
-                "forceUpdateTag": "[parameters('Timestamp')]",
-                "retentionInterval": "PT2H",
-                "timeout": "PT30M"
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}acceleratedNetworkingValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"enabled\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"AcceleratedNetworkingEnabled\"}).value"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[equals(parameters('Availability'), 'AvailabilityZones')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_AvailabilityZoneValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}availabilityZonesValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"zones\"] = $Sku.locationInfo.zones[0] | Sort-Object | ConvertTo-Json -AsArray"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[equals(parameters('Availability'), 'AvailabilityZones')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_AzureNetAppFilesValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -StorageSolution {1} -VnetName {2} -VnetResourceGroupName {3}', parameters('Location'), parameters('StorageSolution'), parameters('VnetName'), parameters('VnetResourceGroupName'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}azureNetAppFilesValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$StorageSolution,[string]$VnetName,[string]$VnetResourceGroupName); $ErrorActionPreference = \"Stop\"; $DeploymentScriptOutputs = @{}; if($StorageSolution -eq \"AzureNetAppFiles\"){$Vnet = Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName; $DnsServers = \"$($Vnet.DhcpOptions.DnsServers[0]),$($Vnet.DhcpOptions.DnsServers[1])\"; $SubnetId = ($Vnet.Subnets | Where-Object {$_.Delegations[0].ServiceName -eq \"Microsoft.NetApp/volumes\"}).Id; if($null -eq $SubnetId -or $SubnetId -eq \"\"){Write-Error -Exception \"INVALID AZURE NETAPP FILES CONFIGURATION: A dedicated subnet must be delegated to the ANF resource provider.\"}; Install-Module -Name \"Az.NetAppFiles\" -Force; $DeployAnfAd = \"true\"; $Accounts = Get-AzResource -ResourceType \"Microsoft.NetApp/netAppAccounts\" | Where-Object {$_.Location -eq $Location}; foreach($Account in $Accounts){$AD = Get-AzNetAppFilesActiveDirectory -ResourceGroupName $Account.ResourceGroupName -AccountName $Account.Name; if($AD.ActiveDirectoryId){$DeployAnfAd = \"false\"}}; $DeploymentScriptOutputs[\"anfDnsServers\"] = $DnsServers; $DeploymentScriptOutputs[\"anfSubnetId\"] = $SubnetId; $DeploymentScriptOutputs[\"anfActiveDirectory\"] = $DeployAnfAd} else {$DeploymentScriptOutputs[\"anfDnsServers\"] = \"NotApplicable\"; $DeploymentScriptOutputs[\"anfSubnetId\"] = \"NotApplicable\"; $DeploymentScriptOutputs[\"anfActiveDirectory\"] = \"false\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[contains(parameters('DiskSku'), 'Premium')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_DiskSkuValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}diskSkuValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value -eq $false){Write-Error -Exception \"INVALID DISK SKU: The selected VM Size does not support the Premium SKU for managed disks.\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[or(contains(parameters('ImageSku'), '-g2'), contains(parameters('ImageSku'), 'win11'))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_HyperVGenerationValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}hyperVGenerationValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value -notlike \"*2\"){Write-Error -Exception \"INVALID HYPER-V GENERATION: The selected VM size does not support the selected Image Sku.\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[equals(parameters('DomainServices'), 'AzureActiveDirectory')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_KerberosEncryptionValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-DomainName {0} -KerberosEncryption {1}', parameters('DomainName'), parameters('KerberosEncryption'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}kerberosEncryptionValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$DomainName,[string]$KerberosEncryption); $ErrorActionPreference = \"Stop\"; $KerberosRc4Encryption = (Get-AzResource -Name $DomainName -ExpandProperties).Properties.domainSecuritySettings.kerberosRc4Encryption; if($KerberosRc4Encryption -eq \"Enabled\" -and $KerberosEncryption -eq \"AES256\"){Write-Error -Exception \"INVALID KERBEROS ENCRYPTION: The Kerberos Encryption on Azure AD DS does not match your Kerberos Encyrption selection.\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[equals(parameters('DomainServices'), 'AzureActiveDirectory')]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_StorageValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-SecurityPrincipalIdsCount {0} -SecurityPrincipalNamesCount {1} -StorageCount {2}', parameters('SecurityPrincipalIdsCount'), parameters('SecurityPrincipalNamesCount'), parameters('StorageCount'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}storageValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([int]$SecurityPrincipalIdsCount,[int]$SecurityPrincipalNamesCount,[int]$StorageCount); $ErrorActionPreference = \"Stop\"; if(($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0){Write-Error -Exception \"INVALID ARRAYS: The \"SecurityPrinicaplIdsCount\", \"SecurityPrincipalNamesCount\", and \"StorageCount\" must be equal in length.\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "condition": "[or(contains(parameters('ImageSku'), '-g2'), contains(parameters('ImageSku'), 'win11'))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_TrustedLaunchValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}trustedLaunchValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $DeploymentScriptOutputs = @{}; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if($null -eq ($Sku.capabilities | Where-Object {$_.name -eq \"TrustedLaunchDisabled\"}).value){$DeploymentScriptOutputs[\"enabled\"] = \"true\"}else{$DeploymentScriptOutputs[\"enabled\"] = \"false\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_CpuCountValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-CpuCountMax {0} -CpuCountMin {1} -Location {2} -VmSize {3}', variables('CpuCountMax'), variables('CpuCountMin'), parameters('Location'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}cpuCountValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([int]$CpuCountMax,[int]$CpuCountMin,[string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; if($vCPUs -lt $CpuCountMin -or $vCPUs -gt $CpuCountMax){Write-Error -Exception \"INVALID VCPU COUNT: The selected VM Size does not contain the appropriate amount of vCPUs for Azure Virtual Desktop. https://learn.microsoft.com/windows-server/remote/remote-desktop-services/virtual-machine-recs\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_CpuQuotaValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-Location {0} -SessionHostCount {1} -VmSize {2}', parameters('Location'), parameters('SessionHostCount'), parameters('VmSize'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}cpuQuotaValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$Location,[int]$SessionHostCount,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; $RequestedCores = $vCPUs * $SessionHostCount; $Family = (Get-AzComputeResourceSku -Location $Location | Where-Object {$_.Name -eq $VmSize}).Family; $CpuData = Get-AzVMUsage -Location $Location | Where-Object {$_.Name.Value -eq $Family}; $AvailableCores = $CpuData.Limit - $CpuData.CurrentValue; $RequestedCores = $vCPUs * $SessionHostCount; if($RequestedCores -gt $AvailableCores){Write-Error -Exception \"INSUFFICIENT CORE QUOTA: The selected VM size, $VmSize, does not have adequate core quota in the selected location.\"}"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
               }
             }
           ],
           "outputs": {
-            "properties": {
-              "type": "object",
-              "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+            "acceleratedNetworking": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_AcceleratedNetworkingValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.enabled]"
+            },
+            "anfActiveDirectory": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_AzureNetAppFilesValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfActiveDirectory]"
+            },
+            "anfDnsServers": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_AzureNetAppFilesValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfDnsServers]"
+            },
+            "anfSubnetId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_AzureNetAppFilesValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfSubnetId]"
+            },
+            "availabilityZones": {
+              "type": "array",
+              "value": "[if(equals(parameters('Availability'), 'AvailabilityZones'), json(reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_AvailabilityZoneValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.zones), createArray('1'))]"
+            },
+            "trustedLaunch": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_TrustedLaunchValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.enabled]"
             }
           }
         }
@@ -2019,14 +3010,8 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "_artifactsLocation": {
-            "value": "[parameters('_artifactsLocation')]"
-          },
-          "_artifactsLocationSasToken": {
-            "value": "[parameters('_artifactsLocationSasToken')]"
-          },
-          "DeploymentScriptNamePrefix": {
-            "value": "[variables('DeploymentScriptNamePrefix')]"
+          "DiskEncryptionSetName": {
+            "value": "[variables('DiskEncryptionSetName')]"
           },
           "Environment": {
             "value": "[parameters('Environment')]"
@@ -2037,14 +3022,17 @@
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "ManagedIdentityResourceId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
-          },
-          "ResourceGroupManagement": {
-            "value": "[variables('ResourceGroupManagement')]"
+          "Tags": {
+            "value": "[parameters('Tags')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
+          },
+          "UserAssignedIdentityPrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]"
+          },
+          "UserAssignedIdentityResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           }
         },
         "template": {
@@ -2054,17 +3042,15 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "8101212606981792800"
+              "templateHash": "2948326981334211587"
             }
           },
           "parameters": {
-            "_artifactsLocation": {
-              "type": "string"
+            "DiskEncryptionKeyExpirationInDays": {
+              "type": "int",
+              "defaultValue": 30
             },
-            "_artifactsLocationSasToken": {
-              "type": "securestring"
-            },
-            "DeploymentScriptNamePrefix": {
+            "DiskEncryptionSetName": {
               "type": "string"
             },
             "Environment": {
@@ -2076,15 +3062,21 @@
             "Location": {
               "type": "string"
             },
-            "ManagedIdentityResourceId": {
-              "type": "string"
-            },
-            "ResourceGroupManagement": {
-              "type": "string"
+            "Tags": {
+              "type": "object"
             },
             "Timestamp": {
               "type": "string"
+            },
+            "UserAssignedIdentityPrincipalId": {
+              "type": "string"
+            },
+            "UserAssignedIdentityResourceId": {
+              "type": "string"
             }
+          },
+          "variables": {
+            "DiskEncryptionKeyExpirationInEpoch": "[dateTimeToEpoch(dateTimeAdd(parameters('Timestamp'), format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))))]"
           },
           "resources": [
             {
@@ -2097,51 +3089,101 @@
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": true,
                 "enabledForTemplateDeployment": false,
-                "enablePurgeProtection": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), null(), true())]",
+                "enablePurgeProtection": true,
                 "enableRbacAuthorization": true,
-                "enableSoftDelete": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), false(), true())]",
+                "enableSoftDelete": true,
                 "sku": {
                   "family": "A",
                   "name": "standard"
                 },
-                "softDeleteRetentionInDays": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), null(), 90)]",
+                "softDeleteRetentionInDays": "[if(or(equals(parameters('Environment'), 'd'), equals(parameters('Environment'), 't')), 7, 90)]",
                 "tenantId": "[subscription().tenantId]"
               }
             },
             {
+              "type": "Microsoft.KeyVault/vaults/keys",
+              "apiVersion": "2022-07-01",
+              "name": "[format('{0}/{1}', parameters('KeyVaultName'), 'DiskEncryptionKey')]",
+              "tags": "[parameters('Tags')]",
+              "properties": {
+                "attributes": {
+                  "enabled": true,
+                  "exp": "[variables('DiskEncryptionKeyExpirationInEpoch')]",
+                  "nbf": null
+                },
+                "keySize": 4096,
+                "kty": "RSA",
+                "rotationPolicy": {
+                  "attributes": {
+                    "expiryTime": "[format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))]"
+                  },
+                  "lifetimeActions": [
+                    {
+                      "action": {
+                        "type": "notify"
+                      },
+                      "trigger": {
+                        "timeBeforeExpiry": "P10D"
+                      }
+                    },
+                    {
+                      "action": {
+                        "type": "rotate"
+                      },
+                      "trigger": {
+                        "timeAfterCreate": "[format('P{0}D', string(sub(parameters('DiskEncryptionKeyExpirationInDays'), 7)))]"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Compute/diskEncryptionSets",
+              "apiVersion": "2022-07-02",
+              "name": "[parameters('DiskEncryptionSetName')]",
+              "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                }
+              },
+              "properties": {
+                "activeKey": {
+                  "sourceVault": {
+                    "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
+                  },
+                  "keyUrl": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', parameters('KeyVaultName'), 'DiskEncryptionKey'), '2022-07-01').keyUriWithVersion]"
+                },
+                "encryptionType": "EncryptionAtRestWithPlatformAndCustomerKeys",
+                "federatedClientId": "None",
+                "rotationToLatestKeyVersionEnabled": true
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults/keys', parameters('KeyVaultName'), 'DiskEncryptionKey')]",
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
+              ]
+            },
+            {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('DeploymentScript_KeyVault-KEK_{0}', parameters('Timestamp'))]",
-              "resourceGroup": "[parameters('ResourceGroupManagement')]",
+              "name": "[format('RoleAssignment_{0}', parameters('Timestamp'))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "Arguments": {
-                    "value": "[format('-KeyVault {0}', parameters('KeyVaultName'))]"
+                  "PrincipalId": {
+                    "value": "[parameters('UserAssignedIdentityPrincipalId')]"
                   },
-                  "Location": {
-                    "value": "[parameters('Location')]"
-                  },
-                  "Name": {
-                    "value": "[format('{0}kek', parameters('DeploymentScriptNamePrefix'))]"
-                  },
-                  "ScriptContainerSasToken": {
-                    "value": "[parameters('_artifactsLocationSasToken')]"
-                  },
-                  "ScriptContainerUri": {
-                    "value": "[parameters('_artifactsLocation')]"
-                  },
-                  "ScriptName": {
-                    "value": "New-AzureKeyEncryptionKey.ps1"
-                  },
-                  "Timestamp": {
-                    "value": "[parameters('Timestamp')]"
-                  },
-                  "UserAssignedIdentityResourceId": {
-                    "value": "[parameters('ManagedIdentityResourceId')]"
+                  "RoleDefinitionId": {
+                    "value": "[resourceId('Microsoft.Authorization/roleDefinitions', 'e147488a-f6f5-4113-8e2d-b22465e65bf6')]"
                   }
                 },
                 "template": {
@@ -2151,70 +3193,39 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "17638610156948651410"
+                      "templateHash": "8096479380248432665"
                     }
                   },
                   "parameters": {
-                    "Arguments": {
+                    "PrincipalId": {
                       "type": "string"
                     },
-                    "Location": {
-                      "type": "string"
-                    },
-                    "Name": {
-                      "type": "string"
-                    },
-                    "ScriptContainerUri": {
-                      "type": "string"
-                    },
-                    "ScriptContainerSasToken": {
-                      "type": "securestring"
-                    },
-                    "ScriptName": {
-                      "type": "string"
-                    },
-                    "Timestamp": {
-                      "type": "string"
-                    },
-                    "UserAssignedIdentityResourceId": {
+                    "RoleDefinitionId": {
                       "type": "string"
                     }
                   },
                   "resources": [
                     {
-                      "type": "Microsoft.Resources/deploymentScripts",
-                      "apiVersion": "2020-10-01",
-                      "name": "[parameters('Name')]",
-                      "identity": {
-                        "type": "UserAssigned",
-                        "userAssignedIdentities": {
-                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
-                        }
-                      },
-                      "location": "[parameters('Location')]",
-                      "kind": "AzurePowerShell",
-                      "tags": {},
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "name": "[guid(parameters('PrincipalId'), parameters('RoleDefinitionId'), resourceGroup().id)]",
                       "properties": {
-                        "azPowerShellVersion": "9.4",
-                        "cleanupPreference": "Always",
-                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                        "arguments": "[parameters('Arguments')]",
-                        "forceUpdateTag": "[parameters('Timestamp')]",
-                        "retentionInterval": "PT2H",
-                        "timeout": "PT30M"
+                        "roleDefinitionId": "[parameters('RoleDefinitionId')]",
+                        "principalId": "[parameters('PrincipalId')]",
+                        "principalType": "ServicePrincipal"
                       }
                     }
-                  ],
-                  "outputs": {
-                    "properties": {
-                      "type": "object",
-                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
-                    }
-                  }
+                  ]
                 }
               }
             }
-          ]
+          ],
+          "outputs": {
+            "diskEncryptionSetResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Compute/diskEncryptionSets', parameters('DiskEncryptionSetName'))]"
+            }
+          }
         }
       },
       "dependsOn": [
@@ -2240,13 +3251,16 @@
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
           "ActiveDirectoryConnection": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfActiveDirectory]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfActiveDirectory.value]"
+          },
+          "AzureFilesPrivateDnsZoneResourceId": {
+            "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
           },
           "ClientId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.clientId.value]"
           },
           "DelegatedSubnetId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfSubnetId]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfSubnetId.value]"
           },
           "DeploymentScriptNamePrefix": {
             "value": "[variables('DeploymentScriptNamePrefix')]"
@@ -2254,14 +3268,14 @@
           "DiskEncryption": {
             "value": "[parameters('DiskEncryption')]"
           },
-          "DnsServerForwarderIPAddresses": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.dnsForwarders]"
+          "DiskEncryptionSetResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp'))), '2022-09-01').outputs.diskEncryptionSetResourceId.value]"
+          },
+          "DiskSku": {
+            "value": "[parameters('DiskSku')]"
           },
           "DnsServers": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.anfDnsServers]"
-          },
-          "DnsServerSize": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.dnsServerSize]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfDnsServers.value]"
           },
           "DomainJoinPassword": {
             "value": "[parameters('DomainJoinPassword')]"
@@ -2275,9 +3289,6 @@
           "DomainServices": {
             "value": "[parameters('DomainServices')]"
           },
-          "Environment": {
-            "value": "[parameters('Environment')]"
-          },
           "FileShares": {
             "value": "[variables('FileShares')]"
           },
@@ -2290,23 +3301,11 @@
           "FslogixStorage": {
             "value": "[parameters('FslogixStorage')]"
           },
-          "HybridUseBenefit": {
-            "value": "[parameters('HybridUseBenefit')]"
-          },
-          "Identifier": {
-            "value": "[parameters('Identifier')]"
-          },
           "KerberosEncryption": {
             "value": "[parameters('KerberosEncryption')]"
           },
-          "KeyVaultName": {
-            "value": "[variables('KeyVaultName')]"
-          },
           "Location": {
             "value": "[parameters('Location')]"
-          },
-          "LocationShortName": {
-            "value": "[variables('LocationShortName')]"
           },
           "ManagementVmName": {
             "value": "[variables('ManagementVmName')]"
@@ -2326,9 +3325,6 @@
           "OuPath": {
             "value": "[parameters('OuPath')]"
           },
-          "PrivateDnsZoneName": {
-            "value": "[variables('PrivateDnsZoneName')]"
-          },
           "PrivateEndpoint": {
             "value": "[variables('PrivateEndpoint')]"
           },
@@ -2347,9 +3343,6 @@
           "SmbServerLocation": {
             "value": "[variables('LocationShortName')]"
           },
-          "StampIndexFull": {
-            "value": "[variables('StampIndexFull')]"
-          },
           "StorageAccountPrefix": {
             "value": "[variables('StorageAccountPrefix')]"
           },
@@ -2365,9 +3358,6 @@
           "StorageSolution": {
             "value": "[variables('StorageSolution')]"
           },
-          "StorageSuffix": {
-            "value": "[variables('StorageSuffix')]"
-          },
           "Subnet": {
             "value": "[parameters('SubnetName')]"
           },
@@ -2376,6 +3366,9 @@
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
+          },
+          "TrustedLaunch": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.trustedLaunch.value]"
           },
           "UserAssignedIdentityResourceId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
@@ -2400,7 +3393,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "9283157593014086574"
+              "templateHash": "3669205456794791467"
             }
           },
           "parameters": {
@@ -2411,6 +3404,9 @@
               "type": "securestring"
             },
             "ActiveDirectoryConnection": {
+              "type": "string"
+            },
+            "AzureFilesPrivateDnsZoneResourceId": {
               "type": "string"
             },
             "ClientId": {
@@ -2425,13 +3421,13 @@
             "DiskEncryption": {
               "type": "bool"
             },
-            "DnsServerForwarderIPAddresses": {
-              "type": "array"
-            },
-            "DnsServers": {
+            "DiskEncryptionSetResourceId": {
               "type": "string"
             },
-            "DnsServerSize": {
+            "DiskSku": {
+              "type": "string"
+            },
+            "DnsServers": {
               "type": "string"
             },
             "DomainJoinPassword": {
@@ -2446,9 +3442,6 @@
             "DomainServices": {
               "type": "string"
             },
-            "Environment": {
-              "type": "string"
-            },
             "FileShares": {
               "type": "array"
             },
@@ -2461,22 +3454,10 @@
             "FslogixStorage": {
               "type": "string"
             },
-            "HybridUseBenefit": {
-              "type": "bool"
-            },
-            "Identifier": {
-              "type": "string"
-            },
             "KerberosEncryption": {
               "type": "string"
             },
-            "KeyVaultName": {
-              "type": "string"
-            },
             "Location": {
-              "type": "string"
-            },
-            "LocationShortName": {
               "type": "string"
             },
             "ManagementVmName": {
@@ -2497,9 +3478,6 @@
             "OuPath": {
               "type": "string"
             },
-            "PrivateDnsZoneName": {
-              "type": "string"
-            },
             "PrivateEndpoint": {
               "type": "bool"
             },
@@ -2518,9 +3496,6 @@
             "SmbServerLocation": {
               "type": "string"
             },
-            "StampIndexFull": {
-              "type": "string"
-            },
             "StorageAccountPrefix": {
               "type": "string"
             },
@@ -2536,9 +3511,6 @@
             "StorageSolution": {
               "type": "string"
             },
-            "StorageSuffix": {
-              "type": "string"
-            },
             "Subnet": {
               "type": "string"
             },
@@ -2546,6 +3518,9 @@
               "type": "object"
             },
             "Timestamp": {
+              "type": "string"
+            },
+            "TrustedLaunch": {
               "type": "string"
             },
             "UserAssignedIdentityResourceId": {
@@ -2577,11 +3552,14 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "DeploymentScriptNamePrefix": {
-                    "value": "[parameters('DeploymentScriptNamePrefix')]"
-                  },
                   "DiskEncryption": {
                     "value": "[parameters('DiskEncryption')]"
+                  },
+                  "DiskEncryptionSetResourceId": {
+                    "value": "[parameters('DiskEncryptionSetResourceId')]"
+                  },
+                  "DiskSku": {
+                    "value": "[parameters('DiskSku')]"
                   },
                   "DomainJoinPassword": {
                     "value": "[parameters('DomainJoinPassword')]"
@@ -2592,9 +3570,6 @@
                   "DomainName": {
                     "value": "[parameters('DomainName')]"
                   },
-                  "KeyVaultName": {
-                    "value": "[parameters('KeyVaultName')]"
-                  },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
@@ -2604,9 +3579,6 @@
                   "NamingStandard": {
                     "value": "[parameters('NamingStandard')]"
                   },
-                  "ResourceGroupManagement": {
-                    "value": "[parameters('ResourceGroupManagement')]"
-                  },
                   "Subnet": {
                     "value": "[parameters('Subnet')]"
                   },
@@ -2615,6 +3587,9 @@
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
+                  },
+                  "TrustedLaunch": {
+                    "value": "[parameters('TrustedLaunch')]"
                   },
                   "UserAssignedIdentityResourceId": {
                     "value": "[parameters('UserAssignedIdentityResourceId')]"
@@ -2639,15 +3614,18 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "9066294308884925301"
+                      "templateHash": "2706244094798562779"
                     }
                   },
                   "parameters": {
-                    "DeploymentScriptNamePrefix": {
-                      "type": "string"
-                    },
                     "DiskEncryption": {
                       "type": "bool"
+                    },
+                    "DiskEncryptionSetResourceId": {
+                      "type": "string"
+                    },
+                    "DiskSku": {
+                      "type": "string"
                     },
                     "DomainJoinPassword": {
                       "type": "securestring"
@@ -2656,9 +3634,6 @@
                       "type": "string"
                     },
                     "DomainName": {
-                      "type": "string"
-                    },
-                    "KeyVaultName": {
                       "type": "string"
                     },
                     "Location": {
@@ -2670,9 +3645,6 @@
                     "NamingStandard": {
                       "type": "string"
                     },
-                    "ResourceGroupManagement": {
-                      "type": "string"
-                    },
                     "Subnet": {
                       "type": "string"
                     },
@@ -2680,6 +3652,9 @@
                       "type": "object"
                     },
                     "Timestamp": {
+                      "type": "string"
+                    },
+                    "TrustedLaunch": {
                       "type": "string"
                     },
                     "UserAssignedIdentityResourceId": {
@@ -2749,7 +3724,8 @@
                             "createOption": "FromImage",
                             "caching": "None",
                             "managedDisk": {
-                              "storageAccountType": "Standard_LRS"
+                              "diskEncryptionSet": "[if(parameters('DiskEncryption'), createObject('id', parameters('DiskEncryptionSetResourceId')), null())]",
+                              "storageAccountType": "[parameters('DiskSku')]"
                             },
                             "name": "[format('disk-{0}-mgt', parameters('NamingStandard'))]"
                           },
@@ -2775,6 +3751,11 @@
                               }
                             }
                           ]
+                        },
+                        "securityProfile": {
+                          "uefiSettings": "[if(equals(parameters('TrustedLaunch'), 'true'), createObject('secureBootEnabled', true(), 'vTpmEnabled', true()), null())]",
+                          "securityType": "[if(equals(parameters('TrustedLaunch'), 'true'), 'TrustedLaunch', null())]",
+                          "encryptionAtHost": "[parameters('DiskEncryption')]"
                         },
                         "diagnosticsProfile": {
                           "bootDiagnostics": {
@@ -2816,34 +3797,6 @@
                         }
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.Compute/virtualMachines', parameters('ManagementVmName'))]"
-                      ]
-                    },
-                    {
-                      "condition": "[parameters('DiskEncryption')]",
-                      "type": "Microsoft.Compute/virtualMachines/extensions",
-                      "apiVersion": "2017-03-30",
-                      "name": "[format('{0}/{1}', parameters('ManagementVmName'), 'AzureDiskEncryption')]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "publisher": "Microsoft.Azure.Security",
-                        "type": "AzureDiskEncryption",
-                        "typeHandlerVersion": "2.2",
-                        "autoUpgradeMinorVersion": true,
-                        "forceUpdateTag": "[parameters('Timestamp')]",
-                        "settings": {
-                          "EncryptionOperation": "EnableEncryption",
-                          "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2016-10-01', 'Full').properties.vaultUri, null())]",
-                          "KeyVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
-                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2019-10-01-preview', 'Full').properties.outputs.text, null())]",
-                          "KekVaultResourceId": "[resourceId(parameters('ResourceGroupManagement'), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]",
-                          "KeyEncryptionAlgorithm": "RSA-OAEP",
-                          "VolumeType": "All",
-                          "ResizeOSDisk": false
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('ManagementVmName'), 'JsonADDomainExtension')]",
                         "[resourceId('Microsoft.Compute/virtualMachines', parameters('ManagementVmName'))]"
                       ]
                     }
@@ -2943,7 +3896,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "4524374147068206751"
+                      "templateHash": "12894336958481445189"
                     }
                   },
                   "parameters": {
@@ -3132,7 +4085,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "1633589059739584525"
+                              "templateHash": "3849467652108976255"
                             }
                           },
                           "parameters": {
@@ -3206,14 +4159,8 @@
                                   "Name": {
                                     "value": "[format('{0}fslogix', parameters('DeploymentScriptNamePrefix'))]"
                                   },
-                                  "ScriptContainerSasToken": {
-                                    "value": "[parameters('_artifactsLocationSasToken')]"
-                                  },
-                                  "ScriptContainerUri": {
-                                    "value": "[parameters('_artifactsLocation')]"
-                                  },
-                                  "ScriptName": {
-                                    "value": "Remove-AzureVirtualMachine.ps1"
+                                  "Script": {
+                                    "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
@@ -3229,7 +4176,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.18.4.5664",
-                                      "templateHash": "17638610156948651410"
+                                      "templateHash": "1338006163064225507"
                                     }
                                   },
                                   "parameters": {
@@ -3242,13 +4189,7 @@
                                     "Name": {
                                       "type": "string"
                                     },
-                                    "ScriptContainerUri": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerSasToken": {
-                                      "type": "securestring"
-                                    },
-                                    "ScriptName": {
+                                    "Script": {
                                       "type": "string"
                                     },
                                     "Timestamp": {
@@ -3273,12 +4214,12 @@
                                       "kind": "AzurePowerShell",
                                       "tags": {},
                                       "properties": {
+                                        "arguments": "[parameters('Arguments')]",
                                         "azPowerShellVersion": "9.4",
                                         "cleanupPreference": "Always",
-                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                                        "arguments": "[parameters('Arguments')]",
                                         "forceUpdateTag": "[parameters('Timestamp')]",
                                         "retentionInterval": "PT2H",
+                                        "scriptContent": "[parameters('Script')]",
                                         "timeout": "PT30M"
                                       }
                                     }
@@ -3333,17 +4274,14 @@
                   "_artifactsLocationSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
                   },
+                  "AzureFilesPrivateDnsZoneResourceId": {
+                    "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
+                  },
                   "ClientId": {
                     "value": "[parameters('ClientId')]"
                   },
                   "DeploymentScriptNamePrefix": {
                     "value": "[parameters('DeploymentScriptNamePrefix')]"
-                  },
-                  "DnsServerForwarderIPAddresses": {
-                    "value": "[parameters('DnsServerForwarderIPAddresses')]"
-                  },
-                  "DnsServerSize": {
-                    "value": "[parameters('DnsServerSize')]"
                   },
                   "DomainJoinPassword": {
                     "value": "[parameters('DomainJoinPassword')]"
@@ -3351,14 +4289,8 @@
                   "DomainJoinUserPrincipalName": {
                     "value": "[parameters('DomainJoinUserPrincipalName')]"
                   },
-                  "DomainName": {
-                    "value": "[parameters('DomainName')]"
-                  },
                   "DomainServices": {
                     "value": "[parameters('DomainServices')]"
-                  },
-                  "Environment": {
-                    "value": "[parameters('Environment')]"
                   },
                   "FileShares": {
                     "value": "[parameters('FileShares')]"
@@ -3372,35 +4304,20 @@
                   "FslogixStorage": {
                     "value": "[parameters('FslogixStorage')]"
                   },
-                  "HybridUseBenefit": {
-                    "value": "[parameters('HybridUseBenefit')]"
-                  },
-                  "Identifier": {
-                    "value": "[parameters('Identifier')]"
-                  },
                   "KerberosEncryption": {
                     "value": "[parameters('KerberosEncryption')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
-                  "LocationShortName": {
-                    "value": "[parameters('LocationShortName')]"
-                  },
                   "ManagementVmName": {
                     "value": "[parameters('ManagementVmName')]"
-                  },
-                  "NamingStandard": {
-                    "value": "[parameters('NamingStandard')]"
                   },
                   "Netbios": {
                     "value": "[parameters('Netbios')]"
                   },
                   "OuPath": {
                     "value": "[parameters('OuPath')]"
-                  },
-                  "PrivateDnsZoneName": {
-                    "value": "[parameters('PrivateDnsZoneName')]"
                   },
                   "PrivateEndpoint": {
                     "value": "[parameters('PrivateEndpoint')]"
@@ -3417,9 +4334,6 @@
                   "SecurityPrincipalNames": {
                     "value": "[parameters('SecurityPrincipalNames')]"
                   },
-                  "StampIndexFull": {
-                    "value": "[parameters('StampIndexFull')]"
-                  },
                   "StorageAccountPrefix": {
                     "value": "[parameters('StorageAccountPrefix')]"
                   },
@@ -3434,9 +4348,6 @@
                   },
                   "StorageSolution": {
                     "value": "[parameters('StorageSolution')]"
-                  },
-                  "StorageSuffix": {
-                    "value": "[parameters('StorageSuffix')]"
                   },
                   "Subnet": {
                     "value": "[parameters('Subnet')]"
@@ -3455,12 +4366,6 @@
                   },
                   "VirtualNetworkResourceGroup": {
                     "value": "[parameters('VirtualNetworkResourceGroup')]"
-                  },
-                  "VmPassword": {
-                    "value": "[parameters('VmPassword')]"
-                  },
-                  "VmUsername": {
-                    "value": "[parameters('VmUsername')]"
                   }
                 },
                 "template": {
@@ -3470,7 +4375,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "5457725903151855292"
+                      "templateHash": "15243894505060126728"
                     }
                   },
                   "parameters": {
@@ -3480,16 +4385,13 @@
                     "_artifactsLocationSasToken": {
                       "type": "securestring"
                     },
+                    "AzureFilesPrivateDnsZoneResourceId": {
+                      "type": "string"
+                    },
                     "ClientId": {
                       "type": "string"
                     },
                     "DeploymentScriptNamePrefix": {
-                      "type": "string"
-                    },
-                    "DnsServerForwarderIPAddresses": {
-                      "type": "array"
-                    },
-                    "DnsServerSize": {
                       "type": "string"
                     },
                     "DomainJoinPassword": {
@@ -3498,13 +4400,7 @@
                     "DomainJoinUserPrincipalName": {
                       "type": "string"
                     },
-                    "DomainName": {
-                      "type": "string"
-                    },
                     "DomainServices": {
-                      "type": "string"
-                    },
-                    "Environment": {
                       "type": "string"
                     },
                     "FileShares": {
@@ -3519,34 +4415,19 @@
                     "FslogixStorage": {
                       "type": "string"
                     },
-                    "HybridUseBenefit": {
-                      "type": "bool"
-                    },
-                    "Identifier": {
-                      "type": "string"
-                    },
                     "KerberosEncryption": {
                       "type": "string"
                     },
                     "Location": {
                       "type": "string"
                     },
-                    "LocationShortName": {
-                      "type": "string"
-                    },
                     "ManagementVmName": {
-                      "type": "string"
-                    },
-                    "NamingStandard": {
                       "type": "string"
                     },
                     "Netbios": {
                       "type": "string"
                     },
                     "OuPath": {
-                      "type": "string"
-                    },
-                    "PrivateDnsZoneName": {
                       "type": "string"
                     },
                     "PrivateEndpoint": {
@@ -3564,9 +4445,6 @@
                     "SecurityPrincipalNames": {
                       "type": "array"
                     },
-                    "StampIndexFull": {
-                      "type": "string"
-                    },
                     "StorageAccountPrefix": {
                       "type": "string"
                     },
@@ -3580,9 +4458,6 @@
                       "type": "string"
                     },
                     "StorageSolution": {
-                      "type": "string"
-                    },
-                    "StorageSuffix": {
                       "type": "string"
                     },
                     "Subnet": {
@@ -3601,12 +4476,6 @@
                       "type": "string"
                     },
                     "VirtualNetworkResourceGroup": {
-                      "type": "string"
-                    },
-                    "VmPassword": {
-                      "type": "securestring"
-                    },
-                    "VmUsername": {
                       "type": "string"
                     }
                   },
@@ -3807,8 +4676,8 @@
                           "Location": {
                             "value": "[parameters('Location')]"
                           },
-                          "PrivateDnsZoneName": {
-                            "value": "[parameters('PrivateDnsZoneName')]"
+                          "AzureFilesPrivateDnsZoneResourceId": {
+                            "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
                           },
                           "StorageAccountId": {
                             "value": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
@@ -3836,14 +4705,14 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "4862802699742489472"
+                              "templateHash": "12278287918303612854"
                             }
                           },
                           "parameters": {
-                            "Location": {
+                            "AzureFilesPrivateDnsZoneResourceId": {
                               "type": "string"
                             },
-                            "PrivateDnsZoneName": {
+                            "Location": {
                               "type": "string"
                             },
                             "StorageAccountId": {
@@ -3869,14 +4738,6 @@
                             "SubnetId": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VirtualNetwork'), parameters('Subnet'))]"
                           },
                           "resources": [
-                            {
-                              "type": "Microsoft.Network/privateDnsZones",
-                              "apiVersion": "2018-09-01",
-                              "name": "[parameters('PrivateDnsZoneName')]",
-                              "location": "global",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {}
-                            },
                             {
                               "type": "Microsoft.Network/privateEndpoints",
                               "apiVersion": "2020-05-01",
@@ -3909,30 +4770,13 @@
                                   {
                                     "name": "ipconfig1",
                                     "properties": {
-                                      "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', parameters('PrivateDnsZoneName'))]"
+                                      "privateDnsZoneId": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
                                     }
                                   }
                                 ]
                               },
                               "dependsOn": [
-                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('PrivateDnsZoneName'))]",
                                 "[resourceId('Microsoft.Network/privateEndpoints', format('pe-{0}', parameters('StorageAccountName')))]"
-                              ]
-                            },
-                            {
-                              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-                              "apiVersion": "2018-09-01",
-                              "name": "[format('{0}/{1}', parameters('PrivateDnsZoneName'), format('link-{0}', parameters('VirtualNetwork')))]",
-                              "location": "global",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "registrationEnabled": false,
-                                "virtualNetwork": {
-                                  "id": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetwork'))]"
-                                }
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('PrivateDnsZoneName'))]"
                               ]
                             }
                           ]
@@ -3942,626 +4786,6 @@
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
                       ]
-                    },
-                    {
-                      "condition": "[parameters('PrivateEndpoint')]",
-                      "type": "Microsoft.Resources/deployments",
-                      "apiVersion": "2022-09-01",
-                      "name": "[format('DnsForwarder_{0}', parameters('Timestamp'))]",
-                      "resourceGroup": "[parameters('ResourceGroupManagement')]",
-                      "properties": {
-                        "expressionEvaluationOptions": {
-                          "scope": "inner"
-                        },
-                        "mode": "Incremental",
-                        "parameters": {
-                          "_artifactsLocation": {
-                            "value": "[parameters('_artifactsLocation')]"
-                          },
-                          "_artifactsLocationSasToken": {
-                            "value": "[parameters('_artifactsLocationSasToken')]"
-                          },
-                          "DeploymentScriptNamePrefix": {
-                            "value": "[parameters('DeploymentScriptNamePrefix')]"
-                          },
-                          "DnsServerForwarderIPAddresses": {
-                            "value": "[parameters('DnsServerForwarderIPAddresses')]"
-                          },
-                          "DnsServerSize": {
-                            "value": "[parameters('DnsServerSize')]"
-                          },
-                          "DomainJoinPassword": {
-                            "value": "[parameters('DomainJoinPassword')]"
-                          },
-                          "DomainJoinUserPrincipalName": {
-                            "value": "[parameters('DomainJoinUserPrincipalName')]"
-                          },
-                          "DomainName": {
-                            "value": "[parameters('DomainName')]"
-                          },
-                          "Environment": {
-                            "value": "[parameters('Environment')]"
-                          },
-                          "HybridUseBenefit": {
-                            "value": "[parameters('HybridUseBenefit')]"
-                          },
-                          "Identifier": {
-                            "value": "[parameters('Identifier')]"
-                          },
-                          "Location": {
-                            "value": "[parameters('Location')]"
-                          },
-                          "LocationShortName": {
-                            "value": "[parameters('LocationShortName')]"
-                          },
-                          "NamingStandard": {
-                            "value": "[parameters('NamingStandard')]"
-                          },
-                          "StampIndexFull": {
-                            "value": "[parameters('StampIndexFull')]"
-                          },
-                          "StorageSuffix": {
-                            "value": "[parameters('StorageSuffix')]"
-                          },
-                          "Subnet": {
-                            "value": "[parameters('Subnet')]"
-                          },
-                          "Tags": {
-                            "value": "[parameters('Tags')]"
-                          },
-                          "Timestamp": {
-                            "value": "[parameters('Timestamp')]"
-                          },
-                          "UserAssignedIdentityResourceId": {
-                            "value": "[parameters('UserAssignedIdentityResourceId')]"
-                          },
-                          "VirtualNetwork": {
-                            "value": "[parameters('VirtualNetwork')]"
-                          },
-                          "VirtualNetworkResourceGroup": {
-                            "value": "[parameters('VirtualNetworkResourceGroup')]"
-                          },
-                          "VmPassword": {
-                            "value": "[parameters('VmPassword')]"
-                          },
-                          "VmUsername": {
-                            "value": "[parameters('VmUsername')]"
-                          }
-                        },
-                        "template": {
-                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                          "contentVersion": "1.0.0.0",
-                          "metadata": {
-                            "_generator": {
-                              "name": "bicep",
-                              "version": "0.18.4.5664",
-                              "templateHash": "16626150486211818125"
-                            }
-                          },
-                          "parameters": {
-                            "_artifactsLocation": {
-                              "type": "string"
-                            },
-                            "_artifactsLocationSasToken": {
-                              "type": "securestring"
-                            },
-                            "DeploymentScriptNamePrefix": {
-                              "type": "string"
-                            },
-                            "DnsServerForwarderIPAddresses": {
-                              "type": "array"
-                            },
-                            "DnsServerSize": {
-                              "type": "string"
-                            },
-                            "DomainJoinPassword": {
-                              "type": "securestring"
-                            },
-                            "DomainJoinUserPrincipalName": {
-                              "type": "string"
-                            },
-                            "DomainName": {
-                              "type": "string"
-                            },
-                            "Environment": {
-                              "type": "string"
-                            },
-                            "HybridUseBenefit": {
-                              "type": "bool"
-                            },
-                            "Identifier": {
-                              "type": "string"
-                            },
-                            "Location": {
-                              "type": "string"
-                            },
-                            "LocationShortName": {
-                              "type": "string"
-                            },
-                            "NamingStandard": {
-                              "type": "string"
-                            },
-                            "StampIndexFull": {
-                              "type": "string"
-                            },
-                            "StorageSuffix": {
-                              "type": "string"
-                            },
-                            "Subnet": {
-                              "type": "string"
-                            },
-                            "Tags": {
-                              "type": "object"
-                            },
-                            "Timestamp": {
-                              "type": "string"
-                            },
-                            "UserAssignedIdentityResourceId": {
-                              "type": "string"
-                            },
-                            "VirtualNetwork": {
-                              "type": "string"
-                            },
-                            "VirtualNetworkResourceGroup": {
-                              "type": "string"
-                            },
-                            "VmPassword": {
-                              "type": "securestring"
-                            },
-                            "VmUsername": {
-                              "type": "string"
-                            }
-                          },
-                          "variables": {
-                            "SubnetId": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VirtualNetwork'), parameters('Subnet'))]",
-                            "VmName": "[format('vm{0}{1}{2}{3}dns', parameters('Identifier'), parameters('Environment'), parameters('LocationShortName'), parameters('StampIndexFull'))]"
-                          },
-                          "resources": [
-                            {
-                              "type": "Microsoft.Network/networkInterfaces",
-                              "apiVersion": "2020-05-01",
-                              "name": "[format('nic-{0}-dns', parameters('NamingStandard'))]",
-                              "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "ipConfigurations": [
-                                  {
-                                    "name": "ipconfig1",
-                                    "properties": {
-                                      "privateIPAllocationMethod": "Dynamic",
-                                      "subnet": {
-                                        "id": "[variables('SubnetId')]"
-                                      },
-                                      "primary": true,
-                                      "privateIPAddressVersion": "IPv4"
-                                    }
-                                  }
-                                ],
-                                "enableAcceleratedNetworking": true,
-                                "enableIPForwarding": false
-                              }
-                            },
-                            {
-                              "type": "Microsoft.Compute/virtualMachines",
-                              "apiVersion": "2019-07-01",
-                              "name": "[variables('VmName')]",
-                              "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "hardwareProfile": {
-                                  "vmSize": "[parameters('DnsServerSize')]"
-                                },
-                                "storageProfile": {
-                                  "imageReference": {
-                                    "publisher": "MicrosoftWindowsServer",
-                                    "offer": "WindowsServer",
-                                    "sku": "2019-Datacenter-Core",
-                                    "version": "latest"
-                                  },
-                                  "osDisk": {
-                                    "osType": "Windows",
-                                    "name": "[format('disk-{0}-dns', parameters('NamingStandard'))]",
-                                    "createOption": "FromImage",
-                                    "caching": "ReadWrite",
-                                    "managedDisk": {
-                                      "storageAccountType": "Premium_LRS"
-                                    }
-                                  }
-                                },
-                                "osProfile": {
-                                  "computerName": "[variables('VmName')]",
-                                  "adminUsername": "[parameters('VmUsername')]",
-                                  "adminPassword": "[parameters('VmPassword')]",
-                                  "windowsConfiguration": {
-                                    "provisionVMAgent": true,
-                                    "enableAutomaticUpdates": true
-                                  },
-                                  "secrets": [],
-                                  "allowExtensionOperations": true
-                                },
-                                "networkProfile": {
-                                  "networkInterfaces": [
-                                    {
-                                      "id": "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
-                                    }
-                                  ]
-                                },
-                                "licenseType": "[if(parameters('HybridUseBenefit'), 'Windows_Server', null())]"
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]",
-                                "[resourceId('Microsoft.Resources/deployments', 'staticIpAddress')]"
-                              ]
-                            },
-                            {
-                              "type": "Microsoft.Compute/virtualMachines/extensions",
-                              "apiVersion": "2019-07-01",
-                              "name": "[format('{0}/{1}', variables('VmName'), 'JsonADDomainExtension')]",
-                              "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "forceUpdateTag": "[parameters('Timestamp')]",
-                                "publisher": "Microsoft.Compute",
-                                "type": "JsonADDomainExtension",
-                                "typeHandlerVersion": "1.3",
-                                "autoUpgradeMinorVersion": true,
-                                "settings": {
-                                  "Name": "[parameters('DomainName')]",
-                                  "User": "[parameters('DomainJoinUserPrincipalName')]",
-                                  "Restart": "true",
-                                  "Options": "3"
-                                },
-                                "protectedSettings": {
-                                  "Password": "[parameters('DomainJoinPassword')]"
-                                }
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines', variables('VmName'))]"
-                              ]
-                            },
-                            {
-                              "type": "Microsoft.Compute/virtualMachines/extensions",
-                              "apiVersion": "2019-07-01",
-                              "name": "[format('{0}/{1}', variables('VmName'), 'DSC')]",
-                              "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "forceUpdateTag": "[parameters('Timestamp')]",
-                                "autoUpgradeMinorVersion": true,
-                                "publisher": "Microsoft.Powershell",
-                                "type": "DSC",
-                                "typeHandlerVersion": "2.77",
-                                "settings": {
-                                  "modulesUrl": "[format('{0}dnsForwarder.zip{1}', parameters('_artifactsLocation'), parameters('_artifactsLocationSasToken'))]",
-                                  "configurationFunction": "dnsForwarder.ps1\\dnsForwarder",
-                                  "configurationArguments": {
-                                    "ActionAfterReboot": "ContinueConfiguration",
-                                    "ConfigurationMode": "ApplyandAutoCorrect",
-                                    "RebootNodeIfNeeded": true
-                                  },
-                                  "properties": [
-                                    {
-                                      "Name": "ForwarderIPAddresses",
-                                      "Value": "[parameters('DnsServerForwarderIPAddresses')]",
-                                      "TypeName": "System.Array"
-                                    },
-                                    {
-                                      "Name": "StorageSuffix",
-                                      "Value": "[parameters('StorageSuffix')]",
-                                      "TypeName": "System.String"
-                                    }
-                                  ]
-                                },
-                                "protectedSettings": {}
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('VmName'), 'JsonADDomainExtension')]",
-                                "[resourceId('Microsoft.Compute/virtualMachines', variables('VmName'))]"
-                              ]
-                            },
-                            {
-                              "type": "Microsoft.Resources/deployments",
-                              "apiVersion": "2022-09-01",
-                              "name": "[format('DeploymentScript_Get-DNS_{0}', parameters('Timestamp'))]",
-                              "properties": {
-                                "expressionEvaluationOptions": {
-                                  "scope": "inner"
-                                },
-                                "mode": "Incremental",
-                                "parameters": {
-                                  "Arguments": {
-                                    "value": "[format('-Subnet {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', parameters('Subnet'), parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]"
-                                  },
-                                  "Location": {
-                                    "value": "[parameters('Location')]"
-                                  },
-                                  "Name": {
-                                    "value": "[format('{0}dns-get', parameters('DeploymentScriptNamePrefix'))]"
-                                  },
-                                  "ScriptContainerSasToken": {
-                                    "value": "[parameters('_artifactsLocationSasToken')]"
-                                  },
-                                  "ScriptContainerUri": {
-                                    "value": "[parameters('_artifactsLocation')]"
-                                  },
-                                  "ScriptName": {
-                                    "value": "Get-AzureVirtualNetworkDns.ps1"
-                                  },
-                                  "Timestamp": {
-                                    "value": "[parameters('Timestamp')]"
-                                  },
-                                  "UserAssignedIdentityResourceId": {
-                                    "value": "[parameters('UserAssignedIdentityResourceId')]"
-                                  }
-                                },
-                                "template": {
-                                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                                  "contentVersion": "1.0.0.0",
-                                  "metadata": {
-                                    "_generator": {
-                                      "name": "bicep",
-                                      "version": "0.18.4.5664",
-                                      "templateHash": "17638610156948651410"
-                                    }
-                                  },
-                                  "parameters": {
-                                    "Arguments": {
-                                      "type": "string"
-                                    },
-                                    "Location": {
-                                      "type": "string"
-                                    },
-                                    "Name": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerUri": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerSasToken": {
-                                      "type": "securestring"
-                                    },
-                                    "ScriptName": {
-                                      "type": "string"
-                                    },
-                                    "Timestamp": {
-                                      "type": "string"
-                                    },
-                                    "UserAssignedIdentityResourceId": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "resources": [
-                                    {
-                                      "type": "Microsoft.Resources/deploymentScripts",
-                                      "apiVersion": "2020-10-01",
-                                      "name": "[parameters('Name')]",
-                                      "identity": {
-                                        "type": "UserAssigned",
-                                        "userAssignedIdentities": {
-                                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
-                                        }
-                                      },
-                                      "location": "[parameters('Location')]",
-                                      "kind": "AzurePowerShell",
-                                      "tags": {},
-                                      "properties": {
-                                        "azPowerShellVersion": "9.4",
-                                        "cleanupPreference": "Always",
-                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                                        "arguments": "[parameters('Arguments')]",
-                                        "forceUpdateTag": "[parameters('Timestamp')]",
-                                        "retentionInterval": "PT2H",
-                                        "timeout": "PT30M"
-                                      }
-                                    }
-                                  ],
-                                  "outputs": {
-                                    "properties": {
-                                      "type": "object",
-                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "type": "Microsoft.Resources/deployments",
-                              "apiVersion": "2022-09-01",
-                              "name": "staticIpAddress",
-                              "properties": {
-                                "expressionEvaluationOptions": {
-                                  "scope": "inner"
-                                },
-                                "mode": "Incremental",
-                                "parameters": {
-                                  "IpAddress": {
-                                    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard'))), '2020-05-01').ipConfigurations[0].properties.privateIPAddress]"
-                                  },
-                                  "Location": {
-                                    "value": "[parameters('Location')]"
-                                  },
-                                  "NicName": {
-                                    "value": "[format('nic-{0}-dns', parameters('NamingStandard'))]"
-                                  },
-                                  "SubnetId": {
-                                    "value": "[variables('SubnetId')]"
-                                  },
-                                  "Tags": {
-                                    "value": "[parameters('Tags')]"
-                                  }
-                                },
-                                "template": {
-                                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                                  "contentVersion": "1.0.0.0",
-                                  "metadata": {
-                                    "_generator": {
-                                      "name": "bicep",
-                                      "version": "0.18.4.5664",
-                                      "templateHash": "14520295576458999517"
-                                    }
-                                  },
-                                  "parameters": {
-                                    "IpAddress": {
-                                      "type": "string"
-                                    },
-                                    "Location": {
-                                      "type": "string"
-                                    },
-                                    "NicName": {
-                                      "type": "string"
-                                    },
-                                    "SubnetId": {
-                                      "type": "string"
-                                    },
-                                    "Tags": {
-                                      "type": "object"
-                                    }
-                                  },
-                                  "resources": [
-                                    {
-                                      "type": "Microsoft.Network/networkInterfaces",
-                                      "apiVersion": "2021-08-01",
-                                      "name": "[parameters('NicName')]",
-                                      "location": "[parameters('Location')]",
-                                      "tags": "[parameters('Tags')]",
-                                      "properties": {
-                                        "ipConfigurations": [
-                                          {
-                                            "name": "ipconfig1",
-                                            "properties": {
-                                              "privateIPAddress": "[parameters('IpAddress')]",
-                                              "privateIPAllocationMethod": "Static",
-                                              "subnet": {
-                                                "id": "[parameters('SubnetId')]"
-                                              },
-                                              "primary": true,
-                                              "privateIPAddressVersion": "IPv4"
-                                            }
-                                          }
-                                        ],
-                                        "enableAcceleratedNetworking": true,
-                                        "enableIPForwarding": false
-                                      }
-                                    }
-                                  ]
-                                }
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
-                              ]
-                            },
-                            {
-                              "type": "Microsoft.Resources/deployments",
-                              "apiVersion": "2022-09-01",
-                              "name": "[format('DeploymentScript_Set-DNS_{0}', parameters('Timestamp'))]",
-                              "properties": {
-                                "expressionEvaluationOptions": {
-                                  "scope": "inner"
-                                },
-                                "mode": "Incremental",
-                                "parameters": {
-                                  "Arguments": {
-                                    "value": "[format('-Dns {0} -VirtualNetwork {1} -VirtualNetworkResourceGroup {2}', reference(resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard'))), '2020-05-01').ipConfigurations[0].properties.privateIPAddress, parameters('VirtualNetwork'), parameters('VirtualNetworkResourceGroup'))]"
-                                  },
-                                  "Location": {
-                                    "value": "[parameters('Location')]"
-                                  },
-                                  "Name": {
-                                    "value": "[format('{0}dns-set', parameters('DeploymentScriptNamePrefix'))]"
-                                  },
-                                  "ScriptContainerSasToken": {
-                                    "value": "[parameters('_artifactsLocationSasToken')]"
-                                  },
-                                  "ScriptContainerUri": {
-                                    "value": "[parameters('_artifactsLocation')]"
-                                  },
-                                  "ScriptName": {
-                                    "value": "Set-AzureVirtualNetworkDns.ps1"
-                                  },
-                                  "Timestamp": {
-                                    "value": "[parameters('Timestamp')]"
-                                  },
-                                  "UserAssignedIdentityResourceId": {
-                                    "value": "[parameters('UserAssignedIdentityResourceId')]"
-                                  }
-                                },
-                                "template": {
-                                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                                  "contentVersion": "1.0.0.0",
-                                  "metadata": {
-                                    "_generator": {
-                                      "name": "bicep",
-                                      "version": "0.18.4.5664",
-                                      "templateHash": "17638610156948651410"
-                                    }
-                                  },
-                                  "parameters": {
-                                    "Arguments": {
-                                      "type": "string"
-                                    },
-                                    "Location": {
-                                      "type": "string"
-                                    },
-                                    "Name": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerUri": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerSasToken": {
-                                      "type": "securestring"
-                                    },
-                                    "ScriptName": {
-                                      "type": "string"
-                                    },
-                                    "Timestamp": {
-                                      "type": "string"
-                                    },
-                                    "UserAssignedIdentityResourceId": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "resources": [
-                                    {
-                                      "type": "Microsoft.Resources/deploymentScripts",
-                                      "apiVersion": "2020-10-01",
-                                      "name": "[parameters('Name')]",
-                                      "identity": {
-                                        "type": "UserAssigned",
-                                        "userAssignedIdentities": {
-                                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
-                                        }
-                                      },
-                                      "location": "[parameters('Location')]",
-                                      "kind": "AzurePowerShell",
-                                      "tags": {},
-                                      "properties": {
-                                        "azPowerShellVersion": "9.4",
-                                        "cleanupPreference": "Always",
-                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                                        "arguments": "[parameters('Arguments')]",
-                                        "forceUpdateTag": "[parameters('Timestamp')]",
-                                        "retentionInterval": "PT2H",
-                                        "timeout": "PT30M"
-                                      }
-                                    }
-                                  ],
-                                  "outputs": {
-                                    "properties": {
-                                      "type": "object",
-                                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
-                                    }
-                                  }
-                                }
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('VmName'), 'DSC')]",
-                                "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-dns', parameters('NamingStandard')))]"
-                              ]
-                            }
-                          ]
-                        }
-                      }
                     },
                     {
                       "condition": "[not(contains(parameters('DomainServices'), 'None'))]",
@@ -4610,7 +4834,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "1633589059739584525"
+                              "templateHash": "3849467652108976255"
                             }
                           },
                           "parameters": {
@@ -4684,14 +4908,8 @@
                                   "Name": {
                                     "value": "[format('{0}fslogix', parameters('DeploymentScriptNamePrefix'))]"
                                   },
-                                  "ScriptContainerSasToken": {
-                                    "value": "[parameters('_artifactsLocationSasToken')]"
-                                  },
-                                  "ScriptContainerUri": {
-                                    "value": "[parameters('_artifactsLocation')]"
-                                  },
-                                  "ScriptName": {
-                                    "value": "Remove-AzureVirtualMachine.ps1"
+                                  "Script": {
+                                    "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
@@ -4707,7 +4925,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.18.4.5664",
-                                      "templateHash": "17638610156948651410"
+                                      "templateHash": "1338006163064225507"
                                     }
                                   },
                                   "parameters": {
@@ -4720,13 +4938,7 @@
                                     "Name": {
                                       "type": "string"
                                     },
-                                    "ScriptContainerUri": {
-                                      "type": "string"
-                                    },
-                                    "ScriptContainerSasToken": {
-                                      "type": "securestring"
-                                    },
-                                    "ScriptName": {
+                                    "Script": {
                                       "type": "string"
                                     },
                                     "Timestamp": {
@@ -4751,12 +4963,12 @@
                                       "kind": "AzurePowerShell",
                                       "tags": {},
                                       "properties": {
+                                        "arguments": "[parameters('Arguments')]",
                                         "azPowerShellVersion": "9.4",
                                         "cleanupPreference": "Always",
-                                        "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                                        "arguments": "[parameters('Arguments')]",
                                         "forceUpdateTag": "[parameters('Timestamp')]",
                                         "retentionInterval": "PT2H",
+                                        "scriptContent": "[parameters('Script')]",
                                         "timeout": "PT30M"
                                       }
                                     }
@@ -4777,7 +4989,6 @@
                         }
                       },
                       "dependsOn": [
-                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DnsForwarder_{0}', parameters('Timestamp')))]",
                         "privateEndpoint",
                         "shares"
                       ]
@@ -4801,7 +5012,7 @@
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp')))]"
       ]
     },
     {
@@ -4882,13 +5093,13 @@
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
           "AcceleratedNetworking": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.acceleratedNetworking]"
-          },
-          "AutomationAccountName": {
-            "value": "[variables('AutomationAccountName')]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.acceleratedNetworking.value]"
           },
           "Availability": {
             "value": "[parameters('Availability')]"
+          },
+          "AvailabilityZones": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.availabilityZones.value]"
           },
           "AvailabilitySetCount": {
             "value": "[variables('AvailabilitySetCount')]"
@@ -4899,14 +5110,14 @@
           "AvailabilitySetIndex": {
             "value": "[variables('BeginAvSetRange')]"
           },
-          "ConfigurationName": {
-            "value": "[variables('ConfigurationName')]"
-          },
           "DeploymentScriptNamePrefix": {
             "value": "[variables('DeploymentScriptNamePrefix')]"
           },
           "DiskEncryption": {
             "value": "[parameters('DiskEncryption')]"
+          },
+          "DiskEncryptionSetResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp'))), '2022-09-01').outputs.diskEncryptionSetResourceId.value]"
           },
           "DiskName": {
             "value": "[variables('DiskName')]"
@@ -4932,9 +5143,6 @@
           "DrainMode": {
             "value": "[parameters('DrainMode')]"
           },
-          "EphemeralOsDisk": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.ephemeralOsDisk]"
-          },
           "Fslogix": {
             "value": "[variables('Fslogix')]"
           },
@@ -4959,9 +5167,6 @@
           "ImageVersion": {
             "value": "[parameters('ImageVersion')]"
           },
-          "KeyVaultName": {
-            "value": "[variables('KeyVaultName')]"
-          },
           "Location": {
             "value": "[parameters('Location')]"
           },
@@ -4981,17 +5186,11 @@
             "value": "[variables('NamingStandard')]"
           },
           "NetAppFileShares": "[if(variables('Fslogix'), createObject('value', reference(subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp'))), '2022-09-01').outputs.netAppShares.value), createObject('value', createArray('None')))]",
-          "NetworkSecurityGroupName": {
-            "value": "[variables('NetworkSecurityGroupName')]"
-          },
           "OuPath": {
             "value": "[parameters('OuPath')]"
           },
           "PooledHostPool": {
             "value": "[variables('PooledHostPool')]"
-          },
-          "RdpShortPath": {
-            "value": "[parameters('RdpShortPath')]"
           },
           "ResourceGroupHosts": {
             "value": "[variables('ResourceGroupHosts')]"
@@ -5045,7 +5244,7 @@
             "value": "[parameters('Timestamp')]"
           },
           "TrustedLaunch": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.trustedLaunch]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.trustedLaunch.value]"
           },
           "VirtualNetwork": {
             "value": "[parameters('VirtualNetworkName')]"
@@ -5073,7 +5272,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "4952551395548030477"
+              "templateHash": "18304494817569983294"
             }
           },
           "parameters": {
@@ -5086,6 +5285,9 @@
             "AcceleratedNetworking": {
               "type": "string"
             },
+            "Availability": {
+              "type": "string"
+            },
             "AvailabilitySetCount": {
               "type": "int"
             },
@@ -5095,20 +5297,17 @@
             "AvailabilitySetPrefix": {
               "type": "string"
             },
-            "AutomationAccountName": {
-              "type": "string"
-            },
-            "Availability": {
-              "type": "string"
-            },
-            "ConfigurationName": {
-              "type": "string"
+            "AvailabilityZones": {
+              "type": "array"
             },
             "DeploymentScriptNamePrefix": {
               "type": "string"
             },
             "DiskEncryption": {
               "type": "bool"
+            },
+            "DiskEncryptionSetResourceId": {
+              "type": "string"
             },
             "DiskName": {
               "type": "string"
@@ -5134,9 +5333,6 @@
             "DrainMode": {
               "type": "bool"
             },
-            "EphemeralOsDisk": {
-              "type": "string"
-            },
             "FslogixSolution": {
               "type": "string"
             },
@@ -5161,9 +5357,6 @@
             "ImageVersion": {
               "type": "string"
             },
-            "KeyVaultName": {
-              "type": "string"
-            },
             "Location": {
               "type": "string"
             },
@@ -5182,9 +5375,6 @@
             "NamingStandard": {
               "type": "string"
             },
-            "NetworkSecurityGroupName": {
-              "type": "string"
-            },
             "NetAppFileShares": {
               "type": "array"
             },
@@ -5192,9 +5382,6 @@
               "type": "string"
             },
             "PooledHostPool": {
-              "type": "bool"
-            },
-            "RdpShortPath": {
               "type": "bool"
             },
             "ResourceGroupHosts": {
@@ -5434,17 +5621,14 @@
                   "AcceleratedNetworking": {
                     "value": "[parameters('AcceleratedNetworking')]"
                   },
-                  "AutomationAccountName": {
-                    "value": "[parameters('AutomationAccountName')]"
-                  },
                   "Availability": {
                     "value": "[parameters('Availability')]"
                   },
+                  "AvailabilityZones": {
+                    "value": "[parameters('AvailabilityZones')]"
+                  },
                   "AvailabilitySetPrefix": {
                     "value": "[parameters('AvailabilitySetPrefix')]"
-                  },
-                  "ConfigurationName": {
-                    "value": "[parameters('ConfigurationName')]"
                   },
                   "DeploymentScriptNamePrefix": {
                     "value": "[parameters('DeploymentScriptNamePrefix')]"
@@ -5473,9 +5657,6 @@
                   "DrainMode": {
                     "value": "[parameters('DrainMode')]"
                   },
-                  "EphemeralOsDisk": {
-                    "value": "[parameters('EphemeralOsDisk')]"
-                  },
                   "Fslogix": {
                     "value": "[parameters('Fslogix')]"
                   },
@@ -5500,9 +5681,6 @@
                   "ImageVersion": {
                     "value": "[parameters('ImageVersion')]"
                   },
-                  "KeyVaultName": {
-                    "value": "[parameters('KeyVaultName')]"
-                  },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
@@ -5518,17 +5696,11 @@
                   "NamingStandard": {
                     "value": "[parameters('NamingStandard')]"
                   },
-                  "NetworkSecurityGroupName": {
-                    "value": "[parameters('NetworkSecurityGroupName')]"
-                  },
                   "NetAppFileShares": {
                     "value": "[parameters('NetAppFileShares')]"
                   },
                   "OuPath": {
                     "value": "[parameters('OuPath')]"
-                  },
-                  "RdpShortPath": {
-                    "value": "[parameters('RdpShortPath')]"
                   },
                   "ResourceGroupManagement": {
                     "value": "[parameters('ResourceGroupManagement')]"
@@ -5591,6 +5763,9 @@
                   },
                   "VmUsername": {
                     "value": "[parameters('VmUsername')]"
+                  },
+                  "DiskEncryptionSetResourceId": {
+                    "value": "[parameters('DiskEncryptionSetResourceId')]"
                   }
                 },
                 "template": {
@@ -5600,7 +5775,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "7743042180541550210"
+                      "templateHash": "8404649080930378688"
                     }
                   },
                   "parameters": {
@@ -5613,23 +5788,23 @@
                     "AcceleratedNetworking": {
                       "type": "string"
                     },
-                    "AvailabilitySetPrefix": {
-                      "type": "string"
-                    },
-                    "AutomationAccountName": {
-                      "type": "string"
-                    },
                     "Availability": {
                       "type": "string"
                     },
-                    "ConfigurationName": {
+                    "AvailabilitySetPrefix": {
                       "type": "string"
+                    },
+                    "AvailabilityZones": {
+                      "type": "array"
                     },
                     "DeploymentScriptNamePrefix": {
                       "type": "string"
                     },
                     "DiskEncryption": {
                       "type": "bool"
+                    },
+                    "DiskEncryptionSetResourceId": {
+                      "type": "string"
                     },
                     "DiskName": {
                       "type": "string"
@@ -5651,9 +5826,6 @@
                     },
                     "DrainMode": {
                       "type": "bool"
-                    },
-                    "EphemeralOsDisk": {
-                      "type": "string"
                     },
                     "Fslogix": {
                       "type": "bool"
@@ -5679,9 +5851,6 @@
                     "ImageVersion": {
                       "type": "string"
                     },
-                    "KeyVaultName": {
-                      "type": "string"
-                    },
                     "Location": {
                       "type": "string"
                     },
@@ -5697,17 +5866,11 @@
                     "NamingStandard": {
                       "type": "string"
                     },
-                    "NetworkSecurityGroupName": {
-                      "type": "string"
-                    },
                     "NetAppFileShares": {
                       "type": "array"
                     },
                     "OuPath": {
                       "type": "string"
-                    },
-                    "RdpShortPath": {
-                      "type": "bool"
                     },
                     "ResourceGroupManagement": {
                       "type": "string"
@@ -5781,6 +5944,28 @@
                     }
                   },
                   "variables": {
+                    "copy": [
+                      {
+                        "name": "FslogixExclusionsOfficeContainersArray",
+                        "count": "[length(variables('FslogixOfficeShares'))]",
+                        "input": "[format(';\"{0}*\\*.VHDX\";\"{1}*\\*.VHDX.lock\";\"{2}*\\*.VHDX.meta\";\"{3}*\\*.VHDX.metadata\"', variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')])]"
+                      },
+                      {
+                        "name": "FslogixExclusionsProfileContainersArray",
+                        "count": "[length(variables('FslogixProfileShares'))]",
+                        "input": "[format(';\"{0}*\\*.VHDX\";\"{1}*\\*.VHDX.lock\";\"{2}*\\*.VHDX.meta\";\"{3}*\\*.VHDX.metadata\"', variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')])]"
+                      },
+                      {
+                        "name": "FslogixOfficeShares",
+                        "count": "[length(range(0, parameters('StorageCount')))]",
+                        "input": "[format('\\\\{0}{1}.file.{2}\\office-containers\\', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex('FslogixOfficeShares')], parameters('StorageIndex')), 2, '0'), parameters('StorageSuffix'))]"
+                      },
+                      {
+                        "name": "FslogixProfileShares",
+                        "count": "[length(range(0, parameters('StorageCount')))]",
+                        "input": "[format('\\\\{0}{1}.file.{2}\\profile-containers\\', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex('FslogixProfileShares')], parameters('StorageIndex')), 2, '0'), parameters('StorageSuffix'))]"
+                      }
+                    ],
                     "AmdVmSizes": [
                       "Standard_NV4as_v4",
                       "Standard_NV8as_v4",
@@ -5788,6 +5973,11 @@
                       "Standard_NV32as_v4"
                     ],
                     "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
+                    "FslogixExclusions": "[format('{0}{1}{2}{3}', variables('FslogixExclusionsLocal'), variables('FslogixExclusionsProfileContainersString'), variables('FslogixExclusionsOfficeContainersString'), variables('FslogixExclusionsCloudCache'))]",
+                    "FslogixExclusionsCloudCache": ";\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\"",
+                    "FslogixExclusionsLocal": ";\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\"",
+                    "FslogixExclusionsOfficeContainersString": "[join(variables('FslogixExclusionsOfficeContainersArray'), ';')]",
+                    "FslogixExclusionsProfileContainersString": "[join(variables('FslogixExclusionsProfileContainersArray'), ';')]",
                     "Intune": "[if(equals(parameters('DomainServices'), 'NoneWithIntune'), true(), false())]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
@@ -5822,30 +6012,6 @@
                   },
                   "resources": [
                     {
-                      "condition": "[parameters('RdpShortPath')]",
-                      "type": "Microsoft.Network/networkSecurityGroups",
-                      "apiVersion": "2021-03-01",
-                      "name": "[parameters('NetworkSecurityGroupName')]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "securityRules": [
-                          {
-                            "name": "AllowRdpShortPath",
-                            "properties": {
-                              "access": "Allow",
-                              "destinationAddressPrefix": "*",
-                              "destinationPortRange": "3390",
-                              "direction": "Inbound",
-                              "priority": 3390,
-                              "protocol": "Udp",
-                              "sourceAddressPrefix": "VirtualNetwork",
-                              "sourcePortRange": "*"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
                       "copy": {
                         "name": "networkInterface",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
@@ -5870,12 +6036,8 @@
                           }
                         ],
                         "enableAcceleratedNetworking": "[if(equals(parameters('AcceleratedNetworking'), 'True'), true(), false())]",
-                        "enableIPForwarding": false,
-                        "networkSecurityGroup": "[if(parameters('RdpShortPath'), createObject('id', resourceId('Microsoft.Network/networkSecurityGroups', parameters('NetworkSecurityGroupName'))), null())]"
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('NetworkSecurityGroupName'))]"
-                      ]
+                        "enableIPForwarding": false
+                      }
                     },
                     {
                       "copy": {
@@ -5887,7 +6049,7 @@
                       "name": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
-                      "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(string(add(mod(range(0, parameters('SessionHostCount'))[copyIndex()], 3), 1))), null())]",
+                      "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
                       "identity": "[variables('VmIdentity')]",
                       "properties": {
                         "availabilitySet": "[if(equals(parameters('Availability'), 'AvailabilitySet'), createObject('id', resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', parameters('AvailabilitySetPrefix'), div(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 200)))), null())]",
@@ -5905,10 +6067,12 @@
                             "name": "[format('{0}{1}', parameters('DiskName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
                             "osType": "Windows",
                             "createOption": "FromImage",
-                            "caching": "[if(equals(parameters('EphemeralOsDisk'), 'None'), 'ReadWrite', 'ReadOnly')]",
+                            "caching": "ReadWrite",
                             "deleteOption": "Delete",
-                            "managedDisk": "[if(equals(parameters('EphemeralOsDisk'), 'None'), createObject('storageAccountType', parameters('DiskSku')), null())]",
-                            "diffDiskSettings": "[if(equals(parameters('EphemeralOsDisk'), 'None'), null(), createObject('option', 'Local', 'placement', parameters('EphemeralOsDisk')))]"
+                            "managedDisk": {
+                              "diskEncryptionSet": "[if(parameters('DiskEncryption'), createObject('id', parameters('DiskEncryptionSetResourceId')), null())]",
+                              "storageAccountType": "[parameters('DiskSku')]"
+                            }
                           },
                           "dataDisks": []
                         },
@@ -5935,14 +6099,15 @@
                         },
                         "securityProfile": {
                           "uefiSettings": "[if(equals(parameters('TrustedLaunch'), 'true'), createObject('secureBootEnabled', true(), 'vTpmEnabled', true()), null())]",
-                          "securityType": "[if(equals(parameters('TrustedLaunch'), 'true'), 'TrustedLaunch', null())]"
+                          "securityType": "[if(equals(parameters('TrustedLaunch'), 'true'), 'TrustedLaunch', null())]",
+                          "encryptionAtHost": "[parameters('DiskEncryption')]"
                         },
                         "diagnosticsProfile": {
                           "bootDiagnostics": {
                             "enabled": false
                           }
                         },
-                        "licenseType": "[if(equals(parameters('ImagePublisher'), 'MicrosoftWindowsServer'), 'Windows_Server', 'Windows_Client')]"
+                        "licenseType": "[if(equals(parameters('ImagePublisher'), 'MicrosoftWindowsDesktop'), 'Windows_Client', 'Windows_Server')]"
                       },
                       "dependsOn": [
                         "networkInterface"
@@ -5950,29 +6115,30 @@
                     },
                     {
                       "copy": {
-                        "name": "extension_AzureDiskEncryption",
+                        "name": "extension_IaasAntimalware",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
                       },
-                      "condition": "[parameters('DiskEncryption')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
-                      "apiVersion": "2017-03-30",
-                      "name": "[format('{0}{1}/AzureDiskEncryption', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "apiVersion": "2021-03-01",
+                      "name": "[format('{0}{1}/IaaSAntimalware', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
                       "location": "[parameters('Location')]",
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "publisher": "Microsoft.Azure.Security",
-                        "type": "AzureDiskEncryption",
-                        "typeHandlerVersion": "2.2",
+                        "type": "IaaSAntimalware",
+                        "typeHandlerVersion": "1.3",
                         "autoUpgradeMinorVersion": true,
-                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "enableAutomaticUpgrade": true,
                         "settings": {
-                          "EncryptionOperation": "EnableEncryption",
-                          "KeyVaultURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '2022-07-01').vaultUri, '')]",
-                          "KeyVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
-                          "KeyEncryptionKeyURL": "[if(parameters('DiskEncryption'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deploymentScripts', format('{0}kek', parameters('DeploymentScriptNamePrefix'))), '2020-10-01').outputs.text, '')]",
-                          "KekVaultResourceId": "[if(parameters('DiskEncryption'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.KeyVault/vaults', parameters('KeyVaultName')), '')]",
-                          "KeyEncryptionAlgorithm": "RSA-OAEP",
-                          "VolumeType": "All",
-                          "ResizeOSDisk": false
+                          "AntimalwareEnabled": true,
+                          "RealtimeProtectionEnabled": "true",
+                          "ScheduledScanSettings": {
+                            "isEnabled": "true",
+                            "day": "7",
+                            "time": "120",
+                            "scanType": "Quick"
+                          },
+                          "Exclusions": "[if(parameters('Fslogix'), createObject('Paths', variables('FslogixExclusions')), createObject())]"
                         }
                       },
                       "dependsOn": [
@@ -6002,6 +6168,7 @@
                         }
                       },
                       "dependsOn": [
+                        "extension_IaasAntimalware",
                         "virtualMachine"
                       ]
                     },
@@ -6027,11 +6194,10 @@
                           "timestamp": "[parameters('Timestamp')]"
                         },
                         "protectedSettings": {
-                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -DomainServices {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -RdpShortPath {13} -ScreenCaptureProtection {14} -Sentinel {15} -SentinelWorkspaceId {16} -SentinelWorkspaceKey {17} -StorageAccountPrefix {18} -StorageCount {19} -StorageIndex {20} -StorageSolution {21} -StorageSuffix {22}', variables('AmdVmSize'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('RdpShortPath'), parameters('ScreenCaptureProtection'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
+                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -DomainServices {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -ScreenCaptureProtection {13} -Sentinel {14} -SentinelWorkspaceId {15} -SentinelWorkspaceKey {16} -StorageAccountPrefix {17} -StorageCount {18} -StorageIndex {19} -StorageSolution {20} -StorageSuffix {21}', variables('AmdVmSize'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('ScreenCaptureProtection'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
                         }
                       },
                       "dependsOn": [
-                        "extension_AzureDiskEncryption",
                         "extension_MicrosoftMonitoringAgent",
                         "virtualMachine"
                       ]
@@ -6088,7 +6254,7 @@
                         "settings": "[if(variables('Intune'), createObject('mdmId', '0000000a-0000-0000-c000-000000000000'), null())]"
                       },
                       "dependsOn": [
-                        "extension_CustomScriptExtension",
+                        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_DrainMode_{0}', parameters('Timestamp')))]",
                         "virtualMachine"
                       ]
                     },
@@ -6159,16 +6325,10 @@
                             "value": "[parameters('Location')]"
                           },
                           "Name": {
-                            "value": "[format('{0}drainMode', parameters('DeploymentScriptNamePrefix'))]"
+                            "value": "[format('{0}drain', parameters('DeploymentScriptNamePrefix'))]"
                           },
-                          "ScriptContainerSasToken": {
-                            "value": "[parameters('_artifactsLocationSasToken')]"
-                          },
-                          "ScriptContainerUri": {
-                            "value": "[parameters('_artifactsLocation')]"
-                          },
-                          "ScriptName": {
-                            "value": "Set-AvdDrainMode.ps1"
+                          "Script": {
+                            "value": "param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split \"/\")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"hostPool\"] = $HostPool"
                           },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
@@ -6184,7 +6344,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "17638610156948651410"
+                              "templateHash": "1338006163064225507"
                             }
                           },
                           "parameters": {
@@ -6197,13 +6357,7 @@
                             "Name": {
                               "type": "string"
                             },
-                            "ScriptContainerUri": {
-                              "type": "string"
-                            },
-                            "ScriptContainerSasToken": {
-                              "type": "securestring"
-                            },
-                            "ScriptName": {
+                            "Script": {
                               "type": "string"
                             },
                             "Timestamp": {
@@ -6228,12 +6382,12 @@
                               "kind": "AzurePowerShell",
                               "tags": {},
                               "properties": {
+                                "arguments": "[parameters('Arguments')]",
                                 "azPowerShellVersion": "9.4",
                                 "cleanupPreference": "Always",
-                                "primaryScriptUri": "[format('{0}{1}?{2}', parameters('ScriptContainerUri'), parameters('ScriptName'), parameters('ScriptContainerSasToken'))]",
-                                "arguments": "[parameters('Arguments')]",
                                 "forceUpdateTag": "[parameters('Timestamp')]",
                                 "retentionInterval": "PT2H",
+                                "scriptContent": "[parameters('Script')]",
                                 "timeout": "PT30M"
                               }
                             }
@@ -6262,13 +6416,13 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('KeyVault_{0}', parameters('Timestamp')))]",
+        "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp')))]",
         "resourceGroups",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_Validation_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp')))]"
       ]
     },
     {
