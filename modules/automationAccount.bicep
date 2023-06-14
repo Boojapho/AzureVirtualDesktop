@@ -3,7 +3,6 @@ param Location string
 param LogAnalyticsWorkspaceResourceId string
 param Monitoring bool
 
-
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
   name: AutomationAccountName
   location: Location
@@ -18,7 +17,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 }
 
 // Enables logging in a log analytics workspace for alerting and dashboards
-resource diagnostics 'Microsoft.Insights/diagnosticsettings@2017-05-01-preview' = if(Monitoring) {
+resource diagnostics 'Microsoft.Insights/diagnosticsettings@2017-05-01-preview' = if (Monitoring) {
   scope: automationAccount
   name: 'diag-${AutomationAccountName}'
   properties: {

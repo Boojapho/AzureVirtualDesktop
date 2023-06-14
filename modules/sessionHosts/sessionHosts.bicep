@@ -2,12 +2,14 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param AcceleratedNetworking string
+param Availability string
 param AvailabilitySetCount int
 param AvailabilitySetIndex int
 param AvailabilitySetPrefix string
-param Availability string
+param AvailabilityZones array
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
+param DiskEncryptionSetResourceId string
 param DiskName string
 param DiskSku string
 param DivisionRemainderValue int
@@ -25,7 +27,6 @@ param ImageOffer string
 param ImagePublisher string
 param ImageSku string
 param ImageVersion string
-param KeyVaultName string
 param Location string
 param LogAnalyticsWorkspaceName string
 param ManagedIdentityResourceId string
@@ -95,6 +96,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AcceleratedNetworking: AcceleratedNetworking
     Availability: Availability
+    AvailabilityZones: AvailabilityZones
     AvailabilitySetPrefix: AvailabilitySetPrefix
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
@@ -113,7 +115,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     ImagePublisher: ImagePublisher
     ImageSku: ImageSku
     ImageVersion: ImageVersion
-    KeyVaultName: KeyVaultName
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     ManagedIdentityResourceId: ManagedIdentityResourceId
@@ -143,6 +144,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     VmPassword: VmPassword
     VmSize: VmSize
     VmUsername: VmUsername
+    DiskEncryptionSetResourceId: DiskEncryptionSetResourceId
   }
   dependsOn: [
     availabilitySets

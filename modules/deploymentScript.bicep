@@ -5,7 +5,6 @@ param Script string
 param Timestamp string
 param UserAssignedIdentityResourceId string
 
-
 resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: Name
   identity: {

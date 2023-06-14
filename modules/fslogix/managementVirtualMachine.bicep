@@ -1,17 +1,17 @@
-param DeploymentScriptNamePrefix string
 param DiskEncryption bool
+param DiskEncryptionSetResourceId string
+param DiskSku string
 @secure()
 param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
-param KeyVaultName string
 param Location string
 param ManagementVmName string
 param NamingStandard string
-param ResourceGroupManagement string
 param Subnet string
 param Tags object
 param Timestamp string
+param TrustedLaunch string
 param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
@@ -19,9 +19,7 @@ param VirtualNetworkResourceGroup string
 param VmPassword string
 param VmUsername string
 
-
 var NicName = 'nic-${NamingStandard}-mgt'
-
 
 resource nic 'Microsoft.Network/networkInterfaces@2020-05-01' = {
   name: NicName
@@ -67,7 +65,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
         createOption: 'FromImage'
         caching: 'None'
         managedDisk: {
-          storageAccountType: 'Standard_LRS'
+          diskEncryptionSet: DiskEncryption ? {
+            id: DiskEncryptionSetResourceId
+          } : null
+          storageAccountType: DiskSku
         }
         name: 'disk-${NamingStandard}-mgt'
       }
@@ -93,6 +94,14 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
           }
         }
       ]
+    }
+    securityProfile: {
+      uefiSettings: TrustedLaunch == 'true' ? {
+        secureBootEnabled: true
+        vTpmEnabled: true
+      } : null
+      securityType: TrustedLaunch == 'true' ? 'TrustedLaunch' : null
+      encryptionAtHost: DiskEncryption
     }
     diagnosticsProfile: {
       bootDiagnostics: {
@@ -130,30 +139,4 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
       Password: DomainJoinPassword
     }
   }
-}
-
-resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = if(DiskEncryption) {
-  parent: vm
-  name: 'AzureDiskEncryption'
-  location: Location
-  properties: {
-    publisher: 'Microsoft.Azure.Security'
-    type: 'AzureDiskEncryption'
-    typeHandlerVersion: '2.2'
-    autoUpgradeMinorVersion: true
-    forceUpdateTag: Timestamp
-    settings: {
-      EncryptionOperation: 'EnableEncryption'
-      KeyVaultURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName), '2016-10-01', 'Full').properties.vaultUri : null
-      KeyVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionKeyURL: DiskEncryption ? reference(resourceId(ResourceGroupManagement, 'Microsoft.Resources/deploymentScripts', '${DeploymentScriptNamePrefix}kek'), '2019-10-01-preview', 'Full').properties.outputs.text : null
-      KekVaultResourceId: resourceId(ResourceGroupManagement, 'Microsoft.KeyVault/vaults', KeyVaultName)
-      KeyEncryptionAlgorithm: 'RSA-OAEP'
-      VolumeType: 'All'
-      ResizeOSDisk: false
-    }
-  }
-  dependsOn: [
-    extension_JsonADDomainExtension
-  ]
 }

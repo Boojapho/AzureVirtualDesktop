@@ -6,7 +6,6 @@ param StorageAccountName string
 param SubscriptionId string
 param Timestamp string
 
-
 resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
   name: AutomationAccountName
 }
@@ -27,7 +26,7 @@ resource jobSchedules_ProfileContainers 'Microsoft.Automation/automationAccounts
     }
     runOn: null
     schedule: {
-      name: '${StorageAccountName}_ProfileContainers_${(i+1)*15}min'
+      name: '${StorageAccountName}_ProfileContainers_${(i + 1) * 15}min'
     }
   }
 }]
@@ -48,7 +47,7 @@ resource jobSchedules_OfficeContainers 'Microsoft.Automation/automationAccounts/
     }
     runOn: null
     schedule: {
-      name: '${StorageAccountName}_OfficeContainers_${(i+1)*15}min'
+      name: '${StorageAccountName}_OfficeContainers_${(i + 1) * 15}min'
     }
   }
 }]

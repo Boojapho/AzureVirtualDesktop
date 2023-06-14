@@ -10,7 +10,6 @@ param Tags object
 param Timestamp string
 param UserAssignedIdentityResourceId string
 
-
 resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2020-12-01' = {
   name: '${ManagementVmName}/CustomScriptExtension'
   location: Location
@@ -34,7 +33,7 @@ resource customScriptExtension 'Microsoft.Compute/virtualMachines/extensions@202
 
 module deploymentScript '../deploymentScript.bicep' = {
   name: 'DeploymentScript_FSLogix-CleanUp_${Timestamp}'
-  params : {
+  params: {
     Arguments: '-VirtualMachineName ${ManagementVmName} -ResourceGroupName ${resourceGroup().name}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}fslogix'

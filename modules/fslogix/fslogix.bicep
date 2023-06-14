@@ -9,6 +9,8 @@ param ClientId string
 param DelegatedSubnetId string
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
+param DiskEncryptionSetResourceId string
+param DiskSku string
 param DnsServers string
 @secure()
 param DomainJoinPassword string
@@ -20,7 +22,6 @@ param FslogixShareSizeInGB int
 param FslogixSolution string
 param FslogixStorage string
 param KerberosEncryption string
-param KeyVaultName string
 param Location string
 param ManagementVmName string
 param NamingStandard string
@@ -42,6 +43,7 @@ param StorageSolution string
 param Subnet string
 param Tags object
 param Timestamp string
+param TrustedLaunch string
 param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
@@ -55,19 +57,19 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if (!contains
   name: 'ManagementVirtualMachine_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
-    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
+    DiskEncryptionSetResourceId: DiskEncryptionSetResourceId
+    DiskSku: DiskSku
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
-    KeyVaultName: KeyVaultName
     Location: Location
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
-    ResourceGroupManagement: ResourceGroupManagement
     Subnet: Subnet
     Tags: Tags
     Timestamp: Timestamp
+    TrustedLaunch: TrustedLaunch
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup

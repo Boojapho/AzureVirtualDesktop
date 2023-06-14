@@ -4,7 +4,6 @@ param NicName string
 param SubnetId string
 param Tags object
 
-
 resource nic 'Microsoft.Network/networkInterfaces@2021-08-01' = {
   name: NicName
   location: Location

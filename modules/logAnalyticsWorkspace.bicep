@@ -4,7 +4,6 @@ param LogAnalyticsWorkspaceRetention int
 param LogAnalyticsWorkspaceSku string
 param Tags object
 
-
 var WindowsEvents = [
   {
     name: 'Microsoft-FSLogix-Apps/Operational'
@@ -388,7 +387,6 @@ var WindowsPerformanceCounters = [
   }
 ]
 
-
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
   name: LogAnalyticsWorkspaceName
   location: Location
@@ -434,6 +432,5 @@ resource windowsPerformanceCounters 'Microsoft.OperationalInsights/workspaces/da
     windowsEvents
   ]
 }]
-
 
 output ResourceId string = logAnalyticsWorkspace.id

@@ -17,7 +17,6 @@ param TimeZone string
 param VmName string
 param VmResourceGroupName string
 
-
 var BackupSchedulePolicy = {
   scheduleRunFrequency: 'Daily'
   scheduleRunTimes: [
@@ -38,7 +37,6 @@ var BackupRetentionPolicy = {
   }
 }
 
-
 resource vault 'Microsoft.RecoveryServices/vaults@2022-03-01' = {
   name: RecoveryServicesVaultName
   location: Location
@@ -50,7 +48,7 @@ resource vault 'Microsoft.RecoveryServices/vaults@2022-03-01' = {
   properties: {}
 }
 
-resource backupPolicy_Storage 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-03-01' = if(Fslogix && StorageSolution == 'AzureStorageAccount') {
+resource backupPolicy_Storage 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-03-01' = if (Fslogix && StorageSolution == 'AzureStorageAccount') {
   parent: vault
   name: 'AvdPolicyStorage'
   location: Location
@@ -64,7 +62,7 @@ resource backupPolicy_Storage 'Microsoft.RecoveryServices/vaults/backupPolicies@
   }
 }
 
-resource backupPolicy_Vm 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-03-01' = if(!Fslogix) {
+resource backupPolicy_Vm 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-03-01' = if (!Fslogix) {
   parent: vault
   name: 'AvdPolicyVm'
   location: Location
@@ -78,7 +76,7 @@ resource backupPolicy_Vm 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-
   }
 }
 
-resource protectionContainers 'Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers@2022-03-01' = [for i in range(0, StorageCount): if(Fslogix && StorageSolution == 'AzureStorageAccount') {
+resource protectionContainers 'Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers@2022-03-01' = [for i in range(0, StorageCount): if (Fslogix && StorageSolution == 'AzureStorageAccount') {
   name: '${vault.name}/Azure/storagecontainer;Storage;${StorageResourceGroupName};${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}'
   properties: {
     backupManagementType: 'AzureStorage'
@@ -90,7 +88,7 @@ resource protectionContainers 'Microsoft.RecoveryServices/vaults/backupFabrics/p
   ]
 }]
 
-module protectedItems_FileShares 'backup_FileShares.bicep' = [for i in range(0, StorageCount): if(Fslogix && StorageSolution == 'AzureStorageAccount') {
+module protectedItems_FileShares 'backup_FileShares.bicep' = [for i in range(0, StorageCount): if (Fslogix && StorageSolution == 'AzureStorageAccount') {
   name: 'BackupProtectedItems_FileShares_${i + StorageIndex}_${Timestamp}'
   params: {
     FileShares: FileShares
@@ -102,8 +100,8 @@ module protectedItems_FileShares 'backup_FileShares.bicep' = [for i in range(0, 
   }
 }]
 
-module protectedItems_Vm 'backup_VirtualMachines.bicep' = [for i in range(1, SessionHostBatchCount): if(!Fslogix) {
-  name: 'BackupProtectedItems_VirtualMachines_${i-1}_${Timestamp}'
+module protectedItems_Vm 'backup_VirtualMachines.bicep' = [for i in range(1, SessionHostBatchCount): if (!Fslogix) {
+  name: 'BackupProtectedItems_VirtualMachines_${i - 1}_${Timestamp}'
   scope: resourceGroup(resourceGroup().name) // Management Resource Group
   params: {
     Location: Location

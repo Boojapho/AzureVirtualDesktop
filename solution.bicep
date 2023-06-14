@@ -12,8 +12,8 @@ param _artifactsLocationSasToken string = ''
   'AvailabilityZones'
   'None'
 ])
-@description('Set the desired availability / SLA with a pooled host pool.  Choose "None" if deploying a personal host pool.')
-param Availability string = 'None'
+@description('Set the desired availability / SLA with a pooled host pool.  The best practice is to deploy to Availability Zones for resilency.')
+param Availability string = 'AvailabilityZones'
 
 @description('The Object ID for the Windows Virtual Desktop Enterprise Application in Azure AD.  The Object ID can found by selecting Microsoft Applications using the Application type filter in the Enterprise Applications blade of Azure AD.')
 param AvdObjectId string
@@ -21,11 +21,11 @@ param AvdObjectId string
 @description('If using private endpoints with Azure Files, input the Resource ID for the Private DNS Zone linked to your hub virtual network.')
 param AzureFilesPrivateDnsZoneResourceId string = ''
 
-@description('Input RDP properties to add or remove RDP functionality on the AVD host pool. Settings reference: https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files?context=/azure/virtual-desktop/context/context')
+@description('Input RDP properties to add or remove RDP functionality on the AVD host pool. Settings reference: https://learn.microsoft.com/windows-server/remote/remote-desktop-services/clients/rdp-files')
 param CustomRdpProperty string = 'audiocapturemode:i:1;camerastoredirect:s:*;use multimon:i:0;drivestoredirect:s:;'
 
-@description('Enable BitLocker encrytion on the AVD session hosts and management VM.')
-param DiskEncryption bool = false
+@description('Enable Server-Side Encrytion and Encryption at Host on the AVD session hosts and management VM.')
+param DiskEncryption bool = true
 
 @allowed([
   'Standard_LRS'
@@ -33,17 +33,17 @@ param DiskEncryption bool = false
   'Premium_LRS'
 ])
 @description('The storage SKU for the AVD session host disks.  Production deployments should use Premium_LRS.')
-param DiskSku string = 'Standard_LRS'
+param DiskSku string = 'Premium_LRS'
 
 @secure()
 @description('The password of the privileged account to domain join the AVD session hosts to your domain')
-param DomainJoinPassword string
+param DomainJoinPassword string = ''
 
 @description('The UPN of the privileged account to domain join the AVD session hosts to your domain. This should be an account the resides within the domain you are joining.')
-param DomainJoinUserPrincipalName string
+param DomainJoinUserPrincipalName string = ''
 
 @description('The name of the domain that provides ADDS to the AVD session hosts and is synchronized with Azure AD')
-param DomainName string = 'jasonmasten.com'
+param DomainName string = ''
 
 @allowed([
   'ActiveDirectory' // Active Directory Domain Services
@@ -259,9 +259,9 @@ var AvailabilitySetCount = length(range(BeginAvSetRange, (EndAvSetRange - BeginA
 var AppGroupName = 'dag-${NamingStandard}'
 var AvailabilitySetPrefix = 'as-${NamingStandard}'
 var AutomationAccountName = 'aa-${NamingStandard}'
-var ConfigurationName = 'Windows10'
 var DeploymentScriptNamePrefix = 'ds-${NamingStandard}-'
 var DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')
+var DiskEncryptionSetName = 'des-${NamingStandard}'
 var DiskName = 'disk-${NamingStandard}'
 var FileShareNames = {
   CloudCacheProfileContainer: [
@@ -354,20 +354,31 @@ resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-// Validation Deployment Script
+// Deployment Validation
 // This module validates the selected parameter values and collects required data
-module validation 'modules/deploymentScript.bicep' = {
+module validations 'modules/validations.bicep' = {
   scope: resourceGroup(ResourceGroupManagement)
-  name: 'DeploymentScript_Validation_${Timestamp}'
+  name: 'Validations_${Timestamp}'
   params: {
-    Arguments: '-Availability ${Availability} -DiskEncryption ${DiskEncryption} -DiskSku ${DiskSku} -DomainName ${DomainName} -DomainServices ${DomainServices} -Environment ${environment().name} -ImageSku ${ImageSku} -KerberosEncryption ${KerberosEncryption} -Location ${Location} -PooledHostPool ${PooledHostPool} -RecoveryServices ${RecoveryServices} -SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -SessionHostCount ${SessionHostCount} -SessionHostIndex ${SessionHostIndex} -StartVmOnConnect ${StartVmOnConnect} -StorageCount ${StorageCount} -StorageSolution ${StorageSolution} -VmSize ${VmSize} -VnetName ${VirtualNetworkName} -VnetResourceGroupName ${VirtualNetworkResourceGroupName}'
+    Availability: Availability
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
+    DiskSku: DiskSku
+    DomainName: DiskName
+    DomainServices: DomainServices
+    HostPoolType: HostPoolType
+    ImageSku: ImageSku
+    KerberosEncryption: KerberosEncryption
     Location: Location
-    Name: '${DeploymentScriptNamePrefix}validation'
-    ScriptContainerSasToken: _artifactsLocationSasToken
-    ScriptContainerUri: _artifactsLocation
-    ScriptName: 'Get-Validation.ps1'
+    SecurityPrincipalIdsCount: SecurityPrincipalIdsCount
+    SecurityPrincipalNamesCount: SecurityPrincipalNamesCount
+    SessionHostCount: SessionHostCount
+    StorageCount: StorageCount
+    StorageSolution: StorageSolution
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
+    VmSize: VmSize
+    VnetName: VirtualNetworkName
+    VnetResourceGroupName: VirtualNetworkResourceGroupName
   }
   dependsOn: [
     resourceGroups
@@ -439,19 +450,18 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if (Monitor
   ]
 }
 
-module keyVault 'modules/keyVault.bicep' = if (DiskEncryption) {
+module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
   name: 'KeyVault_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
-    _artifactsLocation: _artifactsLocation
-    _artifactsLocationSasToken: _artifactsLocationSasToken
-    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
+    DiskEncryptionSetName: DiskEncryptionSetName
     Environment: Environment
     KeyVaultName: KeyVaultName
     Location: Location
-    ManagedIdentityResourceId: userAssignedIdentity.outputs.id
-    ResourceGroupManagement: ResourceGroupManagement
+    Tags: Tags
     Timestamp: Timestamp
+    UserAssignedIdentityPrincipalId: userAssignedIdentity.outputs.principalId
+    UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
   }
 }
 
@@ -460,13 +470,15 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    ActiveDirectoryConnection: validation.outputs.properties.anfActiveDirectory
+    ActiveDirectoryConnection: validations.outputs.anfActiveDirectory
     AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     ClientId: userAssignedIdentity.outputs.clientId
-    DelegatedSubnetId: validation.outputs.properties.anfSubnetId
+    DelegatedSubnetId: validations.outputs.anfSubnetId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
-    DnsServers: validation.outputs.properties.anfDnsServers
+    DiskEncryptionSetResourceId: diskEncryption.outputs.diskEncryptionSetResourceId
+    DiskSku: DiskSku
+    DnsServers: validations.outputs.anfDnsServers
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
@@ -476,7 +488,6 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     FslogixSolution: FslogixSolution
     FslogixStorage: FslogixStorage
     KerberosEncryption: KerberosEncryption
-    KeyVaultName: KeyVaultName
     Location: Location
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
@@ -498,6 +509,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
+    TrustedLaunch: validations.outputs.trustedLaunch
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
     VirtualNetwork: VirtualNetworkName
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
@@ -505,7 +517,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     VmUsername: VmUsername
   }
   dependsOn: [
-    keyVault
+    diskEncryption
     userAssignedIdentity
   ]
 }
@@ -529,13 +541,15 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
-    AcceleratedNetworking: validation.outputs.properties.acceleratedNetworking
+    AcceleratedNetworking: validations.outputs.acceleratedNetworking
     Availability: Availability
+    AvailabilityZones: validations.outputs.availabilityZones
     AvailabilitySetCount: AvailabilitySetCount
     AvailabilitySetPrefix: AvailabilitySetPrefix
     AvailabilitySetIndex: BeginAvSetRange
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
+    DiskEncryptionSetResourceId: diskEncryption.outputs.diskEncryptionSetResourceId
     DiskName: DiskName
     DiskSku: DiskSku
     DivisionRemainderValue: DivisionRemainderValue
@@ -552,7 +566,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     ImagePublisher: ImagePublisher
     ImageSku: ImageSku
     ImageVersion: ImageVersion
-    KeyVaultName: KeyVaultName
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     ManagedIdentityResourceId: userAssignedIdentity.outputs.id
@@ -581,7 +594,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     Subnet: SubnetName
     Tags: Tags
     Timestamp: Timestamp
-    TrustedLaunch: validation.outputs.properties.trustedLaunch
+    TrustedLaunch: validations.outputs.trustedLaunch
     VirtualNetwork: VirtualNetworkName
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
     VmName: VmName
@@ -590,7 +603,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     VmUsername: VmUsername
   }
   dependsOn: [
-    keyVault
+    diskEncryption
     logAnalyticsWorkspace
     resourceGroups
   ]

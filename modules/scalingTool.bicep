@@ -16,12 +16,10 @@ param TimeDifference string
 param Time string = utcNow('u')
 param TimeZone string
 
-
 var RoleAssignments = [
   ResourceGroupHosts
   ResourceGroupManagement
 ]
-
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
   name: AutomationAccountName
@@ -44,14 +42,14 @@ resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' =
 
 resource schedules 'Microsoft.Automation/automationAccounts/schedules@2022-08-08' = [for i in range(0, 4): {
   parent: automationAccount
-  name: '${HostPoolName}_${(i+1)*15}min'
+  name: '${HostPoolName}_${(i + 1) * 15}min'
   properties: {
     advancedSchedule: {}
     description: null
     expiryTime: null
     frequency: 'Hour'
     interval: 1
-    startTime: dateTimeAdd(Time, 'PT${(i+1)*15}M')
+    startTime: dateTimeAdd(Time, 'PT${(i + 1) * 15}M')
     timeZone: TimeZone
   }
 }]

@@ -1,4 +1,4 @@
-param _artifactsLocation string   
+param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param AutomationAccountName string
@@ -12,10 +12,8 @@ param Tags object
 param Timestamp string
 param TimeZone string
 
-
 var RunbookName = 'Set-FileShareQuota'
 var SubscriptionId = subscription().subscriptionId
-
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {
   name: AutomationAccountName

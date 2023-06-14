@@ -2,10 +2,12 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param AcceleratedNetworking string
-param AvailabilitySetPrefix string
 param Availability string
+param AvailabilitySetPrefix string
+param AvailabilityZones array
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
+param DiskEncryptionSetResourceId string
 param DiskName string
 param DiskSku string
 @secure()
@@ -22,7 +24,6 @@ param ImageOffer string
 param ImagePublisher string
 param ImageSku string
 param ImageVersion string
-param KeyVaultName string
 param Location string
 param LogAnalyticsWorkspaceName string
 param ManagedIdentityResourceId string
@@ -132,7 +133,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
   location: Location
   tags: Tags
   zones: Availability == 'AvailabilityZones' ? [
-    string((i % 3) + 1)
+    AvailabilityZones[i % length(AvailabilityZones)]
   ] : null
   identity: VmIdentity
   properties: {
@@ -156,6 +157,9 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
         caching: 'ReadWrite'
         deleteOption: 'Delete'
         managedDisk: {
+          diskEncryptionSet: DiskEncryption ? {
+            id: DiskEncryptionSetResourceId
+          } : null
           storageAccountType: DiskSku
         }
       }
@@ -188,47 +192,42 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
         vTpmEnabled: true
       } : null
       securityType: TrustedLaunch == 'true' ? 'TrustedLaunch' : null
+      encryptionAtHost: DiskEncryption
     }
     diagnosticsProfile: {
       bootDiagnostics: {
         enabled: false
       }
     }
-    licenseType: ((ImagePublisher == 'MicrosoftWindowsServer') ? 'Windows_Server' : 'Windows_Client')
+    licenseType: ((ImagePublisher == 'MicrosoftWindowsDesktop') ? 'Windows_Client' : 'Windows_Server')
   }
   dependsOn: [
     networkInterface
   ]
 }]
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if (DiskEncryption) {
-  name: KeyVaultName
-  scope: resourceGroup(ResourceGroupManagement)
-}
-
-resource deploymentScript 'Microsoft.Resources/deploymentScripts@2020-10-01' existing = if (DiskEncryption) {
-  name: '${DeploymentScriptNamePrefix}kek'
-  scope: resourceGroup(ResourceGroupManagement)
-}
-
-resource extension_AzureDiskEncryption 'Microsoft.Compute/virtualMachines/extensions@2017-03-30' = [for i in range(0, SessionHostCount): if (DiskEncryption) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AzureDiskEncryption'
+resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
+  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/IaaSAntimalware'
   location: Location
+  tags: Tags
   properties: {
     publisher: 'Microsoft.Azure.Security'
-    type: 'AzureDiskEncryption'
-    typeHandlerVersion: '2.2'
+    type: 'IaaSAntimalware'
+    typeHandlerVersion: '1.3'
     autoUpgradeMinorVersion: true
-    forceUpdateTag: Timestamp
+    enableAutomaticUpgrade: true
     settings: {
-      EncryptionOperation: 'EnableEncryption'
-      KeyVaultURL: DiskEncryption ? keyVault.properties.vaultUri : ''
-      KeyVaultResourceId: DiskEncryption ? keyVault.id : ''
-      KeyEncryptionKeyURL: DiskEncryption ? deploymentScript.properties.outputs.text : ''
-      KekVaultResourceId: DiskEncryption ? keyVault.id : ''
-      KeyEncryptionAlgorithm: 'RSA-OAEP'
-      VolumeType: 'All'
-      ResizeOSDisk: false
+      AntimalwareEnabled: true
+      RealtimeProtectionEnabled: 'true'
+      ScheduledScanSettings: {
+        isEnabled: 'true'
+        day: '7' // Day of the week for scheduled scan (1-Sunday, 2-Monday, ..., 7-Saturday)
+        time: '120' // When to perform the scheduled scan, measured in minutes from midnight (0-1440). For example: 0 = 12AM, 60 = 1AM, 120 = 2AM.
+        scanType: 'Quick' //Indicates whether scheduled scan setting type is set to Quick or Full (default is Quick)
+      }
+      Exclusions: Fslogix ? {
+        Paths: FslogixExclusions
+      } : {}
     }
   }
   dependsOn: [
@@ -252,6 +251,7 @@ resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/e
     }
   }
   dependsOn: [
+    extension_IaasAntimalware
     virtualMachine
   ]
 }]
@@ -276,7 +276,6 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
     }
   }
   dependsOn: [
-    extension_AzureDiskEncryption
     extension_MicrosoftMonitoringAgent
     virtualMachine
   ]
@@ -341,7 +340,7 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
     } : null
   }
   dependsOn: [
-    extension_CustomScriptExtension
+    drainMode
     virtualMachine
   ]
 }]
@@ -378,35 +377,6 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
   dependsOn: [
     extension_AADLoginForWindows
     extension_JsonADDomainExtension
-    virtualMachine
-  ]
-}]
-
-resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/IaaSAntimalware'
-  location: Location
-  tags: Tags
-  properties: {
-    publisher: 'Microsoft.Azure.Security'
-    type: 'IaaSAntimalware'
-    typeHandlerVersion: '1.3'
-    autoUpgradeMinorVersion: true
-    enableAutomaticUpgrade: true
-    settings: {
-      AntimalwareEnabled: true
-      RealtimeProtectionEnabled: 'true'
-      ScheduledScanSettings: {
-        isEnabled: 'true'
-        day: '7' // Day of the week for scheduled scan (1-Sunday, 2-Monday, ..., 7-Saturday)
-        time: '120' // When to perform the scheduled scan, measured in minutes from midnight (0-1440). For example: 0 = 12AM, 60 = 1AM, 120 = 2AM.
-        scanType: 'Quick' //Indicates whether scheduled scan setting type is set to Quick or Full (default is Quick)
-      }
-      Exclusions: Fslogix ? {
-        Paths: FslogixExclusions
-      } : {}
-    }
-  }
-  dependsOn: [
     virtualMachine
   ]
 }]
