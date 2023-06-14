@@ -9,7 +9,7 @@
             "value": ""
         },
         "availability": {
-            "value": "None"
+            "value": "AvailabilityZones"
         },
         "avdObjectId": {
             "value": "cdcfb416-e2fe-41e2-be12-33813c1cd427"
@@ -70,7 +70,7 @@
             "value": false
         },
         "identifier": {
-            "value": "tst"
+            "value": "jnm"
         },
         "imageOffer": {
             "value": "office-365"
@@ -97,7 +97,7 @@
             "value": "PerGB2018"
         },
         "maxSessionLimit": {
-            "value": 2
+            "value": 8
         },
         "monitoring": {
             "value": true
@@ -163,7 +163,8 @@
         "tags": {
             "value": {
                 "Owner": "Jason Masten",
-                "Environment": "Development"
+                "Environment": "Development",
+                "Purpose": "Office Workers"
             }
         },
         "validationEnvironment": {
@@ -184,7 +185,7 @@
             }
         },
         "vmSize": {
-            "value": "Standard_D4ds_v5"
+            "value": "Standard_D4ads_v5"
         },
         "vmUsername": {
             "reference": {
