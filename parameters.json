@@ -61,13 +61,10 @@
             "value": "ProfileContainer"
         },
         "fslogixStorage": {
-            "value": "AzureStorageAccount Standard ServiceEndpoint"
+            "value": "AzureStorageAccount Premium PrivateEndpoint"
         },
         "hostPoolType": {
             "value": "Pooled DepthFirst"
-        },
-        "hybridUseBenefit": {
-            "value": false
         },
         "identifier": {
             "value": "jnm"
@@ -85,7 +82,7 @@
             "value": "latest"
         },
         "kerberosEncryption": {
-            "value": "AES256"
+            "value": "RC4"
         },
         "location": {
             "value": "eastus"
