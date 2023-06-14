@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "10132473881679505651"
+      "templateHash": "5601525929834535473"
     }
   },
   "parameters": {
@@ -1082,7 +1082,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2499603678341537984"
+              "templateHash": "13197467731033872679"
             }
           },
           "parameters": {
@@ -1452,7 +1452,7 @@
                     "value": "[format('{0}diskSkuValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value -eq $false){Write-Error -Exception \"INVALID DISK SKU: The selected VM Size does not support the Premium SKU for managed disks.\"}"
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value -eq $false){Write-Error -Exception \"INVALID DISK SKU: The selected VM Size does not support the Premium SKU for managed disks.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"premiumIo\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -1546,7 +1546,7 @@
                     "value": "[format('{0}hyperVGenerationValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value -notlike \"*2\"){Write-Error -Exception \"INVALID HYPER-V GENERATION: The selected VM size does not support the selected Image Sku.\"}"
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value -notlike \"*2\"){Write-Error -Exception \"INVALID HYPER-V GENERATION: The selected VM size does not support the selected Image Sku.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"hyperVGenerations\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -1640,7 +1640,7 @@
                     "value": "[format('{0}kerberosEncryptionValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([string]$DomainName,[string]$KerberosEncryption); $ErrorActionPreference = \"Stop\"; $KerberosRc4Encryption = (Get-AzResource -Name $DomainName -ExpandProperties).Properties.domainSecuritySettings.kerberosRc4Encryption; if($KerberosRc4Encryption -eq \"Enabled\" -and $KerberosEncryption -eq \"AES256\"){Write-Error -Exception \"INVALID KERBEROS ENCRYPTION: The Kerberos Encryption on Azure AD DS does not match your Kerberos Encyrption selection.\"}"
+                    "value": "param([string]$DomainName,[string]$KerberosEncryption); $ErrorActionPreference = \"Stop\"; $KerberosRc4Encryption = (Get-AzResource -Name $DomainName -ExpandProperties).Properties.domainSecuritySettings.kerberosRc4Encryption; if($KerberosRc4Encryption -eq \"Enabled\" -and $KerberosEncryption -eq \"AES256\"){Write-Error -Exception \"INVALID KERBEROS ENCRYPTION: The Kerberos Encryption on Azure AD DS does not match your Kerberos Encyrption selection.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"kerberosRc4Encryption\"] = $KerberosRc4Encryption"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -1734,7 +1734,7 @@
                     "value": "[format('{0}storageValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([int]$SecurityPrincipalIdsCount,[int]$SecurityPrincipalNamesCount,[int]$StorageCount); $ErrorActionPreference = \"Stop\"; if(($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0){Write-Error -Exception \"INVALID ARRAYS: The \"SecurityPrinicaplIdsCount\", \"SecurityPrincipalNamesCount\", and \"StorageCount\" must be equal in length.\"}"
+                    "value": "param([int]$SecurityPrincipalIdsCount,[int]$SecurityPrincipalNamesCount,[int]$StorageCount); $ErrorActionPreference = \"Stop\"; if(($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0){Write-Error -Exception \"INVALID ARRAYS: The \"SecurityPrinicaplIdsCount\", \"SecurityPrincipalNamesCount\", and \"StorageCount\" must be equal in length.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"storageOutOfBounds\"] = ($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -1921,7 +1921,7 @@
                     "value": "[format('{0}cpuCountValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([int]$CpuCountMax,[int]$CpuCountMin,[string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; if($vCPUs -lt $CpuCountMin -or $vCPUs -gt $CpuCountMax){Write-Error -Exception \"INVALID VCPU COUNT: The selected VM Size does not contain the appropriate amount of vCPUs for Azure Virtual Desktop. https://learn.microsoft.com/windows-server/remote/remote-desktop-services/virtual-machine-recs\"}"
+                    "value": "param([int]$CpuCountMax,[int]$CpuCountMin,[string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; if($vCPUs -lt $CpuCountMin -or $vCPUs -gt $CpuCountMax){Write-Error -Exception \"INVALID VCPU COUNT: The selected VM Size does not contain the appropriate amount of vCPUs for Azure Virtual Desktop. https://learn.microsoft.com/windows-server/remote/remote-desktop-services/virtual-machine-recs\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"vcpus\"] = $vCPUs"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -2014,7 +2014,7 @@
                     "value": "[format('{0}cpuQuotaValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([string]$Location,[int]$SessionHostCount,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; $RequestedCores = $vCPUs * $SessionHostCount; $Family = (Get-AzComputeResourceSku -Location $Location | Where-Object {$_.Name -eq $VmSize}).Family; $CpuData = Get-AzVMUsage -Location $Location | Where-Object {$_.Name.Value -eq $Family}; $AvailableCores = $CpuData.Limit - $CpuData.CurrentValue; $RequestedCores = $vCPUs * $SessionHostCount; if($RequestedCores -gt $AvailableCores){Write-Error -Exception \"INSUFFICIENT CORE QUOTA: The selected VM size, $VmSize, does not have adequate core quota in the selected location.\"}"
+                    "value": "param([string]$Location,[int]$SessionHostCount,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; $RequestedCores = $vCPUs * $SessionHostCount; $Family = (Get-AzComputeResourceSku -Location $Location | Where-Object {$_.Name -eq $VmSize}).Family; $CpuData = Get-AzVMUsage -Location $Location | Where-Object {$_.Name.Value -eq $Family}; $AvailableCores = $CpuData.Limit - $CpuData.CurrentValue; $RequestedCores = $vCPUs * $SessionHostCount; if($RequestedCores -gt $AvailableCores){Write-Error -Exception \"INSUFFICIENT CORE QUOTA: The selected VM size, $VmSize, does not have adequate core quota in the selected location.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"requestedCores\"] = $RequestedCores; $DeploymentScriptOutputs[\"availableCores\"] = $AvailableCores"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
