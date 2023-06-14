@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5227976644002488754"
+      "templateHash": "8474262878695530574"
     }
   },
   "parameters": {
@@ -3251,6 +3251,9 @@
           "_artifactsLocationSasToken": {
             "value": "[parameters('_artifactsLocationSasToken')]"
           },
+          "Availability": {
+            "value": "[parameters('Availability')]"
+          },
           "ActiveDirectoryConnection": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.anfActiveDirectory.value]"
           },
@@ -3394,7 +3397,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "3669205456794791467"
+              "templateHash": "9812278174431073362"
             }
           },
           "parameters": {
@@ -3403,6 +3406,9 @@
             },
             "_artifactsLocationSasToken": {
               "type": "securestring"
+            },
+            "Availability": {
+              "type": "string"
             },
             "ActiveDirectoryConnection": {
               "type": "string"
@@ -4275,6 +4281,9 @@
                   "_artifactsLocationSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
                   },
+                  "Availability": {
+                    "value": "[parameters('Availability')]"
+                  },
                   "AzureFilesPrivateDnsZoneResourceId": {
                     "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
                   },
@@ -4376,7 +4385,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "15243894505060126728"
+                      "templateHash": "13674771695027516397"
                     }
                   },
                   "parameters": {
@@ -4385,6 +4394,9 @@
                     },
                     "_artifactsLocationSasToken": {
                       "type": "securestring"
+                    },
+                    "Availability": {
+                      "type": "string"
                     },
                     "AzureFilesPrivateDnsZoneResourceId": {
                       "type": "string"
@@ -4494,6 +4506,7 @@
                       "kerberosTicketEncryption": "[if(equals(parameters('KerberosEncryption'), 'RC4'), 'RC4-HMAC;', 'AES-256;')]",
                       "channelEncryption": "AES-128-CCM;AES-128-GCM;AES-256-GCM;"
                     },
+                    "StorageRedundancy": "[if(equals(parameters('Availability'), 'AvailabilityZones'), '_ZRS', '_LRS')]",
                     "SubnetId": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VirtualNetwork'), parameters('Subnet'))]",
                     "VirtualNetworkRules": {
                       "PrivateEndpoint": [],
@@ -4518,7 +4531,7 @@
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "sku": {
-                        "name": "[if(equals(parameters('StorageSku'), 'Standard'), 'Standard_LRS', 'Premium_LRS')]"
+                        "name": "[format('{0}{1}', parameters('StorageSku'), variables('StorageRedundancy'))]"
                       },
                       "kind": "[if(equals(parameters('StorageSku'), 'Standard'), 'StorageV2', 'FileStorage')]",
                       "properties": {

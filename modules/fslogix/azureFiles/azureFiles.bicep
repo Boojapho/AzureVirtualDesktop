@@ -1,6 +1,7 @@
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
+param Availability string
 param AzureFilesPrivateDnsZoneResourceId string
 param ClientId string
 param DeploymentScriptNamePrefix string
@@ -47,6 +48,7 @@ var SmbSettings = {
   kerberosTicketEncryption: KerberosEncryption == 'RC4' ? 'RC4-HMAC;' : 'AES-256;'
   channelEncryption: 'AES-128-CCM;AES-128-GCM;AES-256-GCM;'
 }
+var StorageRedundancy = Availability == 'AvailabilityZones' ? '_ZRS' : '_LRS'
 var SubnetId = resourceId(VirtualNetworkResourceGroup, 'Microsoft.Network/virtualNetworks/subnets', VirtualNetwork, Subnet)
 var VirtualNetworkRules = {
   PrivateEndpoint: []
@@ -64,7 +66,7 @@ resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i
   location: Location
   tags: Tags
   sku: {
-    name: StorageSku == 'Standard' ? 'Standard_LRS' : 'Premium_LRS'
+    name: '${StorageSku}${StorageRedundancy}'
   }
   kind: StorageSku == 'Standard' ? 'StorageV2' : 'FileStorage'
   properties: {

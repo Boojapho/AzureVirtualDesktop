@@ -472,6 +472,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    Availability: Availability
     ActiveDirectoryConnection: validations.outputs.anfActiveDirectory
     AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     ClientId: userAssignedIdentity.outputs.clientId

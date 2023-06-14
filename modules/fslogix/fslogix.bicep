@@ -3,6 +3,7 @@ targetScope = 'subscription'
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
+param Availability string
 param ActiveDirectoryConnection string
 param AzureFilesPrivateDnsZoneResourceId string
 param ClientId string
@@ -121,6 +122,7 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if (StorageSolution == 'AzureS
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    Availability: Availability
     AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     ClientId: ClientId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
