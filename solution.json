@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5601525929834535473"
+      "templateHash": "3301355385875101276"
     }
   },
   "parameters": {
@@ -3032,7 +3032,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2948326981334211587"
+              "templateHash": "10733820570666159683"
             }
           },
           "parameters": {
@@ -3055,6 +3055,10 @@
             "Tags": {
               "type": "object"
             },
+            "Time": {
+              "type": "string",
+              "defaultValue": "[utcNow()]"
+            },
             "Timestamp": {
               "type": "string"
             },
@@ -3066,7 +3070,7 @@
             }
           },
           "variables": {
-            "DiskEncryptionKeyExpirationInEpoch": "[dateTimeToEpoch(dateTimeAdd(parameters('Timestamp'), format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))))]"
+            "DiskEncryptionKeyExpirationInEpoch": "[dateTimeToEpoch(dateTimeAdd(parameters('Time'), format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))))]"
           },
           "resources": [
             {

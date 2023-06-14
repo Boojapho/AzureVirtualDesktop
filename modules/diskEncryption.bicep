@@ -4,11 +4,12 @@ param Environment string
 param KeyVaultName string
 param Location string
 param Tags object
+param Time string = utcNow()
 param Timestamp string
 param UserAssignedIdentityPrincipalId string
 param UserAssignedIdentityResourceId string
 
-var DiskEncryptionKeyExpirationInEpoch = dateTimeToEpoch(dateTimeAdd(Timestamp, 'P${string(DiskEncryptionKeyExpirationInDays)}D'))
+var DiskEncryptionKeyExpirationInEpoch = dateTimeToEpoch(dateTimeAdd(Time, 'P${string(DiskEncryptionKeyExpirationInDays)}D'))
 
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: KeyVaultName
