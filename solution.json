@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "8474262878695530574"
+      "templateHash": "17822983902232705415"
     }
   },
   "parameters": {
@@ -388,13 +388,6 @@
         "description": "The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, \"0\" could be used for an office workers host pool and \"1\" could be used for a developers host pool within the \"finance\" business unit."
       },
       "maxValue": 99
-    },
-    "StartVmOnConnect": {
-      "type": "bool",
-      "defaultValue": true,
-      "metadata": {
-        "description": "Determines whether the Start VM On Connect feature is enabled. https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect"
-      }
     },
     "StorageCount": {
       "type": "int",
@@ -833,7 +826,6 @@
       ]
     },
     {
-      "condition": "[parameters('StartVmOnConnect')]",
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
       "name": "[guid(parameters('AvdObjectId'), variables('DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId'), subscription().id)]",
@@ -1009,7 +1001,10 @@
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "resourceGroups"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -2261,9 +2256,6 @@
           "SecurityPrincipalIds": {
             "value": "[parameters('SecurityPrincipalObjectIds')]"
           },
-          "StartVmOnConnect": {
-            "value": "[parameters('StartVmOnConnect')]"
-          },
           "Tags": {
             "value": "[parameters('Tags')]"
           },
@@ -2284,7 +2276,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "18292262761095046395"
+              "templateHash": "10942940609627800649"
             }
           },
           "parameters": {
@@ -2314,9 +2306,6 @@
             },
             "SecurityPrincipalIds": {
               "type": "array"
-            },
-            "StartVmOnConnect": {
-              "type": "bool"
             },
             "Tags": {
               "type": "object"
@@ -2384,7 +2373,7 @@
                 "preferredAppGroupType": "Desktop",
                 "customRdpProperty": "[variables('CustomRdpProperty_Complete')]",
                 "personalDesktopAssignmentType": "[if(contains(parameters('HostPoolType'), 'Personal'), split(parameters('HostPoolType'), ' ')[1], null())]",
-                "startVMOnConnect": "[parameters('StartVmOnConnect')]",
+                "startVMOnConnect": true,
                 "vmTemplate": "[parameters('VmTemplate')]"
               }
             },

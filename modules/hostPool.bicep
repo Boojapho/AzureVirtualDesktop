@@ -7,7 +7,6 @@ param Location string
 param LogAnalyticsWorkspaceResourceId string
 param MaxSessionLimit int
 param SecurityPrincipalIds array
-param StartVmOnConnect bool
 param Tags object
 param Timestamp string = utcNow('u')
 param ValidationEnvironment bool
@@ -59,7 +58,7 @@ resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-03-09-preview'
     preferredAppGroupType: 'Desktop'
     customRdpProperty: CustomRdpProperty_Complete
     personalDesktopAssignmentType: contains(HostPoolType, 'Personal') ? split(HostPoolType, ' ')[1] : null
-    startVMOnConnect: StartVmOnConnect // https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect
+    startVMOnConnect: true
     vmTemplate: VmTemplate
 
   }

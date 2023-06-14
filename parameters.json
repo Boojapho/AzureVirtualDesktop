@@ -145,9 +145,6 @@
         "stampIndex": {
             "value": 0
         },
-        "startVmOnConnect": {
-            "value": true
-        },
         "storageCount": {
             "value": 1
         },

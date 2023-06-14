@@ -205,9 +205,6 @@ param SessionHostIndex int = 0
 @description('The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, "0" could be used for an office workers host pool and "1" could be used for a developers host pool within the "finance" business unit.')
 param StampIndex int = 0
 
-@description('Determines whether the Start VM On Connect feature is enabled. https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect')
-param StartVmOnConnect bool = true
-
 @description('The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageCount int = 1
 
@@ -343,6 +340,9 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
     Timestamp: Timestamp
     VirtualNetworkResourceGroupName: VirtualNetworkResourceGroupName
   }
+  dependsOn: [
+    resourceGroups
+  ]
 }
 
 // Role Assignment for Validation
@@ -387,7 +387,7 @@ module validations 'modules/validations.bicep' = {
   ]
 }
 
-resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (StartVmOnConnect) {
+resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(AvdObjectId, DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId, subscription().id)
   properties: {
     roleDefinitionId: DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId
@@ -424,7 +424,6 @@ module hostPool 'modules/hostPool.bicep' = {
     LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
     SecurityPrincipalIds: SecurityPrincipalObjectIds
-    StartVmOnConnect: StartVmOnConnect
     Tags: Tags
     ValidationEnvironment: ValidationEnvironment
     VmTemplate: VmTemplate
