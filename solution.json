@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "88123572352569250"
+      "templateHash": "5227976644002488754"
     }
   },
   "parameters": {
@@ -99,7 +99,7 @@
       "type": "string",
       "defaultValue": "AzureActiveDirectory",
       "metadata": {
-        "description": "The service providing domain services for Azure Virtual Desktop.  This is needed to determine the proper solution to domain join the Azure Storage Account."
+        "description": "The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account."
       },
       "allowedValues": [
         "ActiveDirectory",
@@ -112,7 +112,7 @@
       "type": "bool",
       "defaultValue": false,
       "metadata": {
-        "description": "Enable drain mode on sessions hosts during deployment to prevent users from accessing the session hosts."
+        "description": "Enable drain mode on new sessions hosts to prevent users from accessing them until they are validated."
       }
     },
     "Environment": {
@@ -130,6 +130,7 @@
     },
     "FslogixShareSizeInGB": {
       "type": "int",
+      "defaultValue": 100,
       "metadata": {
         "description": "The file share size(s) in GB for the Fslogix storage solution."
       }
@@ -254,7 +255,6 @@
     },
     "MaxSessionLimit": {
       "type": "int",
-      "defaultValue": 2,
       "metadata": {
         "description": "The maximum number of sessions per AVD session host."
       }
@@ -325,21 +325,21 @@
       "type": "bool",
       "defaultValue": false,
       "metadata": {
-        "description": "Determines whether the Screen Capture Protection feature is enabled.  As of 9/17/21 this is only supported in Azure Cloud. https://docs.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection"
+        "description": "Determines whether the Screen Capture Protection feature is enabled. This feature is only supported on specific clients. https://learn.microsoft.com/azure/virtual-desktop/screen-capture-protection"
       }
     },
     "SecurityPrincipalObjectIds": {
       "type": "array",
       "defaultValue": [],
       "metadata": {
-        "description": "An array of Object IDs for the Security Principals to assign to the AVD Application Group and FSLogix Storage."
+        "description": "An array of Security Principal object IDs to assign to the AVD Application Group and FSLogix Storage."
       }
     },
     "SecurityPrincipalNames": {
       "type": "array",
       "defaultValue": [],
       "metadata": {
-        "description": "The name for the Security Principal to assign NTFS permissions on the Azure File Share to support Fslogix.  Any value can be input in this field if performing a deployment update or choosing a personal host pool."
+        "description": "An array of Security Principal names to assign NTFS permissions on the Azure File Share to support Fslogix. This is only required for pooled host pools using FSLogix. The names should align to the object IDs provided in the \"SecurityPrincipalObjectIds\" parameter."
       }
     },
     "SentinelLogAnalyticsWorkspaceName": {
@@ -367,22 +367,27 @@
       "type": "int",
       "defaultValue": 1,
       "metadata": {
-        "description": "The number of session hosts to deploy in the host pool.  The default values will allow you deploy 250 VMs using 4 nested deployments.  These integers may be modified to create a smaller deployment in a shard."
-      }
+        "description": "The number of session hosts to deploy in the host pool. Ensure you have the approved quota to deploy the desired count."
+      },
+      "minValue": 0,
+      "maxValue": 4999
     },
     "SessionHostIndex": {
       "type": "int",
       "defaultValue": 0,
       "metadata": {
-        "description": "The session host number to begin with for the deployment. This is important when adding virtual machines to ensure the names do not conflict."
-      }
+        "description": "The starting number for the session hosts. This is important when adding virtual machines to ensure an update deployment is not performed on an exiting, active session host."
+      },
+      "minValue": 0,
+      "maxValue": 4999
     },
     "StampIndex": {
       "type": "int",
       "defaultValue": 0,
       "metadata": {
-        "description": "The stamp index specifies the AVD stamp within an Azure environment."
-      }
+        "description": "The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, \"0\" could be used for an office workers host pool and \"1\" could be used for a developers host pool within the \"finance\" business unit."
+      },
+      "maxValue": 99
     },
     "StartVmOnConnect": {
       "type": "bool",
@@ -395,29 +400,25 @@
       "type": "int",
       "defaultValue": 1,
       "metadata": {
-        "description": "The Storage Count allows the deployment of one or more storage resources within an AVD stamp to shard for extra capacity. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
+        "description": "The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
       }
     },
     "StorageIndex": {
       "type": "int",
       "defaultValue": 0,
       "metadata": {
-        "description": "The Storage Index allows the deployment of one or more storage resources within an AVD stamp to shard for extra capacity. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
+        "description": "The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
       }
     },
     "SubnetName": {
       "type": "string",
-      "defaultValue": "Clients",
       "metadata": {
         "description": "The subnet for the AVD session hosts."
       }
     },
     "Tags": {
       "type": "object",
-      "defaultValue": {
-        "Owner": "Jason Masten",
-        "Environment": "Development"
-      },
+      "defaultValue": {},
       "metadata": {
         "description": "Key / value pairs of metadata for the Azure resources."
       }
@@ -456,7 +457,7 @@
     },
     "VmSize": {
       "type": "string",
-      "defaultValue": "Standard_D4ds_v4",
+      "defaultValue": "Standard_D4ads_v5",
       "metadata": {
         "description": "The VM SKU for the AVD session hosts."
       }
