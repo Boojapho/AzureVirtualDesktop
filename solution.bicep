@@ -51,10 +51,10 @@ param DomainName string = ''
   'None' // Azure AD Join
   'NoneWithIntune' // Azure AD Join with Intune enrollment
 ])
-@description('The service providing domain services for Azure Virtual Desktop.  This is needed to determine the proper solution to domain join the Azure Storage Account.')
+@description('The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account.')
 param DomainServices string = 'AzureActiveDirectory'
 
-@description('Enable drain mode on sessions hosts during deployment to prevent users from accessing the session hosts.')
+@description('Enable drain mode on new sessions hosts to prevent users from accessing them until they are validated.')
 param DrainMode bool = false
 
 @allowed([
@@ -67,7 +67,7 @@ param DrainMode bool = false
 param Environment string = 'd'
 
 @description('The file share size(s) in GB for the Fslogix storage solution.')
-param FslogixShareSizeInGB int
+param FslogixShareSizeInGB int = 100
 
 @allowed([
   'CloudCacheProfileContainer' // FSLogix Cloud Cache Profile Container
@@ -144,7 +144,7 @@ param LogAnalyticsWorkspaceRetention int = 30
 param LogAnalyticsWorkspaceSku string = 'PerGB2018'
 
 @description('The maximum number of sessions per AVD session host.')
-param MaxSessionLimit int = 2
+param MaxSessionLimit int
 
 @description('Deploys the required monitoring resources to enable AVD Insights and monitor features in the automation account.')
 param Monitoring bool = true
@@ -173,13 +173,13 @@ param ScalingSessionThresholdPerCPU string = '1'
 @description('Deploys the required resources for the Scaling Tool. https://docs.microsoft.com/en-us/azure/virtual-desktop/scaling-automation-logic-apps')
 param ScalingTool bool = true
 
-@description('Determines whether the Screen Capture Protection feature is enabled.  As of 9/17/21 this is only supported in Azure Cloud. https://docs.microsoft.com/en-us/azure/virtual-desktop/screen-capture-protection')
+@description('Determines whether the Screen Capture Protection feature is enabled. This feature is only supported on specific clients. https://learn.microsoft.com/azure/virtual-desktop/screen-capture-protection')
 param ScreenCaptureProtection bool = false
 
-@description('An array of Object IDs for the Security Principals to assign to the AVD Application Group and FSLogix Storage.')
+@description('An array of Security Principal object IDs to assign to the AVD Application Group and FSLogix Storage.')
 param SecurityPrincipalObjectIds array = []
 
-@description('The name for the Security Principal to assign NTFS permissions on the Azure File Share to support Fslogix.  Any value can be input in this field if performing a deployment update or choosing a personal host pool.')
+@description('An array of Security Principal names to assign NTFS permissions on the Azure File Share to support Fslogix. This is only required for pooled host pools using FSLogix. The names should align to the object IDs provided in the "SecurityPrincipalObjectIds" parameter.')
 param SecurityPrincipalNames array = []
 
 @description('The name of the log analytics workspace used for Azure Sentinel.')
@@ -191,32 +191,34 @@ param SentinelLogAnalyticsWorkspaceResourceGroupName string = ''
 @description('The ID of the subscription containing the log analytics workspace used for Azure Sentinel.')
 param SentinelLogAnalyticsWorkspaceSubscriptionId string = subscription().subscriptionId
 
-@description('The number of session hosts to deploy in the host pool.  The default values will allow you deploy 250 VMs using 4 nested deployments.  These integers may be modified to create a smaller deployment in a shard.')
+@maxValue(4999)
+@minValue(0)
+@description('The number of session hosts to deploy in the host pool. Ensure you have the approved quota to deploy the desired count.')
 param SessionHostCount int = 1
 
-@description('The session host number to begin with for the deployment. This is important when adding virtual machines to ensure the names do not conflict.')
+@maxValue(4999)
+@minValue(0)
+@description('The starting number for the session hosts. This is important when adding virtual machines to ensure an update deployment is not performed on an exiting, active session host.')
 param SessionHostIndex int = 0
 
-@description('The stamp index specifies the AVD stamp within an Azure environment.')
+@maxValue(99)
+@description('The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, "0" could be used for an office workers host pool and "1" could be used for a developers host pool within the "finance" business unit.')
 param StampIndex int = 0
 
 @description('Determines whether the Start VM On Connect feature is enabled. https://docs.microsoft.com/en-us/azure/virtual-desktop/start-virtual-machine-connect')
 param StartVmOnConnect bool = true
 
-@description('The Storage Count allows the deployment of one or more storage resources within an AVD stamp to shard for extra capacity. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
+@description('The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageCount int = 1
 
-@description('The Storage Index allows the deployment of one or more storage resources within an AVD stamp to shard for extra capacity. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
+@description('The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageIndex int = 0
 
 @description('The subnet for the AVD session hosts.')
-param SubnetName string = 'Clients'
+param SubnetName string
 
 @description('Key / value pairs of metadata for the Azure resources.')
-param Tags object = {
-  Owner: 'Jason Masten'
-  Environment: 'Development'
-}
+param Tags object = {}
 
 @description('DO NOT MODIFY THIS VALUE! The timestamp is needed to differentiate deployments for certain Azure resources and must be set using a parameter.')
 param Timestamp string = utcNow('yyyyMMddhhmmss')
@@ -235,7 +237,7 @@ param VirtualNetworkResourceGroupName string
 param VmPassword string
 
 @description('The VM SKU for the AVD session hosts.')
-param VmSize string = 'Standard_D4ds_v4'
+param VmSize string = 'Standard_D4ads_v5'
 
 @description('The Local Administrator Username for the Session Hosts')
 param VmUsername string
