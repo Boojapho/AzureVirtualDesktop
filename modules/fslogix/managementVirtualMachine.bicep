@@ -56,7 +56,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
       imageReference: {
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
-        sku: '2019-Datacenter'
+        sku: '2019-datacenter-core-g2'
         version: 'latest'
       }
       osDisk: {

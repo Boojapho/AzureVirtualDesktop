@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "3301355385875101276"
+      "templateHash": "5825244276838838047"
     }
   },
   "parameters": {
@@ -3390,7 +3390,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "9812278174431073362"
+              "templateHash": "15786590558426384129"
             }
           },
           "parameters": {
@@ -3614,7 +3614,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "2706244094798562779"
+                      "templateHash": "9434008347940845164"
                     }
                   },
                   "parameters": {
@@ -3715,7 +3715,7 @@
                           "imageReference": {
                             "publisher": "MicrosoftWindowsServer",
                             "offer": "WindowsServer",
-                            "sku": "2019-Datacenter",
+                            "sku": "2019-datacenter-core-g2",
                             "version": "latest"
                           },
                           "osDisk": {
