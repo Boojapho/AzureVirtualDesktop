@@ -452,7 +452,7 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if (Monitor
 }
 
 module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
-  name: 'KeyVault_${Timestamp}'
+  name: 'DiskEncryption_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     DiskEncryptionSetName: DiskEncryptionSetName
