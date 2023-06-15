@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5825244276838838047"
+      "templateHash": "8605565256784564535"
     }
   },
   "parameters": {
@@ -370,7 +370,7 @@
         "description": "The number of session hosts to deploy in the host pool. Ensure you have the approved quota to deploy the desired count."
       },
       "minValue": 0,
-      "maxValue": 4999
+      "maxValue": 5000
     },
     "SessionHostIndex": {
       "type": "int",
@@ -387,21 +387,23 @@
       "metadata": {
         "description": "The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, \"0\" could be used for an office workers host pool and \"1\" could be used for a developers host pool within the \"finance\" business unit."
       },
-      "maxValue": 99
+      "maxValue": 9
     },
     "StorageCount": {
       "type": "int",
       "defaultValue": 1,
       "metadata": {
         "description": "The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
-      }
+      },
+      "maxValue": 10
     },
     "StorageIndex": {
       "type": "int",
       "defaultValue": 0,
       "metadata": {
         "description": "The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding"
-      }
+      },
+      "maxValue": 9
     },
     "SubnetName": {
       "type": "string",
@@ -775,7 +777,7 @@
     "LogAnalyticsWorkspaceName": "[format('law-{0}', variables('NamingStandard'))]",
     "UserAssignedIdentityName": "[format('uami-{0}', variables('NamingStandard'))]",
     "ManagementVmName": "[format('{0}mgt', variables('VmName'))]",
-    "NamingStandard": "[format('{0}-{1}-{2}-{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), variables('StampIndexFull'))]",
+    "NamingStandard": "[format('{0}-{1}-{2}-{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "NetAppAccountName": "[format('naa-{0}', variables('NamingStandard'))]",
     "NetAppCapacityPoolName": "[format('nacp-{0}', variables('NamingStandard'))]",
     "Netbios": "[split(parameters('DomainName'), '.')[0]]",
@@ -791,12 +793,11 @@
     "SecurityPrincipalNamesCount": "[length(parameters('SecurityPrincipalNames'))]",
     "Sentinel": "[if(or(empty(parameters('SentinelLogAnalyticsWorkspaceName')), empty(parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'))), false(), true())]",
     "SentinelResourceGroup": "[if(variables('Sentinel'), parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'), variables('ResourceGroupManagement'))]",
-    "StampIndexFull": "[padLeft(parameters('StampIndex'), 2, '0')]",
-    "StorageAccountPrefix": "[format('st{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), variables('StampIndexFull'))]",
+    "StorageAccountPrefix": "[format('st{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
     "StorageSuffix": "[environment().suffixes.storage]",
-    "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), variables('StampIndexFull'))]",
+    "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"vmSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VmSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
     "WorkspaceName": "[format('ws-{0}', variables('NamingStandard'))]"
   },
@@ -3390,7 +3391,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "15786590558426384129"
+              "templateHash": "12269399315476742453"
             }
           },
           "parameters": {
@@ -4378,7 +4379,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "13674771695027516397"
+                      "templateHash": "9914626484555775964"
                     }
                   },
                   "parameters": {
@@ -4520,7 +4521,7 @@
                       },
                       "type": "Microsoft.Storage/storageAccounts",
                       "apiVersion": "2021-02-01",
-                      "name": "[format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')), 2, '0'))]",
+                      "name": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "sku": {
@@ -4558,15 +4559,15 @@
                       },
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
-                      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                      "name": "[guid(parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]], variables('RoleDefinitionId'), resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0'))))]",
+                      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                      "name": "[guid(parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]], variables('RoleDefinitionId'), resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))))]",
                       "properties": {
                         "roleDefinitionId": "[variables('RoleDefinitionId')]",
                         "principalId": "[parameters('SecurityPrincipalIds')[range(0, parameters('StorageCount'))[copyIndex()]]]"
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                       ]
                     },
                     {
@@ -4576,7 +4577,7 @@
                       },
                       "type": "Microsoft.Storage/storageAccounts/fileServices",
                       "apiVersion": "2021-02-01",
-                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')), 'default')]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), 'default')]",
                       "properties": {
                         "protocolSettings": {
                           "smb": "[if(equals(parameters('StorageSku'), 'Standard'), variables('SmbSettings'), union(variables('SmbSettings'), variables('SmbMultiChannel')))]"
@@ -4586,7 +4587,7 @@
                         }
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                       ]
                     },
                     {
@@ -4611,7 +4612,7 @@
                             "value": "[parameters('FslogixShareSizeInGB')]"
                           },
                           "StorageAccountName": {
-                            "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0'))]"
+                            "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))]"
                           },
                           "StorageSku": {
                             "value": "[parameters('StorageSku')]"
@@ -4661,7 +4662,7 @@
                       },
                       "dependsOn": [
                         "roleAssignment",
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                       ]
                     },
                     {
@@ -4687,10 +4688,10 @@
                             "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
                           },
                           "StorageAccountId": {
-                            "value": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
+                            "value": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                           },
                           "StorageAccountName": {
-                            "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0'))]"
+                            "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))]"
                           },
                           "Subnet": {
                             "value": "[parameters('Subnet')]"
@@ -4790,8 +4791,8 @@
                         }
                       },
                       "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]",
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                       ]
                     },
                     {
@@ -5279,7 +5280,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "18304494817569983294"
+              "templateHash": "9785306620971586739"
             }
           },
           "parameters": {
@@ -5503,7 +5504,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "5251705688224122563"
+                      "templateHash": "3142176283577948590"
                     }
                   },
                   "parameters": {
@@ -5531,7 +5532,7 @@
                       },
                       "type": "Microsoft.Compute/availabilitySets",
                       "apiVersion": "2019-07-01",
-                      "name": "[format('{0}{1}', parameters('AvailabilitySetPrefix'), padLeft(add(range(0, parameters('AvailabilitySetCount'))[copyIndex()], parameters('AvailabilitySetIndex')), 2, '0'))]",
+                      "name": "[format('{0}{1}', parameters('AvailabilitySetPrefix'), add(range(0, parameters('AvailabilitySetCount'))[copyIndex()], parameters('AvailabilitySetIndex')))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "sku": {
@@ -5782,7 +5783,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "8404649080930378688"
+                      "templateHash": "7791207318451039429"
                     }
                   },
                   "parameters": {
@@ -5951,28 +5952,6 @@
                     }
                   },
                   "variables": {
-                    "copy": [
-                      {
-                        "name": "FslogixExclusionsOfficeContainersArray",
-                        "count": "[length(variables('FslogixOfficeShares'))]",
-                        "input": "[format(';\"{0}*\\*.VHDX\";\"{1}*\\*.VHDX.lock\";\"{2}*\\*.VHDX.meta\";\"{3}*\\*.VHDX.metadata\"', variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')], variables('FslogixOfficeShares')[copyIndex('FslogixExclusionsOfficeContainersArray')])]"
-                      },
-                      {
-                        "name": "FslogixExclusionsProfileContainersArray",
-                        "count": "[length(variables('FslogixProfileShares'))]",
-                        "input": "[format(';\"{0}*\\*.VHDX\";\"{1}*\\*.VHDX.lock\";\"{2}*\\*.VHDX.meta\";\"{3}*\\*.VHDX.metadata\"', variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')], variables('FslogixProfileShares')[copyIndex('FslogixExclusionsProfileContainersArray')])]"
-                      },
-                      {
-                        "name": "FslogixOfficeShares",
-                        "count": "[length(range(0, parameters('StorageCount')))]",
-                        "input": "[format('\\\\{0}{1}.file.{2}\\office-containers\\', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex('FslogixOfficeShares')], parameters('StorageIndex')), 2, '0'), parameters('StorageSuffix'))]"
-                      },
-                      {
-                        "name": "FslogixProfileShares",
-                        "count": "[length(range(0, parameters('StorageCount')))]",
-                        "input": "[format('\\\\{0}{1}.file.{2}\\profile-containers\\', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex('FslogixProfileShares')], parameters('StorageIndex')), 2, '0'), parameters('StorageSuffix'))]"
-                      }
-                    ],
                     "AmdVmSizes": [
                       "Standard_NV4as_v4",
                       "Standard_NV8as_v4",
@@ -5980,11 +5959,11 @@
                       "Standard_NV32as_v4"
                     ],
                     "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
-                    "FslogixExclusions": "[format('{0}{1}{2}{3}', variables('FslogixExclusionsLocal'), variables('FslogixExclusionsProfileContainersString'), variables('FslogixExclusionsOfficeContainersString'), variables('FslogixExclusionsCloudCache'))]",
-                    "FslogixExclusionsCloudCache": ";\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\"",
-                    "FslogixExclusionsLocal": ";\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\"",
-                    "FslogixExclusionsOfficeContainersString": "[join(variables('FslogixExclusionsOfficeContainersArray'), ';')]",
-                    "FslogixExclusionsProfileContainersString": "[join(variables('FslogixExclusionsProfileContainersArray'), ';')]",
+                    "FslogixExclusions": "[format('\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\";\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\";{0};{1}', variables('FslogixExclusionsProfileContainers'), variables('FslogixExclusionsOfficeContainers'))]",
+                    "FslogixExclusionsOfficeContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'))]",
+                    "FslogixExclusionsProfileContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
+                    "FslogixOfficeShare": "[format('\\\\{0}??.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
+                    "FslogixProfileShare": "[format('\\\\{0}??.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "Intune": "[if(equals(parameters('DomainServices'), 'NoneWithIntune'), true(), false())]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
@@ -6025,7 +6004,7 @@
                       },
                       "type": "Microsoft.Network/networkInterfaces",
                       "apiVersion": "2020-05-01",
-                      "name": "[format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6053,7 +6032,7 @@
                       },
                       "type": "Microsoft.Compute/virtualMachines",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
@@ -6071,7 +6050,7 @@
                             "version": "[parameters('ImageVersion')]"
                           },
                           "osDisk": {
-                            "name": "[format('{0}{1}', parameters('DiskName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                            "name": "[format('{0}{1}', parameters('DiskName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                             "osType": "Windows",
                             "createOption": "FromImage",
                             "caching": "ReadWrite",
@@ -6084,7 +6063,7 @@
                           "dataDisks": []
                         },
                         "osProfile": {
-                          "computerName": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                          "computerName": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                           "adminUsername": "[parameters('VmUsername')]",
                           "adminPassword": "[parameters('VmPassword')]",
                           "windowsConfiguration": {
@@ -6097,7 +6076,7 @@
                         "networkProfile": {
                           "networkInterfaces": [
                             {
-                              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0')))]",
+                              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0')))]",
                               "properties": {
                                 "deleteOption": "Delete"
                               }
@@ -6127,7 +6106,7 @@
                       },
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/IaaSAntimalware', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'IaaSAntimalware')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6149,7 +6128,7 @@
                         }
                       },
                       "dependsOn": [
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6160,7 +6139,7 @@
                       "condition": "[parameters('Monitoring')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/MicrosoftMonitoringAgent', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'MicrosoftMonitoringAgent')]",
                       "location": "[parameters('Location')]",
                       "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
@@ -6176,7 +6155,7 @@
                       },
                       "dependsOn": [
                         "extension_IaasAntimalware",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6186,7 +6165,7 @@
                       },
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/CustomScriptExtension', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'CustomScriptExtension')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6206,7 +6185,7 @@
                       },
                       "dependsOn": [
                         "extension_MicrosoftMonitoringAgent",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6217,7 +6196,7 @@
                       "condition": "[contains(parameters('DomainServices'), 'ActiveDirectory')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/JsonADDomainExtension', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'JsonADDomainExtension')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6239,7 +6218,7 @@
                       },
                       "dependsOn": [
                         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_DrainMode_{0}', parameters('Timestamp')))]",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6250,7 +6229,7 @@
                       "condition": "[contains(parameters('DomainServices'), 'None')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/AADLoginForWindows', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AADLoginForWindows')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6262,7 +6241,7 @@
                       },
                       "dependsOn": [
                         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DeploymentScript_DrainMode_{0}', parameters('Timestamp')))]",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6273,7 +6252,7 @@
                       "condition": "[variables('AmdVmSize')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/AmdGpuDriverWindows', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AmdGpuDriverWindows')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6286,7 +6265,7 @@
                       "dependsOn": [
                         "extension_AADLoginForWindows",
                         "extension_JsonADDomainExtension",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6297,7 +6276,7 @@
                       "condition": "[variables('NvidiaVmSize')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
-                      "name": "[format('{0}{1}/NvidiaGpuDriverWindows', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'NvidiaGpuDriverWindows')]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -6310,7 +6289,7 @@
                       "dependsOn": [
                         "extension_AADLoginForWindows",
                         "extension_JsonADDomainExtension",
-                        "virtualMachine"
+                        "[resourceId('Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')))]"
                       ]
                     },
                     {
@@ -6408,8 +6387,7 @@
                         }
                       },
                       "dependsOn": [
-                        "extension_CustomScriptExtension",
-                        "virtualMachine"
+                        "extension_CustomScriptExtension"
                       ]
                     }
                   ]
@@ -6506,7 +6484,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2013017158224531848"
+              "templateHash": "3878131806781402204"
             }
           },
           "parameters": {
@@ -6643,11 +6621,11 @@
               "condition": "[and(parameters('Fslogix'), equals(parameters('StorageSolution'), 'AzureStorageAccount'))]",
               "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers",
               "apiVersion": "2022-03-01",
-              "name": "[format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')), 2, '0'))]",
+              "name": "[format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
               "properties": {
                 "backupManagementType": "AzureStorage",
                 "containerType": "StorageContainer",
-                "sourceResourceId": "[resourceId(parameters('StorageResourceGroupName'), 'Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')), 2, '0')))]"
+                "sourceResourceId": "[resourceId(parameters('StorageResourceGroupName'), 'Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex'))))]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('RecoveryServicesVaultName'), 'AvdPolicyStorage')]",
@@ -6676,13 +6654,13 @@
                     "value": "[parameters('Location')]"
                   },
                   "ProtectionContainerName": {
-                    "value": "[format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0'))]"
+                    "value": "[format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))]"
                   },
                   "PolicyId": {
                     "value": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('RecoveryServicesVaultName'), 'AvdPolicyStorage')]"
                   },
                   "SourceResourceId": {
-                    "value": "[resourceId(parameters('StorageResourceGroupName'), 'Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')), 2, '0')))]"
+                    "value": "[resourceId(parameters('StorageResourceGroupName'), 'Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex'))))]"
                   },
                   "Tags": {
                     "value": "[parameters('Tags')]"
@@ -6741,7 +6719,7 @@
               },
               "dependsOn": [
                 "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', parameters('RecoveryServicesVaultName'), 'AvdPolicyStorage')]",
-                "[resourceId('Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers', split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')), '/')[0], split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')), '/')[1], split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), padLeft(add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')), 2, '0')), '/')[2])]"
+                "[resourceId('Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers', split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), '/')[0], split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), '/')[1], split(format('{0}/Azure/storagecontainer;Storage;{1};{2}{3}', parameters('RecoveryServicesVaultName'), parameters('StorageResourceGroupName'), parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), '/')[2])]"
               ]
             },
             {
@@ -6788,7 +6766,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "2039042539376286580"
+                      "templateHash": "7989728395005310515"
                     }
                   },
                   "parameters": {
@@ -6829,13 +6807,13 @@
                       },
                       "type": "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
                       "apiVersion": "2021-08-01",
-                      "name": "[format('{0}/Azure/{1}{2};{3}{4}/{5}{6};{7}{8}', parameters('RecoveryServicesVaultName'), variables('v2VmContainer'), parameters('VmResourceGroupName'), parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'), variables('v2Vm'), parameters('VmResourceGroupName'), parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0'))]",
+                      "name": "[format('{0}/Azure/{1}{2};{3}{4}/{5}{6};{7}{8}', parameters('RecoveryServicesVaultName'), variables('v2VmContainer'), parameters('VmResourceGroupName'), parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'), variables('v2Vm'), parameters('VmResourceGroupName'), parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "properties": {
                         "protectedItemType": "Microsoft.Compute/virtualMachines",
                         "policyId": "[parameters('PolicyId')]",
-                        "sourceResourceId": "[resourceId(parameters('VmResourceGroupName'), 'Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 3, '0')))]"
+                        "sourceResourceId": "[resourceId(parameters('VmResourceGroupName'), 'Microsoft.Compute/virtualMachines', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0')))]"
                       }
                     }
                   ]
@@ -7171,7 +7149,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "179931560184250141"
+              "templateHash": "15556511391620106471"
             }
           },
           "parameters": {
@@ -7251,7 +7229,7 @@
                     "value": "[parameters('AutomationAccountName')]"
                   },
                   "StorageAccountName": {
-                    "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(range(parameters('StorageIndex'), parameters('StorageCount'))[copyIndex()], 2, '0'))]"
+                    "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), range(parameters('StorageIndex'), parameters('StorageCount'))[copyIndex()])]"
                   },
                   "TimeZone": {
                     "value": "[parameters('TimeZone')]"
@@ -7350,7 +7328,7 @@
                     "value": "[parameters('StorageResourceGroupName')]"
                   },
                   "StorageAccountName": {
-                    "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), padLeft(range(parameters('StorageIndex'), parameters('StorageCount'))[copyIndex()], 2, '0'))]"
+                    "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), range(parameters('StorageIndex'), parameters('StorageCount'))[copyIndex()])]"
                   },
                   "SubscriptionId": {
                     "value": "[variables('SubscriptionId')]"

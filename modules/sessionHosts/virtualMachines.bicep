@@ -63,15 +63,11 @@ var AmdVmSizes = [
   'Standard_NV32as_v4'
 ]
 var AmdVmSize = contains(AmdVmSizes, VmSize)
-var FslogixExclusions = '${FslogixExclusionsLocal}${FslogixExclusionsProfileContainersString}${FslogixExclusionsOfficeContainersString}${FslogixExclusionsCloudCache}'
-var FslogixExclusionsCloudCache = ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"'
-var FslogixExclusionsLocal = ';"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHDX"'
-var FslogixExclusionsOfficeContainersArray = [for Share in FslogixOfficeShares: ';"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
-var FslogixExclusionsOfficeContainersString = join(FslogixExclusionsOfficeContainersArray, ';')
-var FslogixExclusionsProfileContainersArray = [for Share in FslogixProfileShares: ';"${Share}*\\*.VHDX";"${Share}*\\*.VHDX.lock";"${Share}*\\*.VHDX.meta";"${Share}*\\*.VHDX.metadata"']
-var FslogixExclusionsProfileContainersString = join(FslogixExclusionsProfileContainersArray, ';')
-var FslogixOfficeShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\office-containers\\']
-var FslogixProfileShares = [for i in range(0, StorageCount): '\\\\${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}.file.${StorageSuffix}\\profile-containers\\']
+var FslogixExclusions = '"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHDX";"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*";${FslogixExclusionsProfileContainers};${FslogixExclusionsOfficeContainers}'
+var FslogixExclusionsOfficeContainers = '"${FslogixOfficeShare}";"${FslogixOfficeShare}.lock";"${FslogixOfficeShare}.meta";"${FslogixOfficeShare}.metadata"'
+var FslogixExclusionsProfileContainers = '"${FslogixProfileShare}";"${FslogixProfileShare}.lock";"${FslogixProfileShare}.meta";"${FslogixProfileShare}.metadata"'
+var FslogixOfficeShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\office-containers\\*\\*.VHDX'
+var FslogixProfileShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\profile-containers\\*\\*.VHDX'
 var Intune = DomainServices == 'NoneWithIntune' ? true : false
 var NvidiaVmSizes = [
   'Standard_NV6'
@@ -106,7 +102,7 @@ var VmUserAssignedIdentityProperty = {
 var VmIdentity = ((!empty(UserAssignedIdentity)) ? union(VmIdentityTypeProperty, VmUserAssignedIdentityProperty) : VmIdentityTypeProperty)
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
-  name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 3, '0')}'
+  name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}'
   location: Location
   tags: Tags
   properties: {
@@ -129,7 +125,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [fo
 }]
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i in range(0, SessionHostCount): {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}'
+  name: '${VmName}${padLeft((i + SessionHostIndex), 4, '0')}'
   location: Location
   tags: Tags
   zones: Availability == 'AvailabilityZones' ? [
@@ -151,7 +147,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
         version: ImageVersion
       }
       osDisk: {
-        name: '${DiskName}${padLeft((i + SessionHostIndex), 3, '0')}'
+        name: '${DiskName}${padLeft((i + SessionHostIndex), 4, '0')}'
         osType: 'Windows'
         createOption: 'FromImage'
         caching: 'ReadWrite'
@@ -166,7 +162,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
       dataDisks: []
     }
     osProfile: {
-      computerName: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}'
+      computerName: '${VmName}${padLeft((i + SessionHostIndex), 4, '0')}'
       adminUsername: VmUsername
       adminPassword: VmPassword
       windowsConfiguration: {
@@ -179,7 +175,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
     networkProfile: {
       networkInterfaces: [
         {
-          id: resourceId('Microsoft.Network/networkInterfaces', 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 3, '0')}')
+          id: resourceId('Microsoft.Network/networkInterfaces', 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}')
           properties: {
             deleteOption: 'Delete'
           }
@@ -207,7 +203,8 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
 }]
 
 resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/IaaSAntimalware'
+  parent: virtualMachine[i]
+  name: 'IaaSAntimalware'
   location: Location
   tags: Tags
   properties: {
@@ -230,13 +227,11 @@ resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions
       } : {}
     }
   }
-  dependsOn: [
-    virtualMachine
-  ]
 }]
 
 resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (Monitoring) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/MicrosoftMonitoringAgent'
+  parent: virtualMachine[i]
+  name: 'MicrosoftMonitoringAgent'
   location: Location
   properties: {
     publisher: 'Microsoft.EnterpriseCloud.Monitoring'
@@ -252,12 +247,12 @@ resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/e
   }
   dependsOn: [
     extension_IaasAntimalware
-    virtualMachine
   ]
 }]
 
 resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/CustomScriptExtension'
+  parent: virtualMachine[i]
+  name: 'CustomScriptExtension'
   location: Location
   tags: Tags
   properties: {
@@ -277,7 +272,6 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
   }
   dependsOn: [
     extension_MicrosoftMonitoringAgent
-    virtualMachine
   ]
 }]
 
@@ -295,12 +289,12 @@ module drainMode '../deploymentScript.bicep' = if (DrainMode) {
   }
   dependsOn: [
     extension_CustomScriptExtension
-    virtualMachine
   ]
 }
 
 resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (contains(DomainServices, 'ActiveDirectory')) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/JsonADDomainExtension'
+  parent: virtualMachine[i]
+  name: 'JsonADDomainExtension'
   location: Location
   tags: Tags
   properties: {
@@ -322,12 +316,12 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
   }
   dependsOn: [
     drainMode
-    virtualMachine
   ]
 }]
 
 resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (contains(DomainServices, 'None')) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AADLoginForWindows'
+  parent: virtualMachine[i]
+  name: 'AADLoginForWindows'
   location: Location
   tags: Tags
   properties: {
@@ -341,12 +335,12 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
   }
   dependsOn: [
     drainMode
-    virtualMachine
   ]
 }]
 
 resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (AmdVmSize) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/AmdGpuDriverWindows'
+  parent: virtualMachine[i]
+  name: 'AmdGpuDriverWindows'
   location: Location
   tags: Tags
   properties: {
@@ -359,12 +353,12 @@ resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extens
   dependsOn: [
     extension_AADLoginForWindows
     extension_JsonADDomainExtension
-    virtualMachine
   ]
 }]
 
 resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (NvidiaVmSize) {
-  name: '${VmName}${padLeft((i + SessionHostIndex), 3, '0')}/NvidiaGpuDriverWindows'
+  parent: virtualMachine[i]
+  name: 'NvidiaGpuDriverWindows'
   location: Location
   tags: Tags
   properties: {
@@ -377,6 +371,5 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
   dependsOn: [
     extension_AADLoginForWindows
     extension_JsonADDomainExtension
-    virtualMachine
   ]
 }]

@@ -189,7 +189,7 @@ try
                 $FileServer = '\\' + $SmbServerName + '.' + $Domain.DNSRoot
             }
             'AzureStorageAccount' {
-                $StorageAccountName = $StorageAccountPrefix + ($i + $StorageIndex).ToString().PadLeft(2,'0')
+                $StorageAccountName = $StorageAccountPrefix + ($i + $StorageIndex).ToString()
                 $FileServer = '\\' + $StorageAccountName + $FilesSuffix
 
                 # Connects to Azure using a User Assigned Managed Identity

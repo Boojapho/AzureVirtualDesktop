@@ -62,7 +62,7 @@ var VirtualNetworkRules = {
 }
 
 resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i in range(0, StorageCount): {
-  name: '${StorageAccountPrefix}${padLeft((i + StorageIndex), 2, '0')}'
+  name: '${StorageAccountPrefix}${i + StorageIndex}'
   location: Location
   tags: Tags
   sku: {

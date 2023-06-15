@@ -191,7 +191,7 @@ param SentinelLogAnalyticsWorkspaceResourceGroupName string = ''
 @description('The ID of the subscription containing the log analytics workspace used for Azure Sentinel.')
 param SentinelLogAnalyticsWorkspaceSubscriptionId string = subscription().subscriptionId
 
-@maxValue(4999)
+@maxValue(5000)
 @minValue(0)
 @description('The number of session hosts to deploy in the host pool. Ensure you have the approved quota to deploy the desired count.')
 param SessionHostCount int = 1
@@ -201,13 +201,15 @@ param SessionHostCount int = 1
 @description('The starting number for the session hosts. This is important when adding virtual machines to ensure an update deployment is not performed on an exiting, active session host.')
 param SessionHostIndex int = 0
 
-@maxValue(99)
+@maxValue(9)
 @description('The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, "0" could be used for an office workers host pool and "1" could be used for a developers host pool within the "finance" business unit.')
 param StampIndex int = 0
 
+@maxValue(10)
 @description('The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageCount int = 1
 
+@maxValue(9)
 @description('The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageIndex int = 0
 
@@ -287,7 +289,7 @@ var LocationShortName = Locations[Location].acronym
 var LogAnalyticsWorkspaceName = 'law-${NamingStandard}'
 var UserAssignedIdentityName = 'uami-${NamingStandard}'
 var ManagementVmName = '${VmName}mgt'
-var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndexFull}'
+var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndex}'
 var NetAppAccountName = 'naa-${NamingStandard}'
 var NetAppCapacityPoolName = 'nacp-${NamingStandard}'
 var Netbios = split(DomainName, '.')[0]
@@ -310,12 +312,11 @@ var SecurityPrincipalIdsCount = length(SecurityPrincipalObjectIds)
 var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
 var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
-var StampIndexFull = padLeft(StampIndex, 2, '0')
-var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndexFull}'
+var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSuffix = environment().suffixes.storage
-var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndexFull}'
+var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"vmSize":{"id":"${VmSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
 var WorkspaceName = 'ws-${NamingStandard}'
 
