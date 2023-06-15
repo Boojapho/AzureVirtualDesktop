@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "1871020318804947050"
+      "templateHash": "16934883683124250963"
     }
   },
   "parameters": {
@@ -22,6 +22,18 @@
       "metadata": {
         "description": "The SAS Token for the scripts if they are stored on an Azure Storage Account."
       }
+    },
+    "ActiveDirectorySolution": {
+      "type": "string",
+      "metadata": {
+        "description": "The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account."
+      },
+      "allowedValues": [
+        "ActiveDirectoryDomainServices",
+        "AzureActiveDirectoryDomainServices",
+        "AzureActiveDirectory",
+        "AzureActiveDirectoryIntuneEnrollment"
+      ]
     },
     "Availability": {
       "type": "string",
@@ -94,19 +106,6 @@
       "metadata": {
         "description": "The name of the domain that provides ADDS to the AVD session hosts and is synchronized with Azure AD"
       }
-    },
-    "DomainServices": {
-      "type": "string",
-      "defaultValue": "AzureActiveDirectory",
-      "metadata": {
-        "description": "The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account."
-      },
-      "allowedValues": [
-        "ActiveDirectory",
-        "AzureActiveDirectory",
-        "None",
-        "NoneWithIntune"
-      ]
     },
     "DrainMode": {
       "type": "bool",
@@ -769,7 +768,7 @@
       ]
     },
     "FileShares": "[variables('FileShareNames')[parameters('FslogixSolution')]]",
-    "Fslogix": "[if(or(equals(parameters('FslogixStorage'), 'None'), contains(parameters('DomainServices'), 'None')), false(), true())]",
+    "Fslogix": "[if(or(equals(parameters('FslogixStorage'), 'None'), not(contains(parameters('ActiveDirectorySolution'), 'DomainServices'))), false(), true())]",
     "HostPoolName": "[format('hp-{0}', variables('NamingStandard'))]",
     "KeyVaultName": "[format('kv-{0}', variables('NamingStandard'))]",
     "Locations": "[variables('$fxv#0')]",
@@ -1030,8 +1029,11 @@
           "DomainName": {
             "value": "[variables('DiskName')]"
           },
-          "DomainServices": {
-            "value": "[parameters('DomainServices')]"
+          "Fslogix": {
+            "value": "[variables('Fslogix')]"
+          },
+          "ActiveDirectorySolution": {
+            "value": "[parameters('ActiveDirectorySolution')]"
           },
           "HostPoolType": {
             "value": "[parameters('HostPoolType')]"
@@ -1083,10 +1085,13 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "13197467731033872679"
+              "templateHash": "3409991508178858957"
             }
           },
           "parameters": {
+            "ActiveDirectorySolution": {
+              "type": "string"
+            },
             "Availability": {
               "type": "string"
             },
@@ -1099,8 +1104,8 @@
             "DomainName": {
               "type": "string"
             },
-            "DomainServices": {
-              "type": "string"
+            "Fslogix": {
+              "type": "bool"
             },
             "HostPoolType": {
               "type": "string"
@@ -1120,10 +1125,10 @@
             "SecurityPrincipalNamesCount": {
               "type": "int"
             },
-            "StorageCount": {
+            "SessionHostCount": {
               "type": "int"
             },
-            "SessionHostCount": {
+            "StorageCount": {
               "type": "int"
             },
             "StorageSolution": {
@@ -1621,7 +1626,7 @@
               }
             },
             {
-              "condition": "[equals(parameters('DomainServices'), 'AzureActiveDirectory')]",
+              "condition": "[equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectoryDomainServices')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('DeploymentScript_KerberosEncryptionValidation_{0}', parameters('Timestamp'))]",
@@ -1715,7 +1720,7 @@
               }
             },
             {
-              "condition": "[equals(parameters('DomainServices'), 'AzureActiveDirectory')]",
+              "condition": "[parameters('Fslogix')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('DeploymentScript_StorageValidation_{0}', parameters('Timestamp'))]",
@@ -2236,8 +2241,8 @@
           "CustomRdpProperty": {
             "value": "[parameters('CustomRdpProperty')]"
           },
-          "DomainServices": {
-            "value": "[parameters('DomainServices')]"
+          "ActiveDirectorySolution": {
+            "value": "[parameters('ActiveDirectorySolution')]"
           },
           "HostPoolName": {
             "value": "[variables('HostPoolName')]"
@@ -2277,7 +2282,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "10942940609627800649"
+              "templateHash": "9881481074649894650"
             }
           },
           "parameters": {
@@ -2287,7 +2292,7 @@
             "CustomRdpProperty": {
               "type": "string"
             },
-            "DomainServices": {
+            "ActiveDirectorySolution": {
               "type": "string"
             },
             "HostPoolName": {
@@ -2326,7 +2331,7 @@
             }
           },
           "variables": {
-            "CustomRdpProperty_Complete": "[if(contains(parameters('DomainServices'), 'None'), format('{0}targetisaadjoined:i:1', parameters('CustomRdpProperty')), parameters('CustomRdpProperty'))]",
+            "CustomRdpProperty_Complete": "[if(or(equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectory'), equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectoryIntuneEnrollment')), format('{0}targetisaadjoined:i:1', parameters('CustomRdpProperty')), parameters('CustomRdpProperty'))]",
             "DesktopVirtualizationUserRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', '1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63')]",
             "HostPoolLogs": [
               {
@@ -3393,7 +3398,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[format('FSLogix_{0}', parameters('Timestamp'))]",
-      "location": "[deployment().location]",
+      "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -3445,8 +3450,8 @@
           "DomainName": {
             "value": "[parameters('DomainName')]"
           },
-          "DomainServices": {
-            "value": "[parameters('DomainServices')]"
+          "ActiveDirectorySolution": {
+            "value": "[parameters('ActiveDirectorySolution')]"
           },
           "FileShares": {
             "value": "[variables('FileShares')]"
@@ -3546,13 +3551,13 @@
           }
         },
         "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "1.0.0.0",
           "metadata": {
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "6119682217227913006"
+              "templateHash": "5214657246521732167"
             }
           },
           "parameters": {
@@ -3562,10 +3567,13 @@
             "_artifactsLocationSasToken": {
               "type": "securestring"
             },
-            "Availability": {
+            "ActiveDirectoryConnection": {
               "type": "string"
             },
-            "ActiveDirectoryConnection": {
+            "ActiveDirectorySolution": {
+              "type": "string"
+            },
+            "Availability": {
               "type": "string"
             },
             "AzureFilesPrivateDnsZoneResourceId": {
@@ -3599,9 +3607,6 @@
               "type": "string"
             },
             "DomainName": {
-              "type": "string"
-            },
-            "DomainServices": {
               "type": "string"
             },
             "FileShares": {
@@ -3703,7 +3708,7 @@
           },
           "resources": [
             {
-              "condition": "[not(contains(parameters('DomainServices'), 'None'))]",
+              "condition": "[contains(parameters('ActiveDirectorySolution'), 'DomainServices')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('ManagementVirtualMachine_{0}', parameters('Timestamp'))]",
@@ -3967,7 +3972,7 @@
               }
             },
             {
-              "condition": "[and(equals(parameters('StorageSolution'), 'AzureNetAppFiles'), not(contains(parameters('DomainServices'), 'None')))]",
+              "condition": "[and(equals(parameters('StorageSolution'), 'AzureNetAppFiles'), contains(parameters('ActiveDirectorySolution'), 'DomainServices'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('AzureNetAppFiles_{0}', parameters('Timestamp'))]",
@@ -4419,7 +4424,7 @@
               ]
             },
             {
-              "condition": "[and(equals(parameters('StorageSolution'), 'AzureStorageAccount'), not(contains(parameters('DomainServices'), 'None')))]",
+              "condition": "[and(equals(parameters('StorageSolution'), 'AzureStorageAccount'), contains(parameters('ActiveDirectorySolution'), 'DomainServices'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('AzureFiles_{0}', parameters('Timestamp'))]",
@@ -4435,6 +4440,9 @@
                   },
                   "_artifactsLocationSasToken": {
                     "value": "[parameters('_artifactsLocationSasToken')]"
+                  },
+                  "ActiveDirectorySolution": {
+                    "value": "[parameters('ActiveDirectorySolution')]"
                   },
                   "Availability": {
                     "value": "[parameters('Availability')]"
@@ -4453,9 +4461,6 @@
                   },
                   "DomainJoinUserPrincipalName": {
                     "value": "[parameters('DomainJoinUserPrincipalName')]"
-                  },
-                  "DomainServices": {
-                    "value": "[parameters('DomainServices')]"
                   },
                   "FileShares": {
                     "value": "[parameters('FileShares')]"
@@ -4540,7 +4545,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "14487931900700969561"
+                      "templateHash": "14716555459239656410"
                     }
                   },
                   "parameters": {
@@ -4568,7 +4573,7 @@
                     "DomainJoinUserPrincipalName": {
                       "type": "string"
                     },
-                    "DomainServices": {
+                    "ActiveDirectorySolution": {
                       "type": "string"
                     },
                     "FileShares": {
@@ -4709,7 +4714,7 @@
                           "keySource": "Microsoft.Storage"
                         },
                         "azureFilesIdentityBasedAuthentication": {
-                          "directoryServiceOptions": "[if(equals(parameters('DomainServices'), 'AzureActiveDirectory'), 'AADDS', 'None')]"
+                          "directoryServiceOptions": "[if(equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectoryDomainServices'), 'AADDS', 'None')]"
                         },
                         "largeFileSharesState": "[if(equals(parameters('StorageSku'), 'Standard'), 'Enabled', null())]"
                       }
@@ -4884,7 +4889,7 @@
                       ]
                     },
                     {
-                      "condition": "[not(contains(parameters('DomainServices'), 'None'))]",
+                      "condition": "[contains(parameters('ActiveDirectorySolution'), 'DomainServices')]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('FslogixNtfsPermissions_{0}', parameters('Timestamp'))]",
@@ -4902,7 +4907,7 @@
                             "value": "[parameters('_artifactsLocationSasToken')]"
                           },
                           "CommandToExecute": {
-                            "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -ClientId {0} -DomainJoinPassword \"{1}\" -DomainJoinUserPrincipalName {2} -DomainServices {3} -Environment {4} -FslogixSolution {5} -KerberosEncryptionType {6} -Netbios {7} -OuPath \"{8}\" -SecurityPrincipalNames \"{9}\" -StorageAccountPrefix {10} -StorageAccountResourceGroupName {11} -StorageCount {12} -StorageIndex {13} -StorageSolution {14} -StorageSuffix {15} -SubscriptionId {16} -TenantId {17}', parameters('ClientId'), parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('DomainServices'), environment().name, parameters('FslogixSolution'), parameters('KerberosEncryption'), parameters('Netbios'), parameters('OuPath'), parameters('SecurityPrincipalNames'), parameters('StorageAccountPrefix'), parameters('ResourceGroupStorage'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), environment().suffixes.storage, subscription().subscriptionId, subscription().tenantId)]"
+                            "value": "[format('powershell -ExecutionPolicy Unrestricted -File Set-NtfsPermissions.ps1 -ClientId {0} -DomainJoinPassword \"{1}\" -DomainJoinUserPrincipalName {2} -ActiveDirectorySolution {3} -Environment {4} -FslogixSolution {5} -KerberosEncryptionType {6} -Netbios {7} -OuPath \"{8}\" -SecurityPrincipalNames \"{9}\" -StorageAccountPrefix {10} -StorageAccountResourceGroupName {11} -StorageCount {12} -StorageIndex {13} -StorageSolution {14} -StorageSuffix {15} -SubscriptionId {16} -TenantId {17}', parameters('ClientId'), parameters('DomainJoinPassword'), parameters('DomainJoinUserPrincipalName'), parameters('ActiveDirectorySolution'), environment().name, parameters('FslogixSolution'), parameters('KerberosEncryption'), parameters('Netbios'), parameters('OuPath'), parameters('SecurityPrincipalNames'), parameters('StorageAccountPrefix'), parameters('ResourceGroupStorage'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), environment().suffixes.storage, subscription().subscriptionId, subscription().tenantId)]"
                           },
                           "DeploymentScriptNamePrefix": {
                             "value": "[parameters('DeploymentScriptNamePrefix')]"
@@ -5234,8 +5239,8 @@
           "DomainName": {
             "value": "[parameters('DomainName')]"
           },
-          "DomainServices": {
-            "value": "[parameters('DomainServices')]"
+          "ActiveDirectorySolution": {
+            "value": "[parameters('ActiveDirectorySolution')]"
           },
           "DrainMode": {
             "value": "[parameters('DrainMode')]"
@@ -5282,7 +5287,7 @@
           "NamingStandard": {
             "value": "[variables('NamingStandard')]"
           },
-          "NetAppFileShares": "[if(variables('Fslogix'), createObject('value', reference(subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp'))), '2022-09-01').outputs.netAppShares.value), createObject('value', createArray('None')))]",
+          "NetAppFileShares": "[if(variables('Fslogix'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp'))), '2022-09-01').outputs.netAppShares.value), createObject('value', createArray('None')))]",
           "OuPath": {
             "value": "[parameters('OuPath')]"
           },
@@ -5369,7 +5374,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "17586142800557808800"
+              "templateHash": "11528456829049503772"
             }
           },
           "parameters": {
@@ -5424,7 +5429,7 @@
             "DomainName": {
               "type": "string"
             },
-            "DomainServices": {
+            "ActiveDirectorySolution": {
               "type": "string"
             },
             "DrainMode": {
@@ -5582,7 +5587,7 @@
                 "name": "roleAssignments",
                 "count": "[length(range(0, length(parameters('SecurityPrincipalObjectIds'))))]"
               },
-              "condition": "[contains(parameters('DomainServices'), 'None')]",
+              "condition": "[not(contains(parameters('ActiveDirectorySolution'), 'DomainServices'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
               "name": "[format('RoleAssignments_{0}_{1}', range(0, length(parameters('SecurityPrincipalObjectIds')))[copyIndex()], parameters('Timestamp'))]",
@@ -5689,8 +5694,8 @@
                   "DomainName": {
                     "value": "[parameters('DomainName')]"
                   },
-                  "DomainServices": {
-                    "value": "[parameters('DomainServices')]"
+                  "ActiveDirectorySolution": {
+                    "value": "[parameters('ActiveDirectorySolution')]"
                   },
                   "DrainMode": {
                     "value": "[parameters('DrainMode')]"
@@ -5813,7 +5818,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "8410227460307209500"
+                      "templateHash": "10538396270725520775"
                     }
                   },
                   "parameters": {
@@ -5859,7 +5864,7 @@
                     "DomainName": {
                       "type": "string"
                     },
-                    "DomainServices": {
+                    "ActiveDirectorySolution": {
                       "type": "string"
                     },
                     "DrainMode": {
@@ -5995,7 +6000,7 @@
                     "FslogixExclusionsProfileContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
                     "FslogixOfficeShare": "[format('\\\\{0}?.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
-                    "Intune": "[if(equals(parameters('DomainServices'), 'NoneWithIntune'), true(), false())]",
+                    "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
                       "Standard_NV12",
@@ -6016,7 +6021,7 @@
                     ],
                     "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VmSize'))]",
                     "PooledHostPool": "[equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled')]",
-                    "VmIdentityType": "[if(contains(parameters('DomainServices'), 'None'), if(not(empty(parameters('UserAssignedIdentity'))), 'SystemAssigned, UserAssigned', 'SystemAssigned'), if(not(empty(parameters('UserAssignedIdentity'))), 'UserAssigned', 'None'))]",
+                    "VmIdentityType": "[if(or(equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectory'), equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectoryIntuneEnrollment')), if(not(empty(parameters('UserAssignedIdentity'))), 'SystemAssigned, UserAssigned', 'SystemAssigned'), if(not(empty(parameters('UserAssignedIdentity'))), 'UserAssigned', 'None'))]",
                     "VmIdentityTypeProperty": {
                       "type": "[variables('VmIdentityType')]"
                     },
@@ -6211,7 +6216,7 @@
                           "timestamp": "[parameters('Timestamp')]"
                         },
                         "protectedSettings": {
-                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -DomainServices {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -ScreenCaptureProtection {13} -Sentinel {14} -SentinelWorkspaceId {15} -SentinelWorkspaceKey {16} -StorageAccountPrefix {17} -StorageCount {18} -StorageIndex {19} -StorageSolution {20} -StorageSuffix {21}', variables('AmdVmSize'), parameters('DomainName'), parameters('DomainServices'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('ScreenCaptureProtection'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
+                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -ActiveDirectorySolution {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -ScreenCaptureProtection {13} -Sentinel {14} -SentinelWorkspaceId {15} -SentinelWorkspaceKey {16} -StorageAccountPrefix {17} -StorageCount {18} -StorageIndex {19} -StorageSolution {20} -StorageSuffix {21}', variables('AmdVmSize'), parameters('DomainName'), parameters('ActiveDirectorySolution'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('ScreenCaptureProtection'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
                         }
                       },
                       "dependsOn": [
@@ -6224,7 +6229,7 @@
                         "name": "extension_JsonADDomainExtension",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
                       },
-                      "condition": "[contains(parameters('DomainServices'), 'ActiveDirectory')]",
+                      "condition": "[contains(parameters('ActiveDirectorySolution'), 'DomainServices')]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'JsonADDomainExtension')]",
@@ -6257,7 +6262,7 @@
                         "name": "extension_AADLoginForWindows",
                         "count": "[length(range(0, parameters('SessionHostCount')))]"
                       },
-                      "condition": "[contains(parameters('DomainServices'), 'None')]",
+                      "condition": "[not(contains(parameters('ActiveDirectorySolution'), 'DomainServices'))]",
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AADLoginForWindows')]",
@@ -6433,7 +6438,7 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('DiskEncryption_{0}', parameters('Timestamp')))]",
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp')))]",
         "resourceGroups",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
@@ -6859,7 +6864,7 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupHosts')), 'Microsoft.Resources/deployments', format('SessionHosts_{0}', parameters('Timestamp')))]"
       ]
     },
@@ -7511,7 +7516,7 @@
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('AutomationAccount_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Backup_{0}', parameters('Timestamp')))]",
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]"
       ]
     }
   ]

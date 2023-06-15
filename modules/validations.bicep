@@ -1,16 +1,17 @@
+param ActiveDirectorySolution string
 param Availability string
 param DeploymentScriptNamePrefix string
 param DiskSku string
 param DomainName string
-param DomainServices string
+param Fslogix bool
 param HostPoolType string
 param ImageSku string
 param KerberosEncryption string
 param Location string
 param SecurityPrincipalIdsCount int
 param SecurityPrincipalNamesCount int
-param StorageCount int
 param SessionHostCount int
+param StorageCount int
 param StorageSolution string
 param Timestamp string
 param UserAssignedIdentityResourceId string
@@ -81,7 +82,7 @@ module hyperVGeneration 'deploymentScript.bicep' = if (contains(ImageSku, '-g2')
   }
 }
 
-module kerberosEncryption 'deploymentScript.bicep' = if (DomainServices == 'AzureActiveDirectory') {
+module kerberosEncryption 'deploymentScript.bicep' = if (ActiveDirectorySolution == 'AzureActiveDirectoryDomainServices') {
   name: 'DeploymentScript_KerberosEncryptionValidation_${Timestamp}'
   params: {
     Arguments: '-DomainName ${DomainName} -KerberosEncryption ${KerberosEncryption}'
@@ -93,7 +94,7 @@ module kerberosEncryption 'deploymentScript.bicep' = if (DomainServices == 'Azur
   }
 }
 
-module storage 'deploymentScript.bicep' = if (DomainServices == 'AzureActiveDirectory') {
+module storage 'deploymentScript.bicep' = if (Fslogix) {
   name: 'DeploymentScript_StorageValidation_${Timestamp}'
   params: {
     Arguments: '-SecurityPrincipalIdsCount ${SecurityPrincipalIdsCount} -SecurityPrincipalNamesCount ${SecurityPrincipalNamesCount} -StorageCount ${StorageCount}'

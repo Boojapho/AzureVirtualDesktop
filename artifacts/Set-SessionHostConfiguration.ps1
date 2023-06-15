@@ -10,7 +10,7 @@ Param(
 
     [parameter(Mandatory)]
     [string]
-    $DomainServices,
+    $ActiveDirectorySolution,
 
     [parameter(Mandatory)]
     [string]
@@ -585,7 +585,7 @@ try
     ##############################################################
     #  Restart VM
     ##############################################################
-    if($DomainServices -like "None*" -and $AmdVmSize -eq 'false' -and $NvidiaVmSize -eq 'false')
+    if(($ActiveDirectorySolution -eq "AzureActiveDirectory" -or $ActiveDirectorySolution -eq "AzureActiveDirectoryIntuneEnrollment") -and $AmdVmSize -eq 'false' -and $NvidiaVmSize -eq 'false')
     {
         Start-Process -FilePath 'shutdown' -ArgumentList '/r /t 30'
     }

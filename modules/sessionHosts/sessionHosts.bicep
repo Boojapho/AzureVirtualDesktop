@@ -17,7 +17,7 @@ param DivisionRemainderValue int
 param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
-param DomainServices string
+param ActiveDirectorySolution string
 param DrainMode bool
 param FslogixSolution string
 param Fslogix bool
@@ -79,7 +79,7 @@ resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for
 
 // Role Assignment for Virtual Machine Login User
 // This module deploys the role assignments to login to Azure AD joined session hosts
-module roleAssignments '../roleAssignment.bicep' = [for i in range(0, length(SecurityPrincipalObjectIds)): if (contains(DomainServices, 'None')) {
+module roleAssignments '../roleAssignment.bicep' = [for i in range(0, length(SecurityPrincipalObjectIds)): if (!contains(ActiveDirectorySolution, 'DomainServices')) {
   name: 'RoleAssignments_${i}_${Timestamp}'
   scope: resourceGroup(ResourceGroupHosts)
   params: {
@@ -106,7 +106,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
-    DomainServices: DomainServices
+    ActiveDirectorySolution: ActiveDirectorySolution
     DrainMode: DrainMode
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution

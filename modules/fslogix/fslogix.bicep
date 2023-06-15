@@ -1,10 +1,9 @@
-targetScope = 'subscription'
-
 param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
-param Availability string
 param ActiveDirectoryConnection string
+param ActiveDirectorySolution string
+param Availability string
 param AzureFilesPrivateDnsZoneResourceId string
 param ClientId string
 param DelegatedSubnetId string
@@ -17,7 +16,6 @@ param DnsServers string
 param DomainJoinPassword string
 param DomainJoinUserPrincipalName string
 param DomainName string
-param DomainServices string
 param FileShares array
 param FslogixShareSizeInGB int
 param FslogixSolution string
@@ -54,7 +52,7 @@ param VmUsername string
 
 // Fslogix Management VM
 // This module is required to fully configure any storage option for FSLogix
-module managementVirtualMachine 'managementVirtualMachine.bicep' = if (!contains(DomainServices, 'None')) {
+module managementVirtualMachine 'managementVirtualMachine.bicep' = if (contains(ActiveDirectorySolution, 'DomainServices')) {
   name: 'ManagementVirtualMachine_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
@@ -77,11 +75,10 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if (!contains
     VmPassword: VmPassword
     VmUsername: VmUsername
   }
-
 }
 
 // Azure NetApp Files for Fslogix
-module azureNetAppFiles 'azureNetAppFiles.bicep' = if (StorageSolution == 'AzureNetAppFiles' && !contains(DomainServices, 'None')) {
+module azureNetAppFiles 'azureNetAppFiles.bicep' = if (StorageSolution == 'AzureNetAppFiles' && contains(ActiveDirectorySolution, 'DomainServices')) {
   name: 'AzureNetAppFiles_${Timestamp}'
   scope: resourceGroup(ResourceGroupStorage)
   params: {
@@ -116,19 +113,19 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if (StorageSolution == 'Azure
 }
 
 // Azure Files for FSLogix
-module azureFiles 'azureFiles/azureFiles.bicep' = if (StorageSolution == 'AzureStorageAccount' && !contains(DomainServices, 'None')) {
+module azureFiles 'azureFiles/azureFiles.bicep' = if (StorageSolution == 'AzureStorageAccount' && contains(ActiveDirectorySolution, 'DomainServices')) {
   name: 'AzureFiles_${Timestamp}'
   scope: resourceGroup(ResourceGroupStorage)
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
+    ActiveDirectorySolution: ActiveDirectorySolution
     Availability: Availability
     AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
     ClientId: ClientId
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
-    DomainServices: DomainServices
     FileShares: FileShares
     FslogixShareSizeInGB: FslogixShareSizeInGB
     FslogixSolution: FslogixSolution

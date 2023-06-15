@@ -13,7 +13,7 @@ param
     [String]$DomainJoinUserPrincipalName,
 
     [Parameter(Mandatory=$false)]
-    [String]$DomainServices,
+    [String]$ActiveDirectorySolution,
 
     [Parameter(Mandatory=$false)]
     [String]$Environment,
@@ -92,7 +92,7 @@ try
     #  Install Prerequisites
     ##############################################################
     # Install Active Directory PowerShell module
-    if($StorageSolution -eq 'AzureNetAppFiles' -or ($StorageSolution -eq 'AzureStorageAccount' -and $DomainServices -eq 'ActiveDirectory'))
+    if($StorageSolution -eq 'AzureNetAppFiles' -or ($StorageSolution -eq 'AzureStorageAccount' -and $ActiveDirectorySolution -eq 'ActiveDirectoryDomainServices'))
     {
         $RsatInstalled = (Get-WindowsFeature -Name 'RSAT-AD-PowerShell').Installed
         if(!$RsatInstalled)
@@ -151,7 +151,7 @@ try
         'ProfileOfficeContainer' {@('office-containers','profile-containers')}
     }
 
-    if($StorageSolution -eq 'AzureNetAppFiles' -or ($StorageSolution -eq 'AzureStorageAccount' -and $DomainServices -eq 'ActiveDirectory'))
+    if($StorageSolution -eq 'AzureNetAppFiles' -or ($StorageSolution -eq 'AzureStorageAccount' -and $ActiveDirectorySolution -eq 'ActiveDirectoryDomainServices'))
     {
         # Create Domain credential
         $DomainUsername = $DomainJoinUserPrincipalName
@@ -206,7 +206,7 @@ try
                 [pscredential]$StorageKeyCredential = New-Object System.Management.Automation.PSCredential ($StorageUsername, $StoragePassword)
                 $Credential = $StorageKeyCredential
 
-                if($DomainServices -eq 'ActiveDirectory')
+                if($ActiveDirectorySolution -eq 'ActiveDirectoryDomainServices')
                 {
                     # Get / create kerberos key for Azure Storage Account
                     $KerberosKey = (Get-AzStorageAccountKey -ResourceGroupName $StorageAccountResourceGroupName -Name $StorageAccountName -ListKerbKey | Where-Object {$_.Keyname -contains 'kerb1'}).Value

@@ -8,6 +8,9 @@
         "_artifactsLocationSasToken": {
             "value": ""
         },
+        "activeDirectorySolution": {
+            "value": "ActiveDirectory"
+        },
         "availability": {
             "value": "AvailabilityZones"
         },
@@ -44,9 +47,6 @@
         },
         "domainName": {
             "value": "jasonmasten.com"
-        },
-        "domainServices": {
-            "value": "ActiveDirectory"
         },
         "drainMode": {
             "value": true

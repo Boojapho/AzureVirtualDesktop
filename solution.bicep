@@ -8,6 +8,15 @@ param _artifactsLocation string = 'https://raw.githubusercontent.com/jamasten/Az
 param _artifactsLocationSasToken string = ''
 
 @allowed([
+  'ActiveDirectoryDomainServices'
+  'AzureActiveDirectoryDomainServices'
+  'AzureActiveDirectory'
+  'AzureActiveDirectoryIntuneEnrollment'
+])
+@description('The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account.')
+param ActiveDirectorySolution string
+
+@allowed([
   'AvailabilitySet'
   'AvailabilityZones'
   'None'
@@ -44,15 +53,6 @@ param DomainJoinUserPrincipalName string = ''
 
 @description('The name of the domain that provides ADDS to the AVD session hosts and is synchronized with Azure AD')
 param DomainName string = ''
-
-@allowed([
-  'ActiveDirectory' // Active Directory Domain Services
-  'AzureActiveDirectory' // Azure Active Directory Domain Services
-  'None' // Azure AD Join
-  'NoneWithIntune' // Azure AD Join with Intune enrollment
-])
-@description('The service providing domain services for Azure Virtual Desktop.  This is needed to properly configure the session hosts and if applicable, the Azure Storage Account.')
-param DomainServices string = 'AzureActiveDirectory'
 
 @description('Enable drain mode on new sessions hosts to prevent users from accessing them until they are validated.')
 param DrainMode bool = false
@@ -281,7 +281,7 @@ var FileShareNames = {
   ]
 }
 var FileShares = FileShareNames[FslogixSolution]
-var Fslogix = FslogixStorage == 'None' || contains(DomainServices, 'None') ? false : true
+var Fslogix = FslogixStorage == 'None' || !contains(ActiveDirectorySolution, 'DomainServices') ? false : true
 var HostPoolName = 'hp-${NamingStandard}'
 var KeyVaultName = 'kv-${NamingStandard}'
 var Locations = loadJsonContent('artifacts/locations.json')
@@ -367,7 +367,8 @@ module validations 'modules/validations.bicep' = {
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskSku: DiskSku
     DomainName: DiskName
-    DomainServices: DomainServices
+    Fslogix: Fslogix
+    ActiveDirectorySolution: ActiveDirectorySolution
     HostPoolType: HostPoolType
     ImageSku: ImageSku
     KerberosEncryption: KerberosEncryption
@@ -418,7 +419,7 @@ module hostPool 'modules/hostPool.bicep' = {
   params: {
     AppGroupName: AppGroupName
     CustomRdpProperty: CustomRdpProperty
-    DomainServices: DomainServices
+    ActiveDirectorySolution: ActiveDirectorySolution
     HostPoolName: HostPoolName
     HostPoolType: HostPoolType
     Location: Location
@@ -470,6 +471,7 @@ module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
 
 module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
   name: 'FSLogix_${Timestamp}'
+  scope: resourceGroup(ResourceGroupManagement)
   params: {
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
@@ -486,7 +488,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
-    DomainServices: DomainServices
+    ActiveDirectorySolution: ActiveDirectorySolution
     FileShares: FileShares
     FslogixShareSizeInGB: FslogixShareSizeInGB
     FslogixSolution: FslogixSolution
@@ -560,7 +562,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
-    DomainServices: DomainServices
+    ActiveDirectorySolution: ActiveDirectorySolution
     DrainMode: DrainMode
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution

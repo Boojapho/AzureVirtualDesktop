@@ -1,6 +1,6 @@
 param AppGroupName string
 param CustomRdpProperty string
-param DomainServices string
+param ActiveDirectorySolution string
 param HostPoolName string
 param HostPoolType string
 param Location string
@@ -13,7 +13,7 @@ param ValidationEnvironment bool
 param VmTemplate string
 param WorkspaceName string
 
-var CustomRdpProperty_Complete = contains(DomainServices, 'None') ? '${CustomRdpProperty}targetisaadjoined:i:1' : CustomRdpProperty
+var CustomRdpProperty_Complete = ActiveDirectorySolution == 'AzureActiveDirectory' || ActiveDirectorySolution == 'AzureActiveDirectoryIntuneEnrollment' ? '${CustomRdpProperty}targetisaadjoined:i:1' : CustomRdpProperty
 var DesktopVirtualizationUserRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', '1d18fff3-a72a-46b5-b4a9-0b38a3cd7e63')
 var HostPoolLogs = [
   {
