@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "16726354766674655597"
+      "templateHash": "16467207090123128274"
     }
   },
   "parameters": {
@@ -5208,7 +5208,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "5527298803738506478"
+              "templateHash": "17586142800557808800"
             }
           },
           "parameters": {
@@ -5652,7 +5652,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "14303479240607903104"
+                      "templateHash": "8410227460307209500"
                     }
                   },
                   "parameters": {
@@ -5828,8 +5828,9 @@
                       "Standard_NV32as_v4"
                     ],
                     "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
-                    "FslogixExclusions": "[format('\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\";\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\";{0};{1}', variables('FslogixExclusionsProfileContainers'), variables('FslogixExclusionsOfficeContainers'))]",
-                    "FslogixExclusionsOfficeContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'))]",
+                    "FslogixExclusions": "[format('\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\"{0}{1}{2}', variables('FslogixExclusionsCloudCache'), variables('FslogixExclusionsProfileContainers'), variables('FslogixExclusionsOfficeContainers'))]",
+                    "FslogixExclusionsCloudCache": "[if(contains(parameters('FslogixSolution'), 'CloudCache'), ';\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\"', '')]",
+                    "FslogixExclusionsOfficeContainers": "[if(contains(parameters('FslogixSolution'), 'Office'), format(';\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare')), '')]",
                     "FslogixExclusionsProfileContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
                     "FslogixOfficeShare": "[format('\\\\{0}?.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
