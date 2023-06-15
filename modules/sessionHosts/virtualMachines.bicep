@@ -212,7 +212,7 @@ resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions
     type: 'IaaSAntimalware'
     typeHandlerVersion: '1.3'
     autoUpgradeMinorVersion: true
-    enableAutomaticUpgrade: true
+    enableAutomaticUpgrade: false
     settings: {
       AntimalwareEnabled: true
       RealtimeProtectionEnabled: 'true'
