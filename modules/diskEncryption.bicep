@@ -1,15 +1,13 @@
+param DeploymentScriptNamePrefix string
 param DiskEncryptionKeyExpirationInDays int = 30
 param DiskEncryptionSetName string
 param Environment string
 param KeyVaultName string
 param Location string
 param Tags object
-param Time string = utcNow()
 param Timestamp string
 param UserAssignedIdentityPrincipalId string
 param UserAssignedIdentityResourceId string
-
-var DiskEncryptionKeyExpirationInEpoch = dateTimeToEpoch(dateTimeAdd(Time, 'P${string(DiskEncryptionKeyExpirationInDays)}D'))
 
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: KeyVaultName
@@ -31,41 +29,25 @@ resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   }
 }
 
-resource key 'Microsoft.KeyVault/vaults/keys@2022-07-01' = {
-  parent: vault
+module keyValidation 'deploymentScript.bicep' = {
+  name: 'DeploymentScript_DiskEncryptionKeyValidation_${Timestamp}'
+  params: {
+    Arguments: '-VaultName ${vault.name}'
+    Location: Location
+    Name: '${DeploymentScriptNamePrefix}diskEncryptionKeyValidation'
+    Script: 'param([string]$VaultName); $ErrorActionPreference = "Stop"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq "DiskEncryptionKey"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = "True"}else{$Exists = "False"}; $DeploymentScriptOutputs["exists"] = $Exists'
+    Timestamp: Timestamp
+    UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
+  }
+}
+
+module key 'key.bicep' = {
   name: 'DiskEncryptionKey'
-  tags: Tags
-  properties: {
-    attributes: {
-      enabled: true
-      exp: DiskEncryptionKeyExpirationInEpoch
-      nbf: null
-    }
-    keySize: 4096
-    kty: 'RSA'
-    rotationPolicy: {
-      attributes: {
-        expiryTime: 'P${string(DiskEncryptionKeyExpirationInDays)}D'
-      }
-      lifetimeActions: [
-        {
-          action: {
-            type: 'notify'
-          }
-          trigger: {
-            timeBeforeExpiry: 'P10D'
-          }
-        }
-        {
-          action: {
-            type: 'rotate'
-          }
-          trigger: {
-            timeAfterCreate: 'P${string(DiskEncryptionKeyExpirationInDays - 7)}D'
-          }
-        }
-      ]
-    }
+  params: {
+    DiskEncryptionKeyExpirationInDays: DiskEncryptionKeyExpirationInDays
+    KeyDoesNotExist: keyValidation.outputs.properties.exists == 'False'
+    KeyVaultName: KeyVaultName
+    Tags: Tags
   }
 }
 
@@ -92,7 +74,7 @@ resource diskEncryptionSet 'Microsoft.Compute/diskEncryptionSets@2022-07-02' = {
       sourceVault: {
         id: vault.id
       }
-      keyUrl: key.properties.keyUriWithVersion
+      keyUrl: key.outputs.keyUriWithVersion
     }
     encryptionType: 'EncryptionAtRestWithPlatformAndCustomerKeys'
     federatedClientId: 'None'

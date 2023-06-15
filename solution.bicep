@@ -456,6 +456,7 @@ module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
   name: 'DiskEncryption_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
+    DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryptionSetName: DiskEncryptionSetName
     Environment: Environment
     KeyVaultName: KeyVaultName

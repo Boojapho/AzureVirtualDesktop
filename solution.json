@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "16467207090123128274"
+      "templateHash": "1871020318804947050"
     }
   },
   "parameters": {
@@ -3001,6 +3001,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "DeploymentScriptNamePrefix": {
+            "value": "[variables('DeploymentScriptNamePrefix')]"
+          },
           "DiskEncryptionSetName": {
             "value": "[variables('DiskEncryptionSetName')]"
           },
@@ -3033,10 +3036,13 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "10733820570666159683"
+              "templateHash": "11682136833731218422"
             }
           },
           "parameters": {
+            "DeploymentScriptNamePrefix": {
+              "type": "string"
+            },
             "DiskEncryptionKeyExpirationInDays": {
               "type": "int",
               "defaultValue": 30
@@ -3056,10 +3062,6 @@
             "Tags": {
               "type": "object"
             },
-            "Time": {
-              "type": "string",
-              "defaultValue": "[utcNow()]"
-            },
             "Timestamp": {
               "type": "string"
             },
@@ -3069,9 +3071,6 @@
             "UserAssignedIdentityResourceId": {
               "type": "string"
             }
-          },
-          "variables": {
-            "DiskEncryptionKeyExpirationInEpoch": "[dateTimeToEpoch(dateTimeAdd(parameters('Time'), format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))))]"
           },
           "resources": [
             {
@@ -3096,47 +3095,6 @@
               }
             },
             {
-              "type": "Microsoft.KeyVault/vaults/keys",
-              "apiVersion": "2022-07-01",
-              "name": "[format('{0}/{1}', parameters('KeyVaultName'), 'DiskEncryptionKey')]",
-              "tags": "[parameters('Tags')]",
-              "properties": {
-                "attributes": {
-                  "enabled": true,
-                  "exp": "[variables('DiskEncryptionKeyExpirationInEpoch')]",
-                  "nbf": null
-                },
-                "keySize": 4096,
-                "kty": "RSA",
-                "rotationPolicy": {
-                  "attributes": {
-                    "expiryTime": "[format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))]"
-                  },
-                  "lifetimeActions": [
-                    {
-                      "action": {
-                        "type": "notify"
-                      },
-                      "trigger": {
-                        "timeBeforeExpiry": "P10D"
-                      }
-                    },
-                    {
-                      "action": {
-                        "type": "rotate"
-                      },
-                      "trigger": {
-                        "timeAfterCreate": "[format('P{0}D', string(sub(parameters('DiskEncryptionKeyExpirationInDays'), 7)))]"
-                      }
-                    }
-                  ]
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
-              ]
-            },
-            {
               "type": "Microsoft.Compute/diskEncryptionSets",
               "apiVersion": "2022-07-02",
               "name": "[parameters('DiskEncryptionSetName')]",
@@ -3153,15 +3111,218 @@
                   "sourceVault": {
                     "id": "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
                   },
-                  "keyUrl": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', parameters('KeyVaultName'), 'DiskEncryptionKey'), '2022-07-01').keyUriWithVersion]"
+                  "keyUrl": "[reference(resourceId('Microsoft.Resources/deployments', 'DiskEncryptionKey'), '2022-09-01').outputs.keyUriWithVersion.value]"
                 },
                 "encryptionType": "EncryptionAtRestWithPlatformAndCustomerKeys",
                 "federatedClientId": "None",
                 "rotationToLatestKeyVersionEnabled": true
               },
               "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults/keys', parameters('KeyVaultName'), 'DiskEncryptionKey')]",
+                "[resourceId('Microsoft.Resources/deployments', 'DiskEncryptionKey')]",
                 "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('DeploymentScript_DiskEncryptionKeyValidation_{0}', parameters('Timestamp'))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Arguments": {
+                    "value": "[format('-VaultName {0}', parameters('KeyVaultName'))]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "Name": {
+                    "value": "[format('{0}diskEncryptionKeyValidation', parameters('DeploymentScriptNamePrefix'))]"
+                  },
+                  "Script": {
+                    "value": "param([string]$VaultName); $ErrorActionPreference = \"Stop\"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq \"DiskEncryptionKey\"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = \"True\"}else{$Exists = \"False\"}; $DeploymentScriptOutputs[\"exists\"] = $Exists"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "UserAssignedIdentityResourceId": {
+                    "value": "[parameters('UserAssignedIdentityResourceId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "1338006163064225507"
+                    }
+                  },
+                  "parameters": {
+                    "Arguments": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Name": {
+                      "type": "string"
+                    },
+                    "Script": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "UserAssignedIdentityResourceId": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Resources/deploymentScripts",
+                      "apiVersion": "2020-10-01",
+                      "name": "[parameters('Name')]",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('UserAssignedIdentityResourceId'))]": {}
+                        }
+                      },
+                      "location": "[parameters('Location')]",
+                      "kind": "AzurePowerShell",
+                      "tags": {},
+                      "properties": {
+                        "arguments": "[parameters('Arguments')]",
+                        "azPowerShellVersion": "9.4",
+                        "cleanupPreference": "Always",
+                        "forceUpdateTag": "[parameters('Timestamp')]",
+                        "retentionInterval": "PT2H",
+                        "scriptContent": "[parameters('Script')]",
+                        "timeout": "PT30M"
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "properties": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Resources/deploymentScripts', parameters('Name')), '2020-10-01').outputs]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', parameters('KeyVaultName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "DiskEncryptionKey",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "DiskEncryptionKeyExpirationInDays": {
+                    "value": "[parameters('DiskEncryptionKeyExpirationInDays')]"
+                  },
+                  "KeyDoesNotExist": {
+                    "value": "[equals(reference(resourceId('Microsoft.Resources/deployments', format('DeploymentScript_DiskEncryptionKeyValidation_{0}', parameters('Timestamp'))), '2022-09-01').outputs.properties.value.exists, 'False')]"
+                  },
+                  "KeyVaultName": {
+                    "value": "[parameters('KeyVaultName')]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.18.4.5664",
+                      "templateHash": "5430955873971378064"
+                    }
+                  },
+                  "parameters": {
+                    "DiskEncryptionKeyExpirationInDays": {
+                      "type": "int"
+                    },
+                    "KeyDoesNotExist": {
+                      "type": "bool"
+                    },
+                    "KeyVaultName": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    },
+                    "Time": {
+                      "type": "string",
+                      "defaultValue": "[utcNow()]"
+                    }
+                  },
+                  "variables": {
+                    "DiskEncryptionKeyExpirationInEpoch": "[dateTimeToEpoch(dateTimeAdd(parameters('Time'), format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))))]"
+                  },
+                  "resources": [
+                    {
+                      "condition": "[parameters('KeyDoesNotExist')]",
+                      "type": "Microsoft.KeyVault/vaults/keys",
+                      "apiVersion": "2022-07-01",
+                      "name": "[format('{0}/{1}', parameters('KeyVaultName'), 'DiskEncryptionKey')]",
+                      "tags": "[parameters('Tags')]",
+                      "properties": {
+                        "attributes": {
+                          "enabled": true,
+                          "exp": "[variables('DiskEncryptionKeyExpirationInEpoch')]",
+                          "nbf": null
+                        },
+                        "keySize": 4096,
+                        "kty": "RSA",
+                        "rotationPolicy": {
+                          "attributes": {
+                            "expiryTime": "[format('P{0}D', string(parameters('DiskEncryptionKeyExpirationInDays')))]"
+                          },
+                          "lifetimeActions": [
+                            {
+                              "action": {
+                                "type": "notify"
+                              },
+                              "trigger": {
+                                "timeBeforeExpiry": "P10D"
+                              }
+                            },
+                            {
+                              "action": {
+                                "type": "rotate"
+                              },
+                              "trigger": {
+                                "timeAfterCreate": "[format('P{0}D', string(sub(parameters('DiskEncryptionKeyExpirationInDays'), 7)))]"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "keyUriWithVersion": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', parameters('KeyVaultName'), 'DiskEncryptionKey'), '2022-07-01').keyUriWithVersion]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', format('DeploymentScript_DiskEncryptionKeyValidation_{0}', parameters('Timestamp')))]"
               ]
             },
             {
