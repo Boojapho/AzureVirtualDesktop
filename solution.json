@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "2777921458489472157"
+      "templateHash": "1205672990416360006"
     }
   },
   "parameters": {
@@ -3391,7 +3391,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "16930144459593518990"
+              "templateHash": "6119682217227913006"
             }
           },
           "parameters": {
@@ -4379,7 +4379,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "5515757106957986245"
+                      "templateHash": "14487931900700969561"
                     }
                   },
                   "parameters": {
@@ -4593,6 +4593,63 @@
                     },
                     {
                       "copy": {
+                        "name": "privateEndpoints",
+                        "count": "[length(range(0, parameters('StorageCount')))]"
+                      },
+                      "condition": "[parameters('PrivateEndpoint')]",
+                      "type": "Microsoft.Network/privateEndpoints",
+                      "apiVersion": "2020-05-01",
+                      "name": "[format('pe-{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
+                      "location": "[parameters('Location')]",
+                      "tags": "[parameters('Tags')]",
+                      "properties": {
+                        "subnet": {
+                          "id": "[variables('SubnetId')]"
+                        },
+                        "privateLinkServiceConnections": [
+                          {
+                            "name": "[format('pe-{0}_{1}', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), guid(format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))))]",
+                            "properties": {
+                              "privateLinkServiceId": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                              "groupIds": [
+                                "file"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "privateDnsZoneGroups",
+                        "count": "[length(range(0, parameters('StorageCount')))]"
+                      },
+                      "condition": "[parameters('PrivateEndpoint')]",
+                      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                      "apiVersion": "2021-08-01",
+                      "name": "[format('{0}/{1}', format('pe-{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex'))))]",
+                      "properties": {
+                        "privateDnsZoneConfigs": [
+                          {
+                            "name": "ipconfig1",
+                            "properties": {
+                              "privateDnsZoneId": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
+                            }
+                          }
+                        ]
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Network/privateEndpoints', format('pe-{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
+                        "storageAccounts"
+                      ]
+                    },
+                    {
+                      "copy": {
                         "name": "shares",
                         "count": "[length(range(0, parameters('StorageCount')))]"
                       },
@@ -4662,135 +4719,6 @@
                       },
                       "dependsOn": [
                         "roleAssignment",
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
-                      ]
-                    },
-                    {
-                      "copy": {
-                        "name": "privateEndpoint",
-                        "count": "[length(range(0, parameters('StorageCount')))]"
-                      },
-                      "condition": "[parameters('PrivateEndpoint')]",
-                      "type": "Microsoft.Resources/deployments",
-                      "apiVersion": "2022-09-01",
-                      "name": "[format('PrivateEndpoints_{0}_{1}', range(0, parameters('StorageCount'))[copyIndex()], parameters('Timestamp'))]",
-                      "properties": {
-                        "expressionEvaluationOptions": {
-                          "scope": "inner"
-                        },
-                        "mode": "Incremental",
-                        "parameters": {
-                          "Location": {
-                            "value": "[parameters('Location')]"
-                          },
-                          "AzureFilesPrivateDnsZoneResourceId": {
-                            "value": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
-                          },
-                          "StorageAccountId": {
-                            "value": "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
-                          },
-                          "StorageAccountName": {
-                            "value": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex')))]"
-                          },
-                          "Subnet": {
-                            "value": "[parameters('Subnet')]"
-                          },
-                          "Tags": {
-                            "value": "[parameters('Tags')]"
-                          },
-                          "VirtualNetwork": {
-                            "value": "[parameters('VirtualNetwork')]"
-                          },
-                          "VirtualNetworkResourceGroup": {
-                            "value": "[parameters('VirtualNetworkResourceGroup')]"
-                          }
-                        },
-                        "template": {
-                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                          "contentVersion": "1.0.0.0",
-                          "metadata": {
-                            "_generator": {
-                              "name": "bicep",
-                              "version": "0.18.4.5664",
-                              "templateHash": "12278287918303612854"
-                            }
-                          },
-                          "parameters": {
-                            "AzureFilesPrivateDnsZoneResourceId": {
-                              "type": "string"
-                            },
-                            "Location": {
-                              "type": "string"
-                            },
-                            "StorageAccountId": {
-                              "type": "string"
-                            },
-                            "StorageAccountName": {
-                              "type": "string"
-                            },
-                            "Subnet": {
-                              "type": "string"
-                            },
-                            "Tags": {
-                              "type": "object"
-                            },
-                            "VirtualNetwork": {
-                              "type": "string"
-                            },
-                            "VirtualNetworkResourceGroup": {
-                              "type": "string"
-                            }
-                          },
-                          "variables": {
-                            "SubnetId": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VirtualNetwork'), parameters('Subnet'))]"
-                          },
-                          "resources": [
-                            {
-                              "type": "Microsoft.Network/privateEndpoints",
-                              "apiVersion": "2020-05-01",
-                              "name": "[format('pe-{0}', parameters('StorageAccountName'))]",
-                              "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
-                              "properties": {
-                                "subnet": {
-                                  "id": "[variables('SubnetId')]"
-                                },
-                                "privateLinkServiceConnections": [
-                                  {
-                                    "name": "[format('pe-{0}_{1}', parameters('StorageAccountName'), guid(parameters('StorageAccountName')))]",
-                                    "properties": {
-                                      "privateLinkServiceId": "[parameters('StorageAccountId')]",
-                                      "groupIds": [
-                                        "file"
-                                      ]
-                                    }
-                                  }
-                                ]
-                              }
-                            },
-                            {
-                              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
-                              "apiVersion": "2021-08-01",
-                              "name": "[format('{0}/{1}', format('pe-{0}', parameters('StorageAccountName')), parameters('StorageAccountName'))]",
-                              "properties": {
-                                "privateDnsZoneConfigs": [
-                                  {
-                                    "name": "ipconfig1",
-                                    "properties": {
-                                      "privateDnsZoneId": "[parameters('AzureFilesPrivateDnsZoneResourceId')]"
-                                    }
-                                  }
-                                ]
-                              },
-                              "dependsOn": [
-                                "[resourceId('Microsoft.Network/privateEndpoints', format('pe-{0}', parameters('StorageAccountName')))]"
-                              ]
-                            }
-                          ]
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]",
                         "[resourceId('Microsoft.Storage/storageAccounts', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))))]"
                       ]
                     },
@@ -4996,7 +4924,8 @@
                         }
                       },
                       "dependsOn": [
-                        "privateEndpoint",
+                        "privateDnsZoneGroups",
+                        "privateEndpoints",
                         "shares"
                       ]
                     }

@@ -131,18 +131,44 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
   ]
 }]
 
-module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
-  name: 'PrivateEndpoints_${i}_${Timestamp}'
-  params: {
-    Location: Location
-    AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId
-    StorageAccountId: storageAccounts[i].id
-    StorageAccountName: storageAccounts[i].name
-    Subnet: Subnet
-    Tags: Tags
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+resource privateEndpoints 'Microsoft.Network/privateEndpoints@2020-05-01' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
+  name: 'pe-${StorageAccountPrefix}${i + StorageIndex}'
+  location: Location
+  tags: Tags
+  properties: {
+    subnet: {
+      id: SubnetId
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'pe-${storageAccounts[i].name}_${guid(storageAccounts[i].name)}'
+        properties: {
+          privateLinkServiceId: storageAccounts[i].id
+          groupIds: [
+            'file'
+          ]
+        }
+      }
+    ]
   }
+}]
+
+resource privateDnsZoneGroups 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-08-01' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
+  parent: privateEndpoints[i]
+  name: '${StorageAccountPrefix}${i + StorageIndex}'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          privateDnsZoneId: AzureFilesPrivateDnsZoneResourceId
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    storageAccounts
+  ]
 }]
 
 module ntfsPermissions '../ntfsPermissions.bicep' = if (!contains(DomainServices, 'None')) {
@@ -160,7 +186,8 @@ module ntfsPermissions '../ntfsPermissions.bicep' = if (!contains(DomainServices
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
   dependsOn: [
+    privateDnsZoneGroups
+    privateEndpoints
     shares
-    privateEndpoint
   ]
 }
