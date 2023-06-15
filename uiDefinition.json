@@ -18,6 +18,14 @@
                                     "Microsoft.Insights/diagnosticsettings"
                                 ]
                             }
+                        },
+                        {
+                            "name": "servicePrincipalApi",
+                            "type": "Microsoft.Solutions.GraphApiControl",
+                            "request": {
+                                "method": "GET",
+                                "path": "/v1.0/serviceprincipals?$filter=appId eq '9cdead84-a844-4324-93f2-b2e6bb768d07'"
+                            }
                         }
                     ]
                 },
@@ -59,7 +67,7 @@
             "parameters": {
                 "ActiveDirectorySolution": "",
                 "Availability": "",
-                "AvdObjectId": "",
+                "AvdObjectId": "[first(map(steps('basics').servicePrincipalApi.value, (item) => item.id))]",
                 "AzureFilesPrivateDnsZoneResourceId": "",
                 "CustomRdpProperty": "",
                 "DiskEncryption": "",
