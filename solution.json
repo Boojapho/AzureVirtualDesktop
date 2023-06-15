@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "6885885507450269920"
+      "templateHash": "16486169335547976183"
     }
   },
   "parameters": {
@@ -5374,7 +5374,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "4911035606114894483"
+              "templateHash": "10667731475928987414"
             }
           },
           "parameters": {
@@ -5818,7 +5818,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "7446834099654113859"
+                      "templateHash": "7686729059544052201"
                     }
                   },
                   "parameters": {
@@ -5983,13 +5983,13 @@
                     }
                   },
                   "variables": {
+                    "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
                     "AmdVmSizes": [
                       "Standard_NV4as_v4",
                       "Standard_NV8as_v4",
                       "Standard_NV16as_v4",
                       "Standard_NV32as_v4"
                     ],
-                    "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
                     "FslogixExclusions": "[format('\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\"{0}{1}{2}', variables('FslogixExclusionsCloudCache'), variables('FslogixExclusionsProfileContainers'), variables('FslogixExclusionsOfficeContainers'))]",
                     "FslogixExclusionsCloudCache": "[if(contains(parameters('FslogixSolution'), 'CloudCache'), ';\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\"', '')]",
                     "FslogixExclusionsOfficeContainers": "[if(contains(parameters('FslogixSolution'), 'Office'), format(';\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare')), '')]",
@@ -5998,6 +5998,7 @@
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "Identity": "[if(not(contains(parameters('ActiveDirectorySolution'), 'DomainServices')), createObject('type', 'SystemAssigned'), null())]",
                     "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
+                    "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VmSize'))]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
                       "Standard_NV12",
@@ -6016,7 +6017,6 @@
                       "Standard_NV36adms_A10_v5",
                       "Standard_NV72ads_A10_v5"
                     ],
-                    "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VmSize'))]",
                     "PooledHostPool": "[equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled')]"
                   },
                   "resources": [

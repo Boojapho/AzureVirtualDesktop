@@ -55,13 +55,13 @@ param VmPassword string
 param VmSize string
 param VmUsername string
 
+var AmdVmSize = contains(AmdVmSizes, VmSize)
 var AmdVmSizes = [
   'Standard_NV4as_v4'
   'Standard_NV8as_v4'
   'Standard_NV16as_v4'
   'Standard_NV32as_v4'
 ]
-var AmdVmSize = contains(AmdVmSizes, VmSize)
 var FslogixExclusions = '"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHDX"${FslogixExclusionsCloudCache}${FslogixExclusionsProfileContainers}${FslogixExclusionsOfficeContainers}'
 var FslogixExclusionsCloudCache = contains(FslogixSolution, 'CloudCache') ? ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"' : ''
 var FslogixExclusionsOfficeContainers = contains(FslogixSolution, 'Office') ? ';"${FslogixOfficeShare}";"${FslogixOfficeShare}.lock";"${FslogixOfficeShare}.meta";"${FslogixOfficeShare}.metadata"' : ''
@@ -72,6 +72,7 @@ var Identity = !contains(ActiveDirectorySolution, 'DomainServices') ? {
   type: 'SystemAssigned'
 } : null
 var Intune = contains(ActiveDirectorySolution, 'IntuneEnrollment')
+var NvidiaVmSize = contains(NvidiaVmSizes, VmSize)
 var NvidiaVmSizes = [
   'Standard_NV6'
   'Standard_NV12'
@@ -90,7 +91,6 @@ var NvidiaVmSizes = [
   'Standard_NV36adms_A10_v5'
   'Standard_NV72ads_A10_v5'
 ]
-var NvidiaVmSize = contains(NvidiaVmSizes, VmSize)
 var PooledHostPool = (split(HostPoolType, ' ')[0] == 'Pooled')
 var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '2021-06-01').primarySharedKey : 'NotApplicable'
 
