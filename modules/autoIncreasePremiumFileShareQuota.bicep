@@ -2,7 +2,6 @@ param _artifactsLocation string
 @secure()
 param _artifactsLocationSasToken string
 param AutomationAccountName string
-param Environment string
 param Location string
 param StorageAccountPrefix string
 param StorageCount int
@@ -48,7 +47,7 @@ module jobSchedules 'jobSchedules.bicep' = [for i in range(StorageIndex, Storage
   name: 'JobSchedules_${i}_${Timestamp}'
   params: {
     AutomationAccountName: automationAccount.name
-    Environment: Environment
+    Environment: environment().name
     RunbookName: RunbookName
     ResourceGroupName: StorageResourceGroupName
     StorageAccountName: '${StorageAccountPrefix}${i}'

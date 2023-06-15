@@ -675,7 +675,6 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AutomationAccountName: AutomationAccountName
-    Environment: Environment
     Location: Location
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount

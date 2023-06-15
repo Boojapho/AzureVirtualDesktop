@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "6542058335759017924"
+      "templateHash": "9617711498207159462"
     }
   },
   "parameters": {
@@ -7114,9 +7114,6 @@
           "AutomationAccountName": {
             "value": "[variables('AutomationAccountName')]"
           },
-          "Environment": {
-            "value": "[parameters('Environment')]"
-          },
           "Location": {
             "value": "[parameters('Location')]"
           },
@@ -7149,7 +7146,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "15556511391620106471"
+              "templateHash": "10594746475344857945"
             }
           },
           "parameters": {
@@ -7160,9 +7157,6 @@
               "type": "securestring"
             },
             "AutomationAccountName": {
-              "type": "string"
-            },
-            "Environment": {
               "type": "string"
             },
             "Location": {
@@ -7319,7 +7313,7 @@
                     "value": "[parameters('AutomationAccountName')]"
                   },
                   "Environment": {
-                    "value": "[parameters('Environment')]"
+                    "value": "[environment().name]"
                   },
                   "RunbookName": {
                     "value": "[variables('RunbookName')]"
