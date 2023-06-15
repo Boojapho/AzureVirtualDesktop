@@ -46,6 +46,14 @@
                     ]
                 },
                 {
+                    "name": "scaling",
+                    "label": "Scaling",
+                    "visible": true,
+                    "elements": [
+                        
+                    ]
+                },
+                {
                     "name": "monitoring",
                     "label": "Monitoring",
                     "visible": true,
