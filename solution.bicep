@@ -287,7 +287,6 @@ var KeyVaultName = 'kv-${NamingStandard}'
 var Locations = loadJsonContent('artifacts/locations.json')
 var LocationShortName = Locations[Location].acronym
 var LogAnalyticsWorkspaceName = 'law-${NamingStandard}'
-var UserAssignedIdentityName = 'uami-${NamingStandard}'
 var ManagementVmName = '${VmName}mgt'
 var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndex}'
 var NetAppAccountName = 'naa-${NamingStandard}'
@@ -299,7 +298,6 @@ var ReaderRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDef
 var RecoveryServicesVaultName = 'rsv-${NamingStandard}'
 var ResourceGroupHosts = 'rg-${NamingStandard}-hosts'
 var ResourceGroupManagement = 'rg-${NamingStandard}-management'
-var ResourceGroupStorage = 'rg-${NamingStandard}-storage'
 var ResourceGroups = Fslogix ? [
   ResourceGroupManagement
   ResourceGroupHosts
@@ -308,14 +306,16 @@ var ResourceGroups = Fslogix ? [
   ResourceGroupManagement
   ResourceGroupHosts
 ]
+var ResourceGroupStorage = 'rg-${NamingStandard}-storage'
 var SecurityPrincipalIdsCount = length(SecurityPrincipalObjectIds)
 var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
 var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
 var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndex}'
-var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
+var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
+var UserAssignedIdentityName = 'uai-${NamingStandard}'
 var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"vmSize":{"id":"${VmSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
 var WorkspaceName = 'ws-${NamingStandard}'

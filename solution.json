@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "11122690526296486119"
+      "templateHash": "6710266632745314431"
     }
   },
   "parameters": {
@@ -775,7 +775,6 @@
     "Locations": "[variables('$fxv#0')]",
     "LocationShortName": "[variables('Locations')[parameters('Location')].acronym]",
     "LogAnalyticsWorkspaceName": "[format('law-{0}', variables('NamingStandard'))]",
-    "UserAssignedIdentityName": "[format('uami-{0}', variables('NamingStandard'))]",
     "ManagementVmName": "[format('{0}mgt', variables('VmName'))]",
     "NamingStandard": "[format('{0}-{1}-{2}-{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "NetAppAccountName": "[format('naa-{0}', variables('NamingStandard'))]",
@@ -787,16 +786,17 @@
     "RecoveryServicesVaultName": "[format('rsv-{0}', variables('NamingStandard'))]",
     "ResourceGroupHosts": "[format('rg-{0}-hosts', variables('NamingStandard'))]",
     "ResourceGroupManagement": "[format('rg-{0}-management', variables('NamingStandard'))]",
-    "ResourceGroupStorage": "[format('rg-{0}-storage', variables('NamingStandard'))]",
     "ResourceGroups": "[if(variables('Fslogix'), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts'), variables('ResourceGroupStorage')), createArray(variables('ResourceGroupManagement'), variables('ResourceGroupHosts')))]",
+    "ResourceGroupStorage": "[format('rg-{0}-storage', variables('NamingStandard'))]",
     "SecurityPrincipalIdsCount": "[length(parameters('SecurityPrincipalObjectIds'))]",
     "SecurityPrincipalNamesCount": "[length(parameters('SecurityPrincipalNames'))]",
     "Sentinel": "[if(or(empty(parameters('SentinelLogAnalyticsWorkspaceName')), empty(parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'))), false(), true())]",
     "SentinelResourceGroup": "[if(variables('Sentinel'), parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'), variables('ResourceGroupManagement'))]",
     "StorageAccountPrefix": "[format('st{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
-    "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
+    "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSuffix": "[environment().suffixes.storage]",
+    "UserAssignedIdentityName": "[format('uai-{0}', variables('NamingStandard'))]",
     "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"vmSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VmSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
     "WorkspaceName": "[format('ws-{0}', variables('NamingStandard'))]"
