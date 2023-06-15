@@ -64,17 +64,18 @@ param VmUsername string
 
 var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')
 
-module availabilitySets 'availabilitySets.bicep' = if (PooledHostPool && Availability == 'AvailabilitySet') {
-  name: 'AvailabilitySets_${Timestamp}'
-  scope: resourceGroup(ResourceGroupHosts)
-  params: {
-    AvailabilitySetCount: AvailabilitySetCount
-    AvailabilitySetIndex: AvailabilitySetIndex
-    AvailabilitySetPrefix: AvailabilitySetPrefix
-    Location: Location
-    Tags: Tags
+resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetCount): if (PooledHostPool && Availability == 'AvailabilitySet') {
+  name: '${AvailabilitySetPrefix}${padLeft((i + AvailabilitySetIndex), 2, '0')}'
+  location: Location
+  tags: Tags
+  sku: {
+    name: 'Aligned'
   }
-}
+  properties: {
+    platformUpdateDomainCount: 5
+    platformFaultDomainCount: 2
+  }
+}]
 
 // Role Assignment for Virtual Machine Login User
 // This module deploys the role assignments to login to Azure AD joined session hosts

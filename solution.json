@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "1205672990416360006"
+      "templateHash": "16726354766674655597"
     }
   },
   "parameters": {
@@ -5208,7 +5208,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "9806758583653572170"
+              "templateHash": "5527298803738506478"
             }
           },
           "parameters": {
@@ -5398,81 +5398,22 @@
           },
           "resources": [
             {
+              "copy": {
+                "name": "availabilitySets",
+                "count": "[length(range(0, parameters('AvailabilitySetCount')))]"
+              },
               "condition": "[and(parameters('PooledHostPool'), equals(parameters('Availability'), 'AvailabilitySet'))]",
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "[format('AvailabilitySets_{0}', parameters('Timestamp'))]",
-              "resourceGroup": "[parameters('ResourceGroupHosts')]",
+              "type": "Microsoft.Compute/availabilitySets",
+              "apiVersion": "2019-07-01",
+              "name": "[format('{0}{1}', parameters('AvailabilitySetPrefix'), padLeft(add(range(0, parameters('AvailabilitySetCount'))[copyIndex()], parameters('AvailabilitySetIndex')), 2, '0'))]",
+              "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]",
+              "sku": {
+                "name": "Aligned"
+              },
               "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "AvailabilitySetCount": {
-                    "value": "[parameters('AvailabilitySetCount')]"
-                  },
-                  "AvailabilitySetIndex": {
-                    "value": "[parameters('AvailabilitySetIndex')]"
-                  },
-                  "AvailabilitySetPrefix": {
-                    "value": "[parameters('AvailabilitySetPrefix')]"
-                  },
-                  "Location": {
-                    "value": "[parameters('Location')]"
-                  },
-                  "Tags": {
-                    "value": "[parameters('Tags')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.18.4.5664",
-                      "templateHash": "5251705688224122563"
-                    }
-                  },
-                  "parameters": {
-                    "AvailabilitySetCount": {
-                      "type": "int"
-                    },
-                    "AvailabilitySetIndex": {
-                      "type": "int"
-                    },
-                    "AvailabilitySetPrefix": {
-                      "type": "string"
-                    },
-                    "Location": {
-                      "type": "string"
-                    },
-                    "Tags": {
-                      "type": "object"
-                    }
-                  },
-                  "resources": [
-                    {
-                      "copy": {
-                        "name": "availabilitySet",
-                        "count": "[length(range(0, parameters('AvailabilitySetCount')))]"
-                      },
-                      "type": "Microsoft.Compute/availabilitySets",
-                      "apiVersion": "2019-07-01",
-                      "name": "[format('{0}{1}', parameters('AvailabilitySetPrefix'), padLeft(add(range(0, parameters('AvailabilitySetCount'))[copyIndex()], parameters('AvailabilitySetIndex')), 2, '0'))]",
-                      "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
-                      "sku": {
-                        "name": "Aligned"
-                      },
-                      "properties": {
-                        "platformUpdateDomainCount": 5,
-                        "platformFaultDomainCount": 2
-                      }
-                    }
-                  ]
-                }
+                "platformUpdateDomainCount": 5,
+                "platformFaultDomainCount": 2
               }
             },
             {
@@ -6322,7 +6263,7 @@
                 }
               },
               "dependsOn": [
-                "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupHosts')), 'Microsoft.Resources/deployments', format('AvailabilitySets_{0}', parameters('Timestamp')))]"
+                "availabilitySets"
               ]
             }
           ]
