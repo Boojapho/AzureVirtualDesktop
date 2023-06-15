@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "2204011158073007749"
+      "templateHash": "6885885507450269920"
     }
   },
   "parameters": {
@@ -5374,7 +5374,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "13346183295845137587"
+              "templateHash": "4911035606114894483"
             }
           },
           "parameters": {
@@ -5818,7 +5818,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "8087212158389216715"
+                      "templateHash": "7446834099654113859"
                     }
                   },
                   "parameters": {
@@ -5963,10 +5963,6 @@
                     "TrustedLaunch": {
                       "type": "string"
                     },
-                    "UserAssignedIdentity": {
-                      "type": "string",
-                      "defaultValue": ""
-                    },
                     "VirtualNetwork": {
                       "type": "string"
                     },
@@ -6000,6 +5996,7 @@
                     "FslogixExclusionsProfileContainers": "[format(';\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
                     "FslogixOfficeShare": "[format('\\\\{0}?.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
+                    "Identity": "[if(not(contains(parameters('ActiveDirectorySolution'), 'DomainServices')), createObject('type', 'SystemAssigned'), null())]",
                     "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
@@ -6020,17 +6017,7 @@
                       "Standard_NV72ads_A10_v5"
                     ],
                     "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VmSize'))]",
-                    "PooledHostPool": "[equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled')]",
-                    "VmIdentityType": "[if(or(equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectory'), equals(parameters('ActiveDirectorySolution'), 'AzureActiveDirectoryIntuneEnrollment')), if(not(empty(parameters('UserAssignedIdentity'))), 'SystemAssigned, UserAssigned', 'SystemAssigned'), if(not(empty(parameters('UserAssignedIdentity'))), 'UserAssigned', 'None'))]",
-                    "VmIdentityTypeProperty": {
-                      "type": "[variables('VmIdentityType')]"
-                    },
-                    "VmUserAssignedIdentityProperty": {
-                      "userAssignedIdentities": {
-                        "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('UserAssignedIdentity')))]": {}
-                      }
-                    },
-                    "VmIdentity": "[if(not(empty(parameters('UserAssignedIdentity'))), union(variables('VmIdentityTypeProperty'), variables('VmUserAssignedIdentityProperty')), variables('VmIdentityTypeProperty'))]"
+                    "PooledHostPool": "[equals(split(parameters('HostPoolType'), ' ')[0], 'Pooled')]"
                   },
                   "resources": [
                     {
@@ -6072,7 +6059,7 @@
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
                       "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
-                      "identity": "[variables('VmIdentity')]",
+                      "identity": "[variables('Identity')]",
                       "properties": {
                         "availabilitySet": "[if(equals(parameters('Availability'), 'AvailabilitySet'), createObject('id', resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', parameters('AvailabilitySetPrefix'), div(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 200)))), null())]",
                         "hardwareProfile": {

@@ -47,7 +47,6 @@ param Subnet string
 param Tags object
 param Timestamp string
 param TrustedLaunch string
-param UserAssignedIdentity string = ''
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 param VmName string
@@ -69,6 +68,9 @@ var FslogixExclusionsOfficeContainers = contains(FslogixSolution, 'Office') ? ';
 var FslogixExclusionsProfileContainers = ';"${FslogixProfileShare}";"${FslogixProfileShare}.lock";"${FslogixProfileShare}.meta";"${FslogixProfileShare}.metadata"'
 var FslogixOfficeShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\office-containers\\*\\*.VHDX'
 var FslogixProfileShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\profile-containers\\*\\*.VHDX'
+var Identity = !contains(ActiveDirectorySolution, 'DomainServices') ? {
+  type: 'SystemAssigned'
+} : null
 var Intune = contains(ActiveDirectorySolution, 'IntuneEnrollment')
 var NvidiaVmSizes = [
   'Standard_NV6'
@@ -91,16 +93,6 @@ var NvidiaVmSizes = [
 var NvidiaVmSize = contains(NvidiaVmSizes, VmSize)
 var PooledHostPool = (split(HostPoolType, ' ')[0] == 'Pooled')
 var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '2021-06-01').primarySharedKey : 'NotApplicable'
-var VmIdentityType = ActiveDirectorySolution == 'AzureActiveDirectory' || ActiveDirectorySolution == 'AzureActiveDirectoryIntuneEnrollment' ? ((!empty(UserAssignedIdentity)) ? 'SystemAssigned, UserAssigned' : 'SystemAssigned') : ((!empty(UserAssignedIdentity)) ? 'UserAssigned' : 'None')
-var VmIdentityTypeProperty = {
-  type: VmIdentityType
-}
-var VmUserAssignedIdentityProperty = {
-  userAssignedIdentities: {
-    '${resourceId('Microsoft.ManagedIdentity/userAssignedIdentities/', UserAssignedIdentity)}': {}
-  }
-}
-var VmIdentity = ((!empty(UserAssignedIdentity)) ? union(VmIdentityTypeProperty, VmUserAssignedIdentityProperty) : VmIdentityTypeProperty)
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
   name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}'
@@ -132,7 +124,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
   zones: Availability == 'AvailabilityZones' ? [
     AvailabilityZones[i % length(AvailabilityZones)]
   ] : null
-  identity: VmIdentity
+  identity: Identity
   properties: {
     availabilitySet: Availability == 'AvailabilitySet' ? {
       id: resourceId('Microsoft.Compute/availabilitySets', '${AvailabilitySetPrefix}-${(i + SessionHostIndex) / 200}')
