@@ -61,7 +61,7 @@ var VirtualNetworkRules = {
   ]
 }
 
-resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i in range(0, StorageCount): {
+resource storageAccounts 'Microsoft.Storage/storageAccounts@2022-09-01' = [for i in range(0, StorageCount): {
   name: '${StorageAccountPrefix}${i + StorageIndex}'
   location: Location
   tags: Tags
@@ -77,6 +77,7 @@ resource storageAccounts 'Microsoft.Storage/storageAccounts@2021-02-01' = [for i
       ipRules: []
       defaultAction: Endpoint == 'PublicEndpoint' ? 'Allow' : 'Deny'
     }
+    publicNetworkAccess: Endpoint == 'PrivateEndpoint' ? 'Disabled' : 'Enabled'
     supportsHttpsTrafficOnly: true
     encryption: {
       services: {
@@ -104,7 +105,7 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   }
 }]
 
-resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2021-02-01' = [for i in range(0, StorageCount): {
+resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2022-09-01' = [for i in range(0, StorageCount): {
   parent: storageAccounts[i]
   name: 'default'
   properties: {
@@ -119,7 +120,6 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2021-02-01
 
 module shares 'shares.bicep' = [for i in range(0, StorageCount): {
   name: 'FileShares_${i}_${Timestamp}'
-  scope: resourceGroup(ResourceGroupStorage)
   params: {
     FileShares: FileShares
     FslogixShareSizeInGB: FslogixShareSizeInGB
@@ -133,7 +133,6 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
 
 module privateEndpoint 'privateEndpoint.bicep' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
   name: 'PrivateEndpoints_${i}_${Timestamp}'
-  scope: resourceGroup(ResourceGroupManagement)
   params: {
     Location: Location
     AzureFilesPrivateDnsZoneResourceId: AzureFilesPrivateDnsZoneResourceId

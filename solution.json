@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "9617711498207159462"
+      "templateHash": "11122690526296486119"
     }
   },
   "parameters": {
@@ -3391,7 +3391,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "12269399315476742453"
+              "templateHash": "16930144459593518990"
             }
           },
           "parameters": {
@@ -4379,7 +4379,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "9914626484555775964"
+                      "templateHash": "5515757106957986245"
                     }
                   },
                   "parameters": {
@@ -4520,7 +4520,7 @@
                         "count": "[length(range(0, parameters('StorageCount')))]"
                       },
                       "type": "Microsoft.Storage/storageAccounts",
-                      "apiVersion": "2021-02-01",
+                      "apiVersion": "2022-09-01",
                       "name": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('Tags')]",
@@ -4536,6 +4536,7 @@
                           "ipRules": [],
                           "defaultAction": "[if(equals(variables('Endpoint'), 'PublicEndpoint'), 'Allow', 'Deny')]"
                         },
+                        "publicNetworkAccess": "[if(equals(variables('Endpoint'), 'PrivateEndpoint'), 'Disabled', 'Enabled')]",
                         "supportsHttpsTrafficOnly": true,
                         "encryption": {
                           "services": {
@@ -4576,7 +4577,7 @@
                         "count": "[length(range(0, parameters('StorageCount')))]"
                       },
                       "type": "Microsoft.Storage/storageAccounts/fileServices",
-                      "apiVersion": "2021-02-01",
+                      "apiVersion": "2022-09-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[range(0, parameters('StorageCount'))[copyIndex()]], parameters('StorageIndex'))), 'default')]",
                       "properties": {
                         "protocolSettings": {
@@ -4598,7 +4599,6 @@
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('FileShares_{0}_{1}', range(0, parameters('StorageCount'))[copyIndex()], parameters('Timestamp'))]",
-                      "resourceGroup": "[parameters('ResourceGroupStorage')]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -4625,7 +4625,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "8529279209652451846"
+                              "templateHash": "12871909299430194317"
                             }
                           },
                           "parameters": {
@@ -4649,7 +4649,7 @@
                                 "count": "[length(range(0, length(parameters('FileShares'))))]"
                               },
                               "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
-                              "apiVersion": "2021-02-01",
+                              "apiVersion": "2022-09-01",
                               "name": "[format('{0}/default/{1}', parameters('StorageAccountName'), parameters('FileShares')[range(0, length(parameters('FileShares')))[copyIndex()]])]",
                               "properties": {
                                 "accessTier": "[if(equals(parameters('StorageSku'), 'Premium'), 'Premium', 'TransactionOptimized')]",
@@ -4674,7 +4674,6 @@
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('PrivateEndpoints_{0}_{1}', range(0, parameters('StorageCount'))[copyIndex()], parameters('Timestamp'))]",
-                      "resourceGroup": "[parameters('ResourceGroupManagement')]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
