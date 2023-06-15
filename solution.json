@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "16934883683124250963"
+      "templateHash": "2204011158073007749"
     }
   },
   "parameters": {
@@ -5374,7 +5374,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "11528456829049503772"
+              "templateHash": "13346183295845137587"
             }
           },
           "parameters": {
@@ -5818,7 +5818,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10538396270725520775"
+                      "templateHash": "8087212158389216715"
                     }
                   },
                   "parameters": {
@@ -5997,7 +5997,7 @@
                     "FslogixExclusions": "[format('\"%TEMP%\\*\\*.VHDX\";\"%Windir%\\TEMP\\*\\*.VHDX\"{0}{1}{2}', variables('FslogixExclusionsCloudCache'), variables('FslogixExclusionsProfileContainers'), variables('FslogixExclusionsOfficeContainers'))]",
                     "FslogixExclusionsCloudCache": "[if(contains(parameters('FslogixSolution'), 'CloudCache'), ';\"%ProgramData%\\FSLogix\\Cache\\*\";\"%ProgramData%\\FSLogix\\Proxy\\*\"', '')]",
                     "FslogixExclusionsOfficeContainers": "[if(contains(parameters('FslogixSolution'), 'Office'), format(';\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare'), variables('FslogixOfficeShare')), '')]",
-                    "FslogixExclusionsProfileContainers": "[format('\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
+                    "FslogixExclusionsProfileContainers": "[format(';\"{0}\";\"{1}.lock\";\"{2}.meta\";\"{3}.metadata\"', variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'), variables('FslogixProfileShare'))]",
                     "FslogixOfficeShare": "[format('\\\\{0}?.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
