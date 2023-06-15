@@ -11,7 +11,7 @@ param Tags object
 param Timestamp string
 param TimeZone string
 
-var RunbookName = 'Set-FileShareQuota'
+var RunbookName = 'Auto-Increase-Premium-File-Share-Quota'
 var SubscriptionId = subscription().subscriptionId
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' existing = {

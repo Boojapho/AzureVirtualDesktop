@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "6710266632745314431"
+      "templateHash": "2777921458489472157"
     }
   },
   "parameters": {
@@ -7145,7 +7145,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "10594746475344857945"
+              "templateHash": "8809534826817605357"
             }
           },
           "parameters": {
@@ -7184,7 +7184,7 @@
             }
           },
           "variables": {
-            "RunbookName": "Set-FileShareQuota",
+            "RunbookName": "Auto-Increase-Premium-File-Share-Quota",
             "SubscriptionId": "[subscription().subscriptionId]"
           },
           "resources": [
