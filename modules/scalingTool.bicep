@@ -27,7 +27,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2022-08-08' 
 
 resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   parent: automationAccount
-  name: 'AVD-Scaling-Tool'
+  name: 'Scaling-Tool'
   location: Location
   properties: {
     runbookType: 'PowerShell'

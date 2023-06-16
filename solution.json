@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "16486169335547976183"
+      "templateHash": "5987776094185059575"
     }
   },
   "parameters": {
@@ -6920,7 +6920,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "5449744868109747799"
+              "templateHash": "3640947398637315491"
             }
           },
           "parameters": {
@@ -6984,7 +6984,7 @@
             {
               "type": "Microsoft.Automation/automationAccounts/runbooks",
               "apiVersion": "2019-06-01",
-              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), 'AVD-Scaling-Tool')]",
+              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), 'Scaling-Tool')]",
               "location": "[parameters('Location')]",
               "properties": {
                 "runbookType": "PowerShell",
@@ -7021,7 +7021,7 @@
               },
               "type": "Microsoft.Automation/automationAccounts/jobSchedules",
               "apiVersion": "2022-08-08",
-              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), guid(parameters('Time'), 'AVD-Scaling-Tool', parameters('HostPoolName'), string(range(0, 4)[copyIndex()])))]",
+              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), guid(parameters('Time'), 'Scaling-Tool', parameters('HostPoolName'), string(range(0, 4)[copyIndex()])))]",
               "properties": {
                 "parameters": {
                   "BeginPeakTime": "[parameters('BeginPeakTime')]",
@@ -7040,7 +7040,7 @@
                   "TimeDifference": "[parameters('TimeDifference')]"
                 },
                 "runbook": {
-                  "name": "AVD-Scaling-Tool"
+                  "name": "Scaling-Tool"
                 },
                 "runOn": null,
                 "schedule": {
@@ -7048,7 +7048,7 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), 'AVD-Scaling-Tool')]",
+                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), 'Scaling-Tool')]",
                 "[resourceId('Microsoft.Automation/automationAccounts/schedules', parameters('AutomationAccountName'), format('{0}_{1}min', parameters('HostPoolName'), mul(add(range(0, 4)[range(0, 4)[copyIndex()]], 1), 15)))]"
               ]
             },
