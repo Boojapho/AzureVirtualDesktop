@@ -47,8 +47,8 @@ param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
-param VmPassword string
-param VmUsername string
+param VirtualMachinePassword string
+param VirtualMachineUsername string
 
 // Fslogix Management VM
 // This module is required to fully configure any storage option for FSLogix
@@ -72,8 +72,8 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if (contains(
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
-    VmPassword: VmPassword
-    VmUsername: VmUsername
+    VirtualMachinePassword: VirtualMachinePassword
+    VirtualMachineUsername: VirtualMachineUsername
   }
 }
 

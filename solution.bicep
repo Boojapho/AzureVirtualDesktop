@@ -213,8 +213,8 @@ param StorageCount int = 1
 @description('The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageIndex int = 0
 
-@description('The subnet for the AVD session hosts.')
-param SubnetName string
+@description('The resource ID of the subnet to place the network interfaces for the AVD session hosts.')
+param SubnetResourceId string
 
 @description('Key / value pairs of metadata for the Azure resources.')
 param Tags object = {}
@@ -225,21 +225,15 @@ param Timestamp string = utcNow('yyyyMMddhhmmss')
 @description('The value determines whether the hostpool should receive early AVD updates for testing.')
 param ValidationEnvironment bool = false
 
-@description('Virtual network for the AVD sessions hosts')
-param VirtualNetworkName string
-
-@description('Virtual network resource group for the AVD sessions hosts')
-param VirtualNetworkResourceGroupName string
-
 @secure()
 @description('Local administrator password for the AVD session hosts')
-param VmPassword string
+param VirtualMachinePassword string
 
 @description('The VM SKU for the AVD session hosts.')
-param VmSize string = 'Standard_D4ads_v5'
+param VirtualMachineSize string = 'Standard_D4ads_v5'
 
 @description('The Local Administrator Username for the Session Hosts')
-param VmUsername string
+param VirtualMachineUsername string
 
 /*  BEGIN BATCHING SESSION HOSTS */
 // The following variables are used to determine the batches to deploy any number of AVD session hosts.
@@ -317,7 +311,7 @@ var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
 var UserAssignedIdentityName = 'uai-${NamingStandard}'
 var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
-var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"vmSize":{"id":"${VmSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
+var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"VirtualMachineSize":{"id":"${VirtualMachineSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
 var WorkspaceName = 'ws-${NamingStandard}'
 
 // Resource Groups needed for the solution
@@ -339,7 +333,7 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
     UserAssignedIdentityName: UserAssignedIdentityName
     ResourceGroupStorage: ResourceGroupStorage
     Timestamp: Timestamp
-    VirtualNetworkResourceGroupName: VirtualNetworkResourceGroupName
+    VirtualNetworkResourceGroupName: split(SubnetResourceId, '/')[4]
   }
   dependsOn: [
     resourceGroups
@@ -380,9 +374,9 @@ module validations 'modules/validations.bicep' = {
     StorageSolution: StorageSolution
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
-    VmSize: VmSize
-    VnetName: VirtualNetworkName
-    VnetResourceGroupName: VirtualNetworkResourceGroupName
+    VirtualMachineSize: VirtualMachineSize
+    VnetName: split(SubnetResourceId, '/')[8]
+    VnetResourceGroupName: split(SubnetResourceId, '/')[4]
   }
   dependsOn: [
     resourceGroups
@@ -512,15 +506,15 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     StorageIndex: StorageIndex
     StorageSku: StorageSku
     StorageSolution: StorageSolution
-    Subnet: SubnetName
+    Subnet: split(SubnetResourceId, '/')[10]
     Tags: Tags
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
-    VirtualNetwork: VirtualNetworkName
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
-    VmPassword: VmPassword
-    VmUsername: VmUsername
+    VirtualNetwork: split(SubnetResourceId, '/')[8]
+    VirtualNetworkResourceGroup: split(SubnetResourceId, '/')[4]
+    VirtualMachinePassword: VirtualMachinePassword
+    VirtualMachineUsername: VirtualMachineUsername
   }
   dependsOn: [
     diskEncryption
@@ -597,16 +591,16 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     StorageIndex: StorageIndex
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
-    Subnet: SubnetName
+    Subnet: split(SubnetResourceId, '/')[10]
     Tags: Tags
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
-    VirtualNetwork: VirtualNetworkName
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroupName
+    VirtualNetwork: split(SubnetResourceId, '/')[8]
+    VirtualNetworkResourceGroup: split(SubnetResourceId, '/')[4]
     VmName: VmName
-    VmPassword: VmPassword
-    VmSize: VmSize
-    VmUsername: VmUsername
+    VirtualMachinePassword: VirtualMachinePassword
+    VirtualMachineSize: VirtualMachineSize
+    VirtualMachineUsername: VirtualMachineUsername
   }
   dependsOn: [
     diskEncryption

@@ -15,7 +15,7 @@ param StorageCount int
 param StorageSolution string
 param Timestamp string
 param UserAssignedIdentityResourceId string
-param VmSize string
+param VirtualMachineSize string
 param VnetName string
 param VnetResourceGroupName string
 
@@ -25,7 +25,7 @@ var CpuCountMin = contains(HostPoolType, 'Pooled') ? 4 : 2
 module acceleratedNetworking 'deploymentScript.bicep' = if (SessionHostCount > 0) {
   name: 'DeploymentScript_AcceleratedNetworkingValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}acceleratedNetworkingValidation'
     Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["enabled"] = ($Sku.capabilities | Where-Object {$_.name -eq "AcceleratedNetworkingEnabled"}).value'
@@ -37,7 +37,7 @@ module acceleratedNetworking 'deploymentScript.bicep' = if (SessionHostCount > 0
 module availabilityZones 'deploymentScript.bicep' = if (Availability == 'AvailabilityZones') {
   name: 'DeploymentScript_AvailabilityZoneValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}availabilityZonesValidation'
     Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["zones"] = $Sku.locationInfo.zones[0] | Sort-Object | ConvertTo-Json -AsArray'
@@ -61,7 +61,7 @@ module azureNetAppFiles 'deploymentScript.bicep' = if (Availability == 'Availabi
 module diskSku 'deploymentScript.bicep' = if (contains(DiskSku, 'Premium')) {
   name: 'DeploymentScript_DiskSkuValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}diskSkuValidation'
     Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq "PremiumIO"}).value -eq $false){Write-Error -Exception "INVALID DISK SKU: The selected VM Size does not support the Premium SKU for managed disks."}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["premiumIo"] = ($Sku.capabilities | Where-Object {$_.name -eq "PremiumIO"}).value'
@@ -73,7 +73,7 @@ module diskSku 'deploymentScript.bicep' = if (contains(DiskSku, 'Premium')) {
 module hyperVGeneration 'deploymentScript.bicep' = if (contains(ImageSku, '-g2') || contains(ImageSku, 'win11')) {
   name: 'DeploymentScript_HyperVGenerationValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}hyperVGenerationValidation'
     Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq "HyperVGenerations"}).value -notlike "*2"){Write-Error -Exception "INVALID HYPER-V GENERATION: The selected VM size does not support the selected Image Sku."}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["hyperVGenerations"] = ($Sku.capabilities | Where-Object {$_.name -eq "HyperVGenerations"}).value'
@@ -109,7 +109,7 @@ module storage 'deploymentScript.bicep' = if (Fslogix) {
 module trustedLaunch 'deploymentScript.bicep' = if (contains(ImageSku, '-g2') || contains(ImageSku, 'win11')) {
   name: 'DeploymentScript_TrustedLaunchValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}trustedLaunchValidation'
     Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $DeploymentScriptOutputs = @{}; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; if($null -eq ($Sku.capabilities | Where-Object {$_.name -eq "TrustedLaunchDisabled"}).value){$DeploymentScriptOutputs["enabled"] = "true"}else{$DeploymentScriptOutputs["enabled"] = "false"}'
@@ -125,7 +125,7 @@ module trustedLaunch 'deploymentScript.bicep' = if (contains(ImageSku, '-g2') ||
 module cpuCount 'deploymentScript.bicep' = {
   name: 'DeploymentScript_CpuCountValidation_${Timestamp}'
   params: {
-    Arguments: '-CpuCountMax ${CpuCountMax} -CpuCountMin ${CpuCountMin} -Location ${Location} -VmSize ${VmSize}'
+    Arguments: '-CpuCountMax ${CpuCountMax} -CpuCountMin ${CpuCountMin} -Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}cpuCountValidation'
     Script: 'param([int]$CpuCountMax,[int]$CpuCountMin,[string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq "vCPUs"}).value; if($vCPUs -lt $CpuCountMin -or $vCPUs -gt $CpuCountMax){Write-Error -Exception "INVALID VCPU COUNT: The selected VM Size does not contain the appropriate amount of vCPUs for Azure Virtual Desktop. https://learn.microsoft.com/windows-server/remote/remote-desktop-services/virtual-machine-recs"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["vcpus"] = $vCPUs'
@@ -137,7 +137,7 @@ module cpuCount 'deploymentScript.bicep' = {
 module cpuQuota 'deploymentScript.bicep' = {
   name: 'DeploymentScript_CpuQuotaValidation_${Timestamp}'
   params: {
-    Arguments: '-Location ${Location} -SessionHostCount ${SessionHostCount} -VmSize ${VmSize}'
+    Arguments: '-Location ${Location} -SessionHostCount ${SessionHostCount} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}cpuQuotaValidation'
     Script: 'param([string]$Location,[int]$SessionHostCount,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq "vCPUs"}).value; $RequestedCores = $vCPUs * $SessionHostCount; $Family = (Get-AzComputeResourceSku -Location $Location | Where-Object {$_.Name -eq $VmSize}).Family; $CpuData = Get-AzVMUsage -Location $Location | Where-Object {$_.Name.Value -eq $Family}; $AvailableCores = $CpuData.Limit - $CpuData.CurrentValue; $RequestedCores = $vCPUs * $SessionHostCount; if($RequestedCores -gt $AvailableCores){Write-Error -Exception "INSUFFICIENT CORE QUOTA: The selected VM size, $VmSize, does not have adequate core quota in the selected location."}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["requestedCores"] = $RequestedCores; $DeploymentScriptOutputs["availableCores"] = $AvailableCores'

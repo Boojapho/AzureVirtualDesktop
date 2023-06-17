@@ -51,11 +51,11 @@ param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 param VmName string
 @secure()
-param VmPassword string
-param VmSize string
-param VmUsername string
+param VirtualMachinePassword string
+param VirtualMachineSize string
+param VirtualMachineUsername string
 
-var AmdVmSize = contains(AmdVmSizes, VmSize)
+var AmdVmSize = contains(AmdVmSizes, VirtualMachineSize)
 var AmdVmSizes = [
   'Standard_NV4as_v4'
   'Standard_NV8as_v4'
@@ -72,7 +72,7 @@ var Identity = !contains(ActiveDirectorySolution, 'DomainServices') ? {
   type: 'SystemAssigned'
 } : null
 var Intune = contains(ActiveDirectorySolution, 'IntuneEnrollment')
-var NvidiaVmSize = contains(NvidiaVmSizes, VmSize)
+var NvidiaVmSize = contains(NvidiaVmSizes, VirtualMachineSize)
 var NvidiaVmSizes = [
   'Standard_NV6'
   'Standard_NV12'
@@ -130,7 +130,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
       id: resourceId('Microsoft.Compute/availabilitySets', '${AvailabilitySetPrefix}-${(i + SessionHostIndex) / 200}')
     } : null
     hardwareProfile: {
-      vmSize: VmSize
+      vmSize: VirtualMachineSize
     }
     storageProfile: {
       imageReference: {
@@ -156,8 +156,8 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
     }
     osProfile: {
       computerName: '${VmName}${padLeft((i + SessionHostIndex), 4, '0')}'
-      adminUsername: VmUsername
-      adminPassword: VmPassword
+      adminUsername: VirtualMachineUsername
+      adminPassword: VirtualMachinePassword
       windowsConfiguration: {
         provisionVMAgent: true
         enableAutomaticUpdates: false

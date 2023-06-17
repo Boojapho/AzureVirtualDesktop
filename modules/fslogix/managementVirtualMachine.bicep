@@ -16,8 +16,8 @@ param UserAssignedIdentityResourceId string
 param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 @secure()
-param VmPassword string
-param VmUsername string
+param VirtualMachinePassword string
+param VirtualMachineUsername string
 
 var NicName = 'nic-${NamingStandard}-mgt'
 
@@ -76,8 +76,8 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     }
     osProfile: {
       computerName: ManagementVmName
-      adminUsername: VmUsername
-      adminPassword: VmPassword
+      adminUsername: VirtualMachineUsername
+      adminPassword: VirtualMachinePassword
       windowsConfiguration: {
         provisionVMAgent: true
         enableAutomaticUpdates: true

@@ -151,8 +151,8 @@
         "storageIndex": {
             "value": 0
         },
-        "subnetName": {
-            "value": "Clients"
+        "subnetResourceId": {
+            "value": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-net-d-eu/providers/Microsoft.Network/virtualNetworks/vnet-net-d-eu/subnets/Clients"
         },
         "tags": {
             "value": {
@@ -164,13 +164,7 @@
         "validationEnvironment": {
             "value": false
         },
-        "virtualNetworkName": {
-            "value": "vnet-net-d-eu"
-        },
-        "virtualNetworkResourceGroupName": {
-            "value": "rg-net-d-eu"
-        },
-        "vmPassword": {
+        "virtualMachinePassword": {
             "reference": {
                 "keyVault": {
                   "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
@@ -178,16 +172,22 @@
                 "secretName": "VmPassword"
             }
         },
-        "vmSize": {
+        "virtualMachineSize": {
             "value": "Standard_D4ads_v5"
         },
-        "vmUsername": {
+        "virtualMachineUsername": {
             "reference": {
                 "keyVault": {
                   "id": "/subscriptions/3764b123-4849-4395-8e6e-ca6d68d8d4b4/resourceGroups/rg-core-d-eu/providers/Microsoft.KeyVault/vaults/kv-core-d-eu"
                 },
                 "secretName": "VmUsername"
             }
+        },
+        "virtualNetworkName": {
+            "value": "vnet-net-d-eu"
+        },
+        "virtualNetworkResourceGroupName": {
+            "value": "rg-net-d-eu"
         }
     }
 }

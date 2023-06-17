@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5987776094185059575"
+      "templateHash": "4973819778895092843"
     }
   },
   "parameters": {
@@ -404,10 +404,10 @@
       },
       "maxValue": 9
     },
-    "SubnetName": {
+    "SubnetResourceId": {
       "type": "string",
       "metadata": {
-        "description": "The subnet for the AVD session hosts."
+        "description": "The resource ID of the subnet to place the network interfaces for the AVD session hosts."
       }
     },
     "Tags": {
@@ -431,32 +431,20 @@
         "description": "The value determines whether the hostpool should receive early AVD updates for testing."
       }
     },
-    "VirtualNetworkName": {
-      "type": "string",
-      "metadata": {
-        "description": "Virtual network for the AVD sessions hosts"
-      }
-    },
-    "VirtualNetworkResourceGroupName": {
-      "type": "string",
-      "metadata": {
-        "description": "Virtual network resource group for the AVD sessions hosts"
-      }
-    },
-    "VmPassword": {
+    "VirtualMachinePassword": {
       "type": "securestring",
       "metadata": {
         "description": "Local administrator password for the AVD session hosts"
       }
     },
-    "VmSize": {
+    "VirtualMachineSize": {
       "type": "string",
       "defaultValue": "Standard_D4ads_v5",
       "metadata": {
         "description": "The VM SKU for the AVD session hosts."
       }
     },
-    "VmUsername": {
+    "VirtualMachineUsername": {
       "type": "string",
       "metadata": {
         "description": "The Local Administrator Username for the Session Hosts"
@@ -797,7 +785,7 @@
     "StorageSuffix": "[environment().suffixes.storage]",
     "UserAssignedIdentityName": "[format('uai-{0}', variables('NamingStandard'))]",
     "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
-    "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"vmSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VmSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
+    "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"VirtualMachineSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VirtualMachineSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
     "WorkspaceName": "[format('ws-{0}', variables('NamingStandard'))]"
   },
   "resources": [
@@ -870,7 +858,7 @@
             "value": "[parameters('Timestamp')]"
           },
           "VirtualNetworkResourceGroupName": {
-            "value": "[parameters('VirtualNetworkResourceGroupName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
           }
         },
         "template": {
@@ -1068,14 +1056,14 @@
           "UserAssignedIdentityResourceId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           },
-          "VmSize": {
-            "value": "[parameters('VmSize')]"
+          "VirtualMachineSize": {
+            "value": "[parameters('VirtualMachineSize')]"
           },
           "VnetName": {
-            "value": "[parameters('VirtualNetworkName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[8]]"
           },
           "VnetResourceGroupName": {
-            "value": "[parameters('VirtualNetworkResourceGroupName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
           }
         },
         "template": {
@@ -1085,7 +1073,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "3409991508178858957"
+              "templateHash": "16163917513805599465"
             }
           },
           "parameters": {
@@ -1140,7 +1128,7 @@
             "UserAssignedIdentityResourceId": {
               "type": "string"
             },
-            "VmSize": {
+            "VirtualMachineSize": {
               "type": "string"
             },
             "VnetName": {
@@ -1167,7 +1155,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -1261,7 +1249,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -1449,7 +1437,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -1543,7 +1531,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -1825,7 +1813,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -VmSize {1}', parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -1918,7 +1906,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-CpuCountMax {0} -CpuCountMin {1} -Location {2} -VmSize {3}', variables('CpuCountMax'), variables('CpuCountMin'), parameters('Location'), parameters('VmSize'))]"
+                    "value": "[format('-CpuCountMax {0} -CpuCountMin {1} -Location {2} -VmSize {3}', variables('CpuCountMax'), variables('CpuCountMin'), parameters('Location'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -2011,7 +1999,7 @@
                 "mode": "Incremental",
                 "parameters": {
                   "Arguments": {
-                    "value": "[format('-Location {0} -SessionHostCount {1} -VmSize {2}', parameters('Location'), parameters('SessionHostCount'), parameters('VmSize'))]"
+                    "value": "[format('-Location {0} -SessionHostCount {1} -VmSize {2}', parameters('Location'), parameters('SessionHostCount'), parameters('VirtualMachineSize'))]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -3523,7 +3511,7 @@
             "value": "[variables('StorageSolution')]"
           },
           "Subnet": {
-            "value": "[parameters('SubnetName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
           "Tags": {
             "value": "[parameters('Tags')]"
@@ -3538,16 +3526,16 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.id.value]"
           },
           "VirtualNetwork": {
-            "value": "[parameters('VirtualNetworkName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[8]]"
           },
           "VirtualNetworkResourceGroup": {
-            "value": "[parameters('VirtualNetworkResourceGroupName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
           },
-          "VmPassword": {
-            "value": "[parameters('VmPassword')]"
+          "VirtualMachinePassword": {
+            "value": "[parameters('VirtualMachinePassword')]"
           },
-          "VmUsername": {
-            "value": "[parameters('VmUsername')]"
+          "VirtualMachineUsername": {
+            "value": "[parameters('VirtualMachineUsername')]"
           }
         },
         "template": {
@@ -3557,7 +3545,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "5214657246521732167"
+              "templateHash": "5801181954516804566"
             }
           },
           "parameters": {
@@ -3699,10 +3687,10 @@
             "VirtualNetworkResourceGroup": {
               "type": "string"
             },
-            "VmPassword": {
+            "VirtualMachinePassword": {
               "type": "securestring"
             },
-            "VmUsername": {
+            "VirtualMachineUsername": {
               "type": "string"
             }
           },
@@ -3767,11 +3755,11 @@
                   "VirtualNetworkResourceGroup": {
                     "value": "[parameters('VirtualNetworkResourceGroup')]"
                   },
-                  "VmPassword": {
-                    "value": "[parameters('VmPassword')]"
+                  "VirtualMachinePassword": {
+                    "value": "[parameters('VirtualMachinePassword')]"
                   },
-                  "VmUsername": {
-                    "value": "[parameters('VmUsername')]"
+                  "VirtualMachineUsername": {
+                    "value": "[parameters('VirtualMachineUsername')]"
                   }
                 },
                 "template": {
@@ -3781,7 +3769,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "9434008347940845164"
+                      "templateHash": "11610288145782948784"
                     }
                   },
                   "parameters": {
@@ -3833,10 +3821,10 @@
                     "VirtualNetworkResourceGroup": {
                       "type": "string"
                     },
-                    "VmPassword": {
+                    "VirtualMachinePassword": {
                       "type": "securestring"
                     },
-                    "VmUsername": {
+                    "VirtualMachineUsername": {
                       "type": "string"
                     }
                   },
@@ -3900,8 +3888,8 @@
                         },
                         "osProfile": {
                           "computerName": "[parameters('ManagementVmName')]",
-                          "adminUsername": "[parameters('VmUsername')]",
-                          "adminPassword": "[parameters('VmPassword')]",
+                          "adminUsername": "[parameters('VirtualMachineUsername')]",
+                          "adminPassword": "[parameters('VirtualMachinePassword')]",
                           "windowsConfiguration": {
                             "provisionVMAgent": true,
                             "enableAutomaticUpdates": true
@@ -5337,7 +5325,7 @@
             "value": "[variables('StorageSuffix')]"
           },
           "Subnet": {
-            "value": "[parameters('SubnetName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
           "Tags": {
             "value": "[parameters('Tags')]"
@@ -5349,22 +5337,22 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.trustedLaunch.value]"
           },
           "VirtualNetwork": {
-            "value": "[parameters('VirtualNetworkName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[8]]"
           },
           "VirtualNetworkResourceGroup": {
-            "value": "[parameters('VirtualNetworkResourceGroupName')]"
+            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
           },
           "VmName": {
             "value": "[variables('VmName')]"
           },
-          "VmPassword": {
-            "value": "[parameters('VmPassword')]"
+          "VirtualMachinePassword": {
+            "value": "[parameters('VirtualMachinePassword')]"
           },
-          "VmSize": {
-            "value": "[parameters('VmSize')]"
+          "VirtualMachineSize": {
+            "value": "[parameters('VirtualMachineSize')]"
           },
-          "VmUsername": {
-            "value": "[parameters('VmUsername')]"
+          "VirtualMachineUsername": {
+            "value": "[parameters('VirtualMachineUsername')]"
           }
         },
         "template": {
@@ -5374,7 +5362,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "10667731475928987414"
+              "templateHash": "12870828976392524012"
             }
           },
           "parameters": {
@@ -5549,13 +5537,13 @@
             "VmName": {
               "type": "string"
             },
-            "VmPassword": {
+            "VirtualMachinePassword": {
               "type": "securestring"
             },
-            "VmSize": {
+            "VirtualMachineSize": {
               "type": "string"
             },
-            "VmUsername": {
+            "VirtualMachineUsername": {
               "type": "string"
             }
           },
@@ -5798,14 +5786,14 @@
                   "VmName": {
                     "value": "[parameters('VmName')]"
                   },
-                  "VmPassword": {
-                    "value": "[parameters('VmPassword')]"
+                  "VirtualMachinePassword": {
+                    "value": "[parameters('VirtualMachinePassword')]"
                   },
-                  "VmSize": {
-                    "value": "[parameters('VmSize')]"
+                  "VirtualMachineSize": {
+                    "value": "[parameters('VirtualMachineSize')]"
                   },
-                  "VmUsername": {
-                    "value": "[parameters('VmUsername')]"
+                  "VirtualMachineUsername": {
+                    "value": "[parameters('VirtualMachineUsername')]"
                   },
                   "DiskEncryptionSetResourceId": {
                     "value": "[parameters('DiskEncryptionSetResourceId')]"
@@ -5818,7 +5806,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "7686729059544052201"
+                      "templateHash": "2286537352928928528"
                     }
                   },
                   "parameters": {
@@ -5972,18 +5960,18 @@
                     "VmName": {
                       "type": "string"
                     },
-                    "VmPassword": {
+                    "VirtualMachinePassword": {
                       "type": "securestring"
                     },
-                    "VmSize": {
+                    "VirtualMachineSize": {
                       "type": "string"
                     },
-                    "VmUsername": {
+                    "VirtualMachineUsername": {
                       "type": "string"
                     }
                   },
                   "variables": {
-                    "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VmSize'))]",
+                    "AmdVmSize": "[contains(variables('AmdVmSizes'), parameters('VirtualMachineSize'))]",
                     "AmdVmSizes": [
                       "Standard_NV4as_v4",
                       "Standard_NV8as_v4",
@@ -5998,7 +5986,7 @@
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "Identity": "[if(not(contains(parameters('ActiveDirectorySolution'), 'DomainServices')), createObject('type', 'SystemAssigned'), null())]",
                     "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
-                    "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VmSize'))]",
+                    "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VirtualMachineSize'))]",
                     "NvidiaVmSizes": [
                       "Standard_NV6",
                       "Standard_NV12",
@@ -6063,7 +6051,7 @@
                       "properties": {
                         "availabilitySet": "[if(equals(parameters('Availability'), 'AvailabilitySet'), createObject('id', resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', parameters('AvailabilitySetPrefix'), div(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 200)))), null())]",
                         "hardwareProfile": {
-                          "vmSize": "[parameters('VmSize')]"
+                          "vmSize": "[parameters('VirtualMachineSize')]"
                         },
                         "storageProfile": {
                           "imageReference": {
@@ -6087,8 +6075,8 @@
                         },
                         "osProfile": {
                           "computerName": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
-                          "adminUsername": "[parameters('VmUsername')]",
-                          "adminPassword": "[parameters('VmPassword')]",
+                          "adminUsername": "[parameters('VirtualMachineUsername')]",
+                          "adminPassword": "[parameters('VirtualMachinePassword')]",
                           "windowsConfiguration": {
                             "provisionVMAgent": true,
                             "enableAutomaticUpdates": false

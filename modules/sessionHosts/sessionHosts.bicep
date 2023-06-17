@@ -58,9 +58,9 @@ param VirtualNetwork string
 param VirtualNetworkResourceGroup string
 param VmName string
 @secure()
-param VmPassword string
-param VmSize string
-param VmUsername string
+param VirtualMachinePassword string
+param VirtualMachineSize string
+param VirtualMachineUsername string
 
 var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')
 
@@ -142,9 +142,9 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
     VmName: VmName
-    VmPassword: VmPassword
-    VmSize: VmSize
-    VmUsername: VmUsername
+    VirtualMachinePassword: VirtualMachinePassword
+    VirtualMachineSize: VirtualMachineSize
+    VirtualMachineUsername: VirtualMachineUsername
     DiskEncryptionSetResourceId: DiskEncryptionSetResourceId
   }
   dependsOn: [
