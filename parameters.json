@@ -182,12 +182,6 @@
                 },
                 "secretName": "VmUsername"
             }
-        },
-        "virtualNetworkName": {
-            "value": "vnet-net-d-eu"
-        },
-        "virtualNetworkResourceGroupName": {
-            "value": "rg-net-d-eu"
         }
     }
 }
