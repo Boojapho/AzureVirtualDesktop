@@ -309,6 +309,9 @@ var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${S
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
+var TagsAll = union({
+  'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+}, Tags)
 var UserAssignedIdentityName = 'uai-${NamingStandard}'
 var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"VirtualMachineSize":{"id":"${VirtualMachineSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
@@ -318,7 +321,7 @@ var WorkspaceName = 'ws-${NamingStandard}'
 resource resourceGroups 'Microsoft.Resources/resourceGroups@2020-10-01' = [for i in range(0, length(ResourceGroups)): {
   name: ResourceGroups[i]
   location: Location
-  tags: Tags
+  tags: TagsAll
 }]
 
 module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
@@ -332,6 +335,7 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
     Location: Location
     UserAssignedIdentityName: UserAssignedIdentityName
     ResourceGroupStorage: ResourceGroupStorage
+    Tags: TagsAll
     Timestamp: Timestamp
     VirtualNetworkResourceGroupName: split(SubnetResourceId, '/')[4]
   }
@@ -372,6 +376,7 @@ module validations 'modules/validations.bicep' = {
     SessionHostCount: SessionHostCount
     StorageCount: StorageCount
     StorageSolution: StorageSolution
+    Tags: TagsAll
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
     VirtualMachineSize: VirtualMachineSize
@@ -399,6 +404,7 @@ module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool)
     Location: Location
     LogAnalyticsWorkspaceResourceId: Monitoring ? logAnalyticsWorkspace.outputs.ResourceId : ''
     Monitoring: Monitoring
+    Tags: TagsAll
   }
   dependsOn: [
     resourceGroups
@@ -420,7 +426,7 @@ module hostPool 'modules/hostPool.bicep' = {
     LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
     SecurityPrincipalIds: SecurityPrincipalObjectIds
-    Tags: Tags
+    Tags: TagsAll
     ValidationEnvironment: ValidationEnvironment
     VmTemplate: VmTemplate
     WorkspaceName: WorkspaceName
@@ -440,7 +446,7 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if (Monitor
     LogAnalyticsWorkspaceRetention: LogAnalyticsWorkspaceRetention
     LogAnalyticsWorkspaceSku: LogAnalyticsWorkspaceSku
     Location: Location
-    Tags: Tags
+    Tags: TagsAll
   }
   dependsOn: [
     resourceGroups
@@ -456,7 +462,7 @@ module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
     Environment: Environment
     KeyVaultName: KeyVaultName
     Location: Location
-    Tags: Tags
+    Tags: TagsAll
     Timestamp: Timestamp
     UserAssignedIdentityPrincipalId: userAssignedIdentity.outputs.principalId
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
@@ -507,7 +513,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     StorageSku: StorageSku
     StorageSolution: StorageSolution
     Subnet: split(SubnetResourceId, '/')[10]
-    Tags: Tags
+    Tags: TagsAll
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
@@ -592,7 +598,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
     Subnet: split(SubnetResourceId, '/')[10]
-    Tags: Tags
+    Tags: TagsAll
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
     VirtualNetwork: split(SubnetResourceId, '/')[8]
@@ -626,7 +632,7 @@ module backup 'modules/backup/backup.bicep' = if (RecoveryServices) {
     StorageIndex: StorageIndex
     StorageResourceGroupName: ResourceGroupStorage
     StorageSolution: StorageSolution
-    Tags: Tags
+    Tags: TagsAll
     Timestamp: Timestamp
     TimeZone: Locations[Location].timeZone
     VmName: VmName
@@ -655,6 +661,7 @@ module scalingTool 'modules/scalingTool.bicep' = if (ScalingTool && PooledHostPo
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
     SessionThresholdPerCPU: ScalingSessionThresholdPerCPU
+    Tags: TagsAll
     TimeDifference: Locations[Location].timeDifference
     TimeZone: Locations[Location].timeZone
   }
@@ -677,7 +684,7 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
     StorageCount: StorageCount
     StorageIndex: StorageIndex
     StorageResourceGroupName: ResourceGroupStorage
-    Tags: Tags
+    Tags: TagsAll
     Timestamp: Timestamp
     TimeZone: Locations[Location].timeZone
   }

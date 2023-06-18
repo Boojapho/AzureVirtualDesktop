@@ -21,7 +21,7 @@ param VirtualMachineUsername string
 
 var NicName = 'nic-${NamingStandard}-mgt'
 
-resource nic 'Microsoft.Network/networkInterfaces@2020-05-01' = {
+resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = {
   name: NicName
   location: Location
   tags: Tags
@@ -44,7 +44,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2020-05-01' = {
   }
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
+resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-11-01' = {
   name: ManagementVmName
   location: Location
   tags: Tags
@@ -88,7 +88,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
     networkProfile: {
       networkInterfaces: [
         {
-          id: nic.id
+          id: networkInterface.id
           properties: {
             deleteOption: 'Delete'
           }
@@ -119,7 +119,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-11-01' = {
 }
 
 resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/extensions@2019-07-01' = {
-  parent: vm
+  parent: virtualMachine
   name: 'JsonADDomainExtension'
   location: Location
   tags: Tags

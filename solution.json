@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "4973819778895092843"
+      "templateHash": "6630998575711002056"
     }
   },
   "parameters": {
@@ -783,6 +783,7 @@
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
     "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSuffix": "[environment().suffixes.storage]",
+    "TagsAll": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), parameters('Tags'))]",
     "UserAssignedIdentityName": "[format('uai-{0}', variables('NamingStandard'))]",
     "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"VirtualMachineSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VirtualMachineSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
@@ -798,7 +799,7 @@
       "apiVersion": "2020-10-01",
       "name": "[variables('ResourceGroups')[range(0, length(variables('ResourceGroups')))[copyIndex()]]]",
       "location": "[parameters('Location')]",
-      "tags": "[parameters('Tags')]"
+      "tags": "[variables('TagsAll')]"
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
@@ -854,6 +855,9 @@
           "ResourceGroupStorage": {
             "value": "[variables('ResourceGroupStorage')]"
           },
+          "Tags": {
+            "value": "[variables('TagsAll')]"
+          },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
           },
@@ -868,7 +872,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "10897797061386589074"
+              "templateHash": "3648233876751317993"
             }
           },
           "parameters": {
@@ -889,6 +893,9 @@
             },
             "ResourceGroupStorage": {
               "type": "string"
+            },
+            "Tags": {
+              "type": "object"
             },
             "Timestamp": {
               "type": "string"
@@ -913,7 +920,8 @@
               "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
               "apiVersion": "2018-11-30",
               "name": "[parameters('UserAssignedIdentityName')]",
-              "location": "[parameters('Location')]"
+              "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]"
             },
             {
               "copy": {
@@ -1050,6 +1058,9 @@
           "StorageSolution": {
             "value": "[variables('StorageSolution')]"
           },
+          "Tags": {
+            "value": "[variables('TagsAll')]"
+          },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
           },
@@ -1073,7 +1084,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "16163917513805599465"
+              "templateHash": "7149418401349953329"
             }
           },
           "parameters": {
@@ -1122,6 +1133,9 @@
             "StorageSolution": {
               "type": "string"
             },
+            "Tags": {
+              "type": "object"
+            },
             "Timestamp": {
               "type": "string"
             },
@@ -1166,6 +1180,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"enabled\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"AcceleratedNetworkingEnabled\"}).value"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1180,7 +1197,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1195,6 +1212,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1216,7 +1236,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1260,6 +1280,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"zones\"] = $Sku.locationInfo.zones[0] | Sort-Object | ConvertTo-Json -AsArray"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1274,7 +1297,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1289,6 +1312,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1310,7 +1336,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1354,6 +1380,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$StorageSolution,[string]$VnetName,[string]$VnetResourceGroupName); $ErrorActionPreference = \"Stop\"; $DeploymentScriptOutputs = @{}; if($StorageSolution -eq \"AzureNetAppFiles\"){$Vnet = Get-AzVirtualNetwork -Name $VnetName -ResourceGroupName $VnetResourceGroupName; $DnsServers = \"$($Vnet.DhcpOptions.DnsServers[0]),$($Vnet.DhcpOptions.DnsServers[1])\"; $SubnetId = ($Vnet.Subnets | Where-Object {$_.Delegations[0].ServiceName -eq \"Microsoft.NetApp/volumes\"}).Id; if($null -eq $SubnetId -or $SubnetId -eq \"\"){Write-Error -Exception \"INVALID AZURE NETAPP FILES CONFIGURATION: A dedicated subnet must be delegated to the ANF resource provider.\"}; Install-Module -Name \"Az.NetAppFiles\" -Force; $DeployAnfAd = \"true\"; $Accounts = Get-AzResource -ResourceType \"Microsoft.NetApp/netAppAccounts\" | Where-Object {$_.Location -eq $Location}; foreach($Account in $Accounts){$AD = Get-AzNetAppFilesActiveDirectory -ResourceGroupName $Account.ResourceGroupName -AccountName $Account.Name; if($AD.ActiveDirectoryId){$DeployAnfAd = \"false\"}}; $DeploymentScriptOutputs[\"anfDnsServers\"] = $DnsServers; $DeploymentScriptOutputs[\"anfSubnetId\"] = $SubnetId; $DeploymentScriptOutputs[\"anfActiveDirectory\"] = $DeployAnfAd} else {$DeploymentScriptOutputs[\"anfDnsServers\"] = \"NotApplicable\"; $DeploymentScriptOutputs[\"anfSubnetId\"] = \"NotApplicable\"; $DeploymentScriptOutputs[\"anfActiveDirectory\"] = \"false\"}"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1368,7 +1397,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1383,6 +1412,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1404,7 +1436,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1448,6 +1480,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value -eq $false){Write-Error -Exception \"INVALID DISK SKU: The selected VM Size does not support the Premium SKU for managed disks.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"premiumIo\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"PremiumIO\"}).value"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1462,7 +1497,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1477,6 +1512,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1498,7 +1536,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1542,6 +1580,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if(($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value -notlike \"*2\"){Write-Error -Exception \"INVALID HYPER-V GENERATION: The selected VM size does not support the selected Image Sku.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"hyperVGenerations\"] = ($Sku.capabilities | Where-Object {$_.name -eq \"HyperVGenerations\"}).value"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1556,7 +1597,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1571,6 +1612,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1592,7 +1636,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1636,6 +1680,9 @@
                   "Script": {
                     "value": "param([string]$DomainName,[string]$KerberosEncryption); $ErrorActionPreference = \"Stop\"; $KerberosRc4Encryption = (Get-AzResource -Name $DomainName -ExpandProperties).Properties.domainSecuritySettings.kerberosRc4Encryption; if($KerberosRc4Encryption -eq \"Enabled\" -and $KerberosEncryption -eq \"AES256\"){Write-Error -Exception \"INVALID KERBEROS ENCRYPTION: The Kerberos Encryption on Azure AD DS does not match your Kerberos Encyrption selection.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"kerberosRc4Encryption\"] = $KerberosRc4Encryption"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1650,7 +1697,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1665,6 +1712,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1686,7 +1736,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1730,6 +1780,9 @@
                   "Script": {
                     "value": "param([int]$SecurityPrincipalIdsCount,[int]$SecurityPrincipalNamesCount,[int]$StorageCount); $ErrorActionPreference = \"Stop\"; if(($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0){Write-Error -Exception \"INVALID ARRAYS: The \"SecurityPrinicaplIdsCount\", \"SecurityPrincipalNamesCount\", and \"StorageCount\" must be equal in length.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"storageOutOfBounds\"] = ($StorageCount -ne $SecurityPrincipalIdsCount -or $StorageCount -ne $SecurityPrincipalNamesCount) -and $StorageCount -gt 0"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1744,7 +1797,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1759,6 +1812,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1780,7 +1836,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1824,6 +1880,9 @@
                   "Script": {
                     "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $DeploymentScriptOutputs = @{}; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; if($null -eq ($Sku.capabilities | Where-Object {$_.name -eq \"TrustedLaunchDisabled\"}).value){$DeploymentScriptOutputs[\"enabled\"] = \"true\"}else{$DeploymentScriptOutputs[\"enabled\"] = \"false\"}"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1838,7 +1897,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1853,6 +1912,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1874,7 +1936,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -1917,6 +1979,9 @@
                   "Script": {
                     "value": "param([int]$CpuCountMax,[int]$CpuCountMin,[string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; if($vCPUs -lt $CpuCountMin -or $vCPUs -gt $CpuCountMax){Write-Error -Exception \"INVALID VCPU COUNT: The selected VM Size does not contain the appropriate amount of vCPUs for Azure Virtual Desktop. https://learn.microsoft.com/windows-server/remote/remote-desktop-services/virtual-machine-recs\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"vcpus\"] = $vCPUs"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -1931,7 +1996,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -1946,6 +2011,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -1967,7 +2035,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -2010,6 +2078,9 @@
                   "Script": {
                     "value": "param([string]$Location,[int]$SessionHostCount,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $vCPUs = [int]($Sku.capabilities | Where-Object {$_.name -eq \"vCPUs\"}).value; $RequestedCores = $vCPUs * $SessionHostCount; $Family = (Get-AzComputeResourceSku -Location $Location | Where-Object {$_.Name -eq $VmSize}).Family; $CpuData = Get-AzVMUsage -Location $Location | Where-Object {$_.Name.Value -eq $Family}; $AvailableCores = $CpuData.Limit - $CpuData.CurrentValue; $RequestedCores = $vCPUs * $SessionHostCount; if($RequestedCores -gt $AvailableCores){Write-Error -Exception \"INSUFFICIENT CORE QUOTA: The selected VM size, $VmSize, does not have adequate core quota in the selected location.\"}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"requestedCores\"] = $RequestedCores; $DeploymentScriptOutputs[\"availableCores\"] = $AvailableCores"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -2024,7 +2095,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -2039,6 +2110,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -2060,7 +2134,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -2136,6 +2210,9 @@
           "LogAnalyticsWorkspaceResourceId": "[if(parameters('Monitoring'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp'))), '2022-09-01').outputs.ResourceId.value), createObject('value', ''))]",
           "Monitoring": {
             "value": "[parameters('Monitoring')]"
+          },
+          "Tags": {
+            "value": "[variables('TagsAll')]"
           }
         },
         "template": {
@@ -2145,7 +2222,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "8959663989136364503"
+              "templateHash": "9225451100183347478"
             }
           },
           "parameters": {
@@ -2160,6 +2237,9 @@
             },
             "Monitoring": {
               "type": "bool"
+            },
+            "Tags": {
+              "type": "object"
             }
           },
           "resources": [
@@ -2168,6 +2248,7 @@
               "apiVersion": "2021-06-22",
               "name": "[parameters('AutomationAccountName')]",
               "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]",
               "identity": {
                 "type": "SystemAssigned"
               },
@@ -2251,7 +2332,7 @@
             "value": "[parameters('SecurityPrincipalObjectIds')]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "ValidationEnvironment": {
             "value": "[parameters('ValidationEnvironment')]"
@@ -2493,7 +2574,7 @@
             "value": "[parameters('Location')]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           }
         },
         "template": {
@@ -3010,7 +3091,7 @@
             "value": "[parameters('Location')]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -3029,7 +3110,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "11682136833731218422"
+              "templateHash": "3719744021702976523"
             }
           },
           "parameters": {
@@ -3071,7 +3152,7 @@
               "apiVersion": "2022-07-01",
               "name": "[parameters('KeyVaultName')]",
               "location": "[parameters('Location')]",
-              "tags": {},
+              "tags": "[parameters('Tags')]",
               "properties": {
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": true,
@@ -3137,6 +3218,9 @@
                   "Script": {
                     "value": "param([string]$VaultName); $ErrorActionPreference = \"Stop\"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq \"DiskEncryptionKey\"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = \"True\"}else{$Exists = \"False\"}; $DeploymentScriptOutputs[\"exists\"] = $Exists"
                   },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
                   },
@@ -3151,7 +3235,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1338006163064225507"
+                      "templateHash": "10610759577645816673"
                     }
                   },
                   "parameters": {
@@ -3166,6 +3250,9 @@
                     },
                     "Script": {
                       "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
                     },
                     "Timestamp": {
                       "type": "string"
@@ -3187,7 +3274,7 @@
                       },
                       "location": "[parameters('Location')]",
                       "kind": "AzurePowerShell",
-                      "tags": {},
+                      "tags": "[parameters('Tags')]",
                       "properties": {
                         "arguments": "[parameters('Arguments')]",
                         "azPowerShellVersion": "9.4",
@@ -3514,7 +3601,7 @@
             "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -3545,7 +3632,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "5801181954516804566"
+              "templateHash": "102270893768887613"
             }
           },
           "parameters": {
@@ -4051,7 +4138,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "12894336958481445189"
+                      "templateHash": "2491265716886786084"
                     }
                   },
                   "parameters": {
@@ -4240,7 +4327,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "3849467652108976255"
+                              "templateHash": "1073951024653831084"
                             }
                           },
                           "parameters": {
@@ -4317,6 +4404,9 @@
                                   "Script": {
                                     "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
+                                  "Tags": {
+                                    "value": "[parameters('Tags')]"
+                                  },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
                                   },
@@ -4331,7 +4421,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.18.4.5664",
-                                      "templateHash": "1338006163064225507"
+                                      "templateHash": "10610759577645816673"
                                     }
                                   },
                                   "parameters": {
@@ -4346,6 +4436,9 @@
                                     },
                                     "Script": {
                                       "type": "string"
+                                    },
+                                    "Tags": {
+                                      "type": "object"
                                     },
                                     "Timestamp": {
                                       "type": "string"
@@ -4367,7 +4460,7 @@
                                       },
                                       "location": "[parameters('Location')]",
                                       "kind": "AzurePowerShell",
-                                      "tags": {},
+                                      "tags": "[parameters('Tags')]",
                                       "properties": {
                                         "arguments": "[parameters('Arguments')]",
                                         "azPowerShellVersion": "9.4",
@@ -4533,7 +4626,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "14716555459239656410"
+                      "templateHash": "8112095089231748581"
                     }
                   },
                   "parameters": {
@@ -4923,7 +5016,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "3849467652108976255"
+                              "templateHash": "1073951024653831084"
                             }
                           },
                           "parameters": {
@@ -5000,6 +5093,9 @@
                                   "Script": {
                                     "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
+                                  "Tags": {
+                                    "value": "[parameters('Tags')]"
+                                  },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
                                   },
@@ -5014,7 +5110,7 @@
                                     "_generator": {
                                       "name": "bicep",
                                       "version": "0.18.4.5664",
-                                      "templateHash": "1338006163064225507"
+                                      "templateHash": "10610759577645816673"
                                     }
                                   },
                                   "parameters": {
@@ -5029,6 +5125,9 @@
                                     },
                                     "Script": {
                                       "type": "string"
+                                    },
+                                    "Tags": {
+                                      "type": "object"
                                     },
                                     "Timestamp": {
                                       "type": "string"
@@ -5050,7 +5149,7 @@
                                       },
                                       "location": "[parameters('Location')]",
                                       "kind": "AzurePowerShell",
-                                      "tags": {},
+                                      "tags": "[parameters('Tags')]",
                                       "properties": {
                                         "arguments": "[parameters('Arguments')]",
                                         "azPowerShellVersion": "9.4",
@@ -5328,7 +5427,7 @@
             "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -5362,7 +5461,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "12870828976392524012"
+              "templateHash": "12575144529541551912"
             }
           },
           "parameters": {
@@ -5806,7 +5905,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "2286537352928928528"
+                      "templateHash": "6603222770200900678"
                     }
                   },
                   "parameters": {
@@ -6327,6 +6426,9 @@
                           "Script": {
                             "value": "param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split \"/\")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"hostPool\"] = $HostPool"
                           },
+                          "Tags": {
+                            "value": "[parameters('Tags')]"
+                          },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
                           },
@@ -6341,7 +6443,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "1338006163064225507"
+                              "templateHash": "10610759577645816673"
                             }
                           },
                           "parameters": {
@@ -6356,6 +6458,9 @@
                             },
                             "Script": {
                               "type": "string"
+                            },
+                            "Tags": {
+                              "type": "object"
                             },
                             "Timestamp": {
                               "type": "string"
@@ -6377,7 +6482,7 @@
                               },
                               "location": "[parameters('Location')]",
                               "kind": "AzurePowerShell",
-                              "tags": {},
+                              "tags": "[parameters('Tags')]",
                               "properties": {
                                 "arguments": "[parameters('Arguments')]",
                                 "azPowerShellVersion": "9.4",
@@ -6473,7 +6578,7 @@
             "value": "[variables('StorageSolution')]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -6894,6 +6999,9 @@
           "SessionThresholdPerCPU": {
             "value": "[parameters('ScalingSessionThresholdPerCPU')]"
           },
+          "Tags": {
+            "value": "[variables('TagsAll')]"
+          },
           "TimeDifference": {
             "value": "[variables('Locations')[parameters('Location')].timeDifference]"
           },
@@ -6908,7 +7016,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "3640947398637315491"
+              "templateHash": "16846773696092138722"
             }
           },
           "parameters": {
@@ -6951,6 +7059,9 @@
             "SessionThresholdPerCPU": {
               "type": "string"
             },
+            "Tags": {
+              "type": "object"
+            },
             "TimeDifference": {
               "type": "string"
             },
@@ -6974,6 +7085,7 @@
               "apiVersion": "2019-06-01",
               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), 'Scaling-Tool')]",
               "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]",
               "properties": {
                 "runbookType": "PowerShell",
                 "logProgress": false,
@@ -7141,7 +7253,7 @@
             "value": "[variables('ResourceGroupStorage')]"
           },
           "Tags": {
-            "value": "[parameters('Tags')]"
+            "value": "[variables('TagsAll')]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"

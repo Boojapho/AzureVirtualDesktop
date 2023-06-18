@@ -12,7 +12,7 @@ param UserAssignedIdentityResourceId string
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: KeyVaultName
   location: Location
-  tags: {}
+  tags: Tags
   properties: {
     enabledForDeployment: false
     enabledForDiskEncryption: true
@@ -36,6 +36,7 @@ module keyValidation 'deploymentScript.bicep' = {
     Location: Location
     Name: '${DeploymentScriptNamePrefix}diskEncryptionKeyValidation'
     Script: 'param([string]$VaultName); $ErrorActionPreference = "Stop"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq "DiskEncryptionKey"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = "True"}else{$Exists = "False"}; $DeploymentScriptOutputs["exists"] = $Exists'
+    Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }

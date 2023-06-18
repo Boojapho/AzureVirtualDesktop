@@ -277,6 +277,7 @@ module drainMode '../deploymentScript.bicep' = if (DrainMode) {
     Location: Location
     Name: '${DeploymentScriptNamePrefix}drain'
     Script: 'param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split "/")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["hostPool"] = $HostPool'
+    Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }

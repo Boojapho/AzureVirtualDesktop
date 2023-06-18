@@ -2,10 +2,12 @@ param AutomationAccountName string
 param Location string
 param LogAnalyticsWorkspaceResourceId string
 param Monitoring bool
+param Tags object
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
   name: AutomationAccountName
   location: Location
+  tags: Tags
   identity: {
     type: 'SystemAssigned'
   }

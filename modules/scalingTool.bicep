@@ -12,6 +12,7 @@ param MinimumNumberOfRdsh string
 param ResourceGroupHosts string
 param ResourceGroupManagement string
 param SessionThresholdPerCPU string
+param Tags object
 param TimeDifference string
 param Time string = utcNow('u')
 param TimeZone string
@@ -29,6 +30,7 @@ resource runbook 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' =
   parent: automationAccount
   name: 'Scaling-Tool'
   location: Location
+  tags: Tags
   properties: {
     runbookType: 'PowerShell'
     logProgress: false

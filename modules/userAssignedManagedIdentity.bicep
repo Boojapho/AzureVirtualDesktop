@@ -4,6 +4,7 @@ param Fslogix bool
 param FslogixStorage string
 param Location string
 param ResourceGroupStorage string
+param Tags object
 param Timestamp string
 param UserAssignedIdentityName string
 param VirtualNetworkResourceGroupName string
@@ -42,6 +43,7 @@ var RoleAssignments = union(DiskEncryptionRoleAssignment, DrainModeRoleAssignmen
 resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
   name: UserAssignedIdentityName
   location: Location
+  tags: Tags
 }
 
 module roleAssignments 'roleAssignment.bicep' = [for i in range(0, length(RoleAssignments)): {

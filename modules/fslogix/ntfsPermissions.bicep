@@ -38,6 +38,7 @@ module deploymentScript '../deploymentScript.bicep' = {
     Location: Location
     Name: '${DeploymentScriptNamePrefix}fslogix'
     Script: 'param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["virtualMachineName"] = $VirtualMachineName'
+    Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
