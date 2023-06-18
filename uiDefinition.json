@@ -171,7 +171,7 @@
                             "elements": [
 
                             ]
-                        }   
+                        }
                     ]
                 },
                 {
@@ -217,17 +217,21 @@
                             "label": "OS Disk SKU",
                             "filter": true,
                             "defaultValue": "Premium",
-                            "toolTip": "Select session host disk type to host the OS.",
+                            "toolTip": "Select the disk SKU for the operating system disk.",
                             "constraints": {
                                 "required": true,
                                 "allowedValues": [
                                     {
-                                        "label": "Standard",
+                                        "label": "Premium_LRS",
+                                        "value": "Premium_LRS"
+                                    },
+                                    {
+                                        "label": "Standard_LRS",
                                         "value": "Standard_LRS"
                                     },
                                     {
-                                        "label": "Premium",
-                                        "value": "Premium_LRS"
+                                        "label": "StandardSSD_LRS",
+                                        "value": "StandardSSD_LRS"
                                     }
                                 ]
                             }
@@ -444,7 +448,40 @@
                             "type": "Microsoft.Common.Section",
                             "label": "Network",
                             "visible": true,
-                            "elements": []
+                            "elements": [
+                                {
+                                    "name": "virtualNetworkSelection",
+                                    "type": "Microsoft.Solutions.ResourceSelector",
+                                    "visible": true,
+                                    "label": "Virtual network",
+                                    "resourceType": "Microsoft.Network/virtualNetworks",
+                                    "options": {
+                                        "filter": {
+                                            "subscription": "onBasics",
+                                            "location": "onBasics"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "subnetsApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('virtualMachines').network.virtualNetworkSelection.id, '/subnets?api-version=2022-05-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "subnet",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "label": "Subnet",
+                                    "defaultValue": "",
+                                    "toolTip": "Select an existing subnet for the AVD session hosts.",
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('virtualMachines').network.subnetsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]"
+                                    }
+                                }
+                            ]
                         },
                         {
                             "name": "identity",
@@ -478,17 +515,6 @@
                                     }
                                 },
                                 {
-                                    "name": "domainName",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "visible": "[not(equals(steps('virtualMachines').identity.solution, 'AzureActiveDirectory'))]",
-                                    "label": "Domain Name",
-                                    "toolTip": "Provide domain name for the selected Active Directory solution.",
-                                    "placeholder": "Example: contoso.com",
-                                    "constraints": {
-                                        "required": true
-                                    }
-                                },
-                                {
                                     "name": "intune",
                                     "type": "Microsoft.Common.OptionsGroup",
                                     "visible": "[equals(steps('virtualMachines').identity.solution, 'AzureActiveDirectory')]",
@@ -507,6 +533,17 @@
                                                 "value": false
                                             }
                                         ]
+                                    }
+                                },
+                                {
+                                    "name": "domainName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "visible": "[not(equals(steps('virtualMachines').identity.solution, 'AzureActiveDirectory'))]",
+                                    "label": "Domain Name",
+                                    "toolTip": "Provide domain name for the selected Active Directory solution.",
+                                    "placeholder": "Example: contoso.com",
+                                    "constraints": {
+                                        "required": true
                                     }
                                 },
                                 {
@@ -636,22 +673,53 @@
                     "name": "tags",
                     "label": "Tags",
                     "visible": true,
-                    "elements": []
+                    "elements": [
+                        {
+                            "name": "tags",
+                            "type": "Microsoft.Common.TagsByResource",
+                            "resources": [
+                                "Microsoft.Automation/automationAccounts",
+                                "Microsoft.Automation/automationAccounts/runbooks",
+                                "Microsoft.Compute/availabilitySets",
+                                "Microsoft.Compute/diskEncryptionSets",
+                                "Microsoft.Compute/disks",
+                                "Microsoft.Compute/virtualMachines",
+                                "Microsoft.Compute/virtualMachines/extensions",
+                                "Microsoft.DesktopVirtualization/applicationGroups",
+                                "Microsoft.DesktopVirtualization/hostPools",
+                                "Microsoft.DesktopVirtualization/workspaces",
+                                "Microsoft.KeyVault/vaults",
+                                "Microsoft.KeyVault/vaults/keys",
+                                "Microsoft.ManagedIdentity/userAssignedIdentities",
+                                "Microsoft.NetApp/netAppAccounts",
+                                "Microsoft.NetApp/netAppAccounts/capacityPools",
+                                "Microsoft.NetApp/netAppAccounts/capacityPools/volumes",
+                                "Microsoft.Network/networkInterfaces",
+                                "Microsoft.Network/privateEndpoints",
+                                "Microsoft.OperationalInsights/workspaces",
+                                "Microsoft.RecoveryServices/vaults",
+                                "Microsoft.RecoveryServices/vaults/backupPolicies",
+                                "Microsoft.RecoveryServices/vaults/backupFabrics/protectionContainers/protectedItems",
+                                "Microsoft.Resources/deploymentScripts",
+                                "Microsoft.Resources/resourceGroups",
+                                "Microsoft.Storage/storageAccounts"
+                            ]
+                        }
+                    ]
                 }
             ]
         },
         "outputs": {
             "parameters": {
-                "ActiveDirectorySolution": "",
+                "ActiveDirectorySolution": "[if(and(equal(steps('virtualMachines').identity.solution, 'AzureActiveDirectory'), steps('virtualMachines').identity.intune), 'AzureActiveDirectoryIntuneEnrollment', steps('virtualMachines').identity.solution]",
                 "Availability": "",
                 "AvdObjectId": "[first(map(steps('basics').servicePrincipalApi.value, (item) => item.id))]",
                 "AzureFilesPrivateDnsZoneResourceId": "",
-                "CustomRdpProperty": "",
                 "DiskEncryption": "",
-                "DiskSku": "",
+                "DiskSku": "[steps('virtualMachines').diskSku]",
                 "DomainJoinPassword": "",
                 "DomainJoinUserPrincipalName": "",
-                "DomainName": "",
+                "DomainName": "[steps('virtualMachines').identity.domainName]",
                 "DrainMode": "",
                 "Environment": "[steps('basics').environment]",
                 "FslogixShareSizeInGB": "",
@@ -668,7 +736,7 @@
                 "LogAnalyticsWorkspaceSku": "",
                 "MaxSessionLimit": "[if(equals(steps('hostPool').type, 'Pooled'), steps('hostPool').maxSessions, 1)]",
                 "Monitoring": "",
-                "OuPath": "",
+                "OuPath": "[steps('virtualMachines').identity.ouPath]",
                 "RecoveryServices": "",
                 "ScalingBeginPeakTime": "",
                 "ScalingEndPeakTime": "",
@@ -682,19 +750,17 @@
                 "SentinelLogAnalyticsWorkspaceName": "",
                 "SentinelLogAnalyticsWorkspaceResourceGroupName": "",
                 "SentinelLogAnalyticsWorkspaceSubscriptionId": "",
-                "SessionHostCount": "",
-                "SessionHostIndex": "",
+                "SessionHostCount": "[steps('virtualMachines').count]",
+                "SessionHostIndex": 0,
                 "StampIndex": "",
                 "StorageCount": "",
                 "StorageIndex": "",
-                "SubnetName": "",
-                "Tags": "",
+                "SubnetResourceId": "[steps('virtualMachines').network.subnet]",
+                "Tags": "[steps('tags').tags]",
                 "ValidationEnvironment": "",
-                "VirtualNetworkName": "",
-                "VirtualNetworkResourceGroupName": "",
-                "VirtualMachinePassword": "",
-                "VirtualMachineSize": "",
-                "VirtualMachineUsername": ""
+                "VirtualMachinePassword": "[steps('virtualMachines').localAdminCredentials.password]",
+                "VirtualMachineSize": "[steps('virtualMachines').size]",
+                "VirtualMachineUsername": "[steps('virtualMachines').localAdminCredentials.username]"
             },
             "kind": "Subscription",
             "location": "[steps('basics').resourceScope.location.name]",
