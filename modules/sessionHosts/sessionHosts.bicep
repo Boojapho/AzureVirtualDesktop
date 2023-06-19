@@ -26,7 +26,7 @@ param HostPoolType string
 param ImageOffer string
 param ImagePublisher string
 param ImageSku string
-param ImageVersion string
+param ImageVersionResourceId string
 param Location string
 param LogAnalyticsWorkspaceName string
 param ManagedIdentityResourceId string
@@ -115,7 +115,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     ImageOffer: ImageOffer
     ImagePublisher: ImagePublisher
     ImageSku: ImageSku
-    ImageVersion: ImageVersion
+    ImageVersionResourceId: ImageVersionResourceId
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     ManagedIdentityResourceId: ManagedIdentityResourceId

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "6630998575711002056"
+      "templateHash": "4889181380894113174"
     }
   },
   "parameters": {
@@ -205,11 +205,11 @@
         "description": "SKU for the virtual machine image"
       }
     },
-    "ImageVersion": {
+    "ImageVersionResourceId": {
       "type": "string",
-      "defaultValue": "latest",
+      "defaultValue": "",
       "metadata": {
-        "description": "Version for the virtual machine image"
+        "description": "The resource ID for the Compute Gallery Image Version. Do not set this value if using a marketplace image."
       }
     },
     "KerberosEncryption": {
@@ -5353,8 +5353,8 @@
           "ImageSku": {
             "value": "[parameters('ImageSku')]"
           },
-          "ImageVersion": {
-            "value": "[parameters('ImageVersion')]"
+          "ImageVersionResourceId": {
+            "value": "[parameters('ImageVersionResourceId')]"
           },
           "Location": {
             "value": "[parameters('Location')]"
@@ -5461,7 +5461,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "12575144529541551912"
+              "templateHash": "12634737988916973444"
             }
           },
           "parameters": {
@@ -5543,7 +5543,7 @@
             "ImageSku": {
               "type": "string"
             },
-            "ImageVersion": {
+            "ImageVersionResourceId": {
               "type": "string"
             },
             "Location": {
@@ -5808,8 +5808,8 @@
                   "ImageSku": {
                     "value": "[parameters('ImageSku')]"
                   },
-                  "ImageVersion": {
-                    "value": "[parameters('ImageVersion')]"
+                  "ImageVersionResourceId": {
+                    "value": "[parameters('ImageVersionResourceId')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -5905,7 +5905,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "6603222770200900678"
+                      "templateHash": "3348451730901645065"
                     }
                   },
                   "parameters": {
@@ -5978,7 +5978,7 @@
                     "ImageSku": {
                       "type": "string"
                     },
-                    "ImageVersion": {
+                    "ImageVersionResourceId": {
                       "type": "string"
                     },
                     "Location": {
@@ -6084,6 +6084,7 @@
                     "FslogixOfficeShare": "[format('\\\\{0}?.file.{1}\\office-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "FslogixProfileShare": "[format('\\\\{0}?.file.{1}\\profile-containers\\*\\*.VHDX', parameters('StorageAccountPrefix'), parameters('StorageSuffix'))]",
                     "Identity": "[if(not(contains(parameters('ActiveDirectorySolution'), 'DomainServices')), createObject('type', 'SystemAssigned'), null())]",
+                    "ImageReference": "[if(empty(parameters('ImageVersionResourceId')), createObject('publisher', parameters('ImagePublisher'), 'offer', parameters('ImageOffer'), 'sku', parameters('ImageSku'), 'version', 'latest'), createObject('id', parameters('ImageVersionResourceId')))]",
                     "Intune": "[contains(parameters('ActiveDirectorySolution'), 'IntuneEnrollment')]",
                     "NvidiaVmSize": "[contains(variables('NvidiaVmSizes'), parameters('VirtualMachineSize'))]",
                     "NvidiaVmSizes": [
@@ -6153,12 +6154,7 @@
                           "vmSize": "[parameters('VirtualMachineSize')]"
                         },
                         "storageProfile": {
-                          "imageReference": {
-                            "publisher": "[parameters('ImagePublisher')]",
-                            "offer": "[parameters('ImageOffer')]",
-                            "sku": "[parameters('ImageSku')]",
-                            "version": "[parameters('ImageVersion')]"
-                          },
+                          "imageReference": "[variables('ImageReference')]",
                           "osDisk": {
                             "name": "[format('{0}{1}', parameters('DiskName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                             "osType": "Windows",

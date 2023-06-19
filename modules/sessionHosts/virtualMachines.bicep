@@ -23,7 +23,7 @@ param HostPoolType string
 param ImageOffer string
 param ImagePublisher string
 param ImageSku string
-param ImageVersion string
+param ImageVersionResourceId string
 param Location string
 param LogAnalyticsWorkspaceName string
 param ManagedIdentityResourceId string
@@ -71,6 +71,14 @@ var FslogixProfileShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\p
 var Identity = !contains(ActiveDirectorySolution, 'DomainServices') ? {
   type: 'SystemAssigned'
 } : null
+var ImageReference = empty(ImageVersionResourceId) ? {
+  publisher: ImagePublisher
+  offer: ImageOffer
+  sku: ImageSku
+  version: 'latest'
+} : {
+  id: ImageVersionResourceId
+}
 var Intune = contains(ActiveDirectorySolution, 'IntuneEnrollment')
 var NvidiaVmSize = contains(NvidiaVmSizes, VirtualMachineSize)
 var NvidiaVmSizes = [
@@ -133,12 +141,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
       vmSize: VirtualMachineSize
     }
     storageProfile: {
-      imageReference: {
-        publisher: ImagePublisher
-        offer: ImageOffer
-        sku: ImageSku
-        version: ImageVersion
-      }
+      imageReference: ImageReference
       osDisk: {
         name: '${DiskName}${padLeft((i + SessionHostIndex), 4, '0')}'
         osType: 'Windows'

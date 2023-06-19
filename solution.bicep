@@ -114,8 +114,8 @@ param ImagePublisher string = 'MicrosoftWindowsDesktop'
 @description('SKU for the virtual machine image')
 param ImageSku string = 'win11-22h2-avd-m365'
 
-@description('Version for the virtual machine image')
-param ImageVersion string = 'latest'
+@description('The resource ID for the Compute Gallery Image Version. Do not set this value if using a marketplace image.')
+param ImageVersionResourceId string = ''
 
 @allowed([
   'AES256'
@@ -571,7 +571,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     ImageOffer: ImageOffer
     ImagePublisher: ImagePublisher
     ImageSku: ImageSku
-    ImageVersion: ImageVersion
+    ImageVersionResourceId: ImageVersionResourceId
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     ManagedIdentityResourceId: userAssignedIdentity.outputs.id
