@@ -3,7 +3,7 @@ param _artifactsLocation string
 param _artifactsLocationSasToken string
 param AcceleratedNetworking string
 param Availability string
-param AvailabilitySetPrefix string
+param AvailabilitySetsPrefix string
 param AvailabilityZones array
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
@@ -134,8 +134,8 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
   ] : null
   identity: Identity
   properties: {
-    availabilitySet: Availability == 'AvailabilitySet' ? {
-      id: resourceId('Microsoft.Compute/availabilitySets', '${AvailabilitySetPrefix}-${(i + SessionHostIndex) / 200}')
+    availabilitySet: Availability == 'AvailabilitySets' ? {
+      id: resourceId('Microsoft.Compute/availabilitySets', '${AvailabilitySetsPrefix}-${(i + SessionHostIndex) / 200}')
     } : null
     hardwareProfile: {
       vmSize: VirtualMachineSize

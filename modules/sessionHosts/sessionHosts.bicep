@@ -3,9 +3,9 @@ param _artifactsLocation string
 param _artifactsLocationSasToken string
 param AcceleratedNetworking string
 param Availability string
-param AvailabilitySetCount int
-param AvailabilitySetIndex int
-param AvailabilitySetPrefix string
+param AvailabilitySetsCount int
+param AvailabilitySetsIndex int
+param AvailabilitySetsPrefix string
 param AvailabilityZones array
 param DeploymentScriptNamePrefix string
 param DiskEncryption bool
@@ -64,8 +64,8 @@ param VirtualMachineUsername string
 
 var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')
 
-resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetCount): if (PooledHostPool && Availability == 'AvailabilitySet') {
-  name: '${AvailabilitySetPrefix}${padLeft((i + AvailabilitySetIndex), 2, '0')}'
+resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetsCount): if (PooledHostPool && Availability == 'AvailabilitySets') {
+  name: '${AvailabilitySetsPrefix}${padLeft((i + AvailabilitySetsIndex), 2, '0')}'
   location: Location
   tags: Tags
   sku: {
@@ -98,7 +98,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     AcceleratedNetworking: AcceleratedNetworking
     Availability: Availability
     AvailabilityZones: AvailabilityZones
-    AvailabilitySetPrefix: AvailabilitySetPrefix
+    AvailabilitySetsPrefix: AvailabilitySetsPrefix
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DiskName: DiskName

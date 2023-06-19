@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "4889181380894113174"
+      "templateHash": "16665921014675399168"
     }
   },
   "parameters": {
@@ -42,7 +42,7 @@
         "description": "Set the desired availability / SLA with a pooled host pool.  The best practice is to deploy to Availability Zones for resilency."
       },
       "allowedValues": [
-        "AvailabilitySet",
+        "AvailabilitySets",
         "AvailabilityZones",
         "None"
       ]
@@ -731,9 +731,9 @@
     "MaxAvSetMembers": 200,
     "BeginAvSetRange": "[div(parameters('SessionHostIndex'), variables('MaxAvSetMembers'))]",
     "EndAvSetRange": "[div(add(parameters('SessionHostCount'), parameters('SessionHostIndex')), variables('MaxAvSetMembers'))]",
-    "AvailabilitySetCount": "[length(range(variables('BeginAvSetRange'), add(sub(variables('EndAvSetRange'), variables('BeginAvSetRange')), 1)))]",
+    "AvailabilitySetsCount": "[length(range(variables('BeginAvSetRange'), add(sub(variables('EndAvSetRange'), variables('BeginAvSetRange')), 1)))]",
     "AppGroupName": "[format('dag-{0}', variables('NamingStandard'))]",
-    "AvailabilitySetPrefix": "[format('as-{0}', variables('NamingStandard'))]",
+    "AvailabilitySetsPrefix": "[format('as-{0}', variables('NamingStandard'))]",
     "AutomationAccountName": "[format('aa-{0}', variables('NamingStandard'))]",
     "DeploymentScriptNamePrefix": "[format('ds-{0}-', variables('NamingStandard'))]",
     "DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId": "[resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')]",
@@ -5290,13 +5290,13 @@
           "AvailabilityZones": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.availabilityZones.value]"
           },
-          "AvailabilitySetCount": {
-            "value": "[variables('AvailabilitySetCount')]"
+          "AvailabilitySetsCount": {
+            "value": "[variables('AvailabilitySetsCount')]"
           },
-          "AvailabilitySetPrefix": {
-            "value": "[variables('AvailabilitySetPrefix')]"
+          "AvailabilitySetsPrefix": {
+            "value": "[variables('AvailabilitySetsPrefix')]"
           },
-          "AvailabilitySetIndex": {
+          "AvailabilitySetsIndex": {
             "value": "[variables('BeginAvSetRange')]"
           },
           "DeploymentScriptNamePrefix": {
@@ -5461,7 +5461,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "12634737988916973444"
+              "templateHash": "8873640959781078480"
             }
           },
           "parameters": {
@@ -5477,13 +5477,13 @@
             "Availability": {
               "type": "string"
             },
-            "AvailabilitySetCount": {
+            "AvailabilitySetsCount": {
               "type": "int"
             },
-            "AvailabilitySetIndex": {
+            "AvailabilitySetsIndex": {
               "type": "int"
             },
-            "AvailabilitySetPrefix": {
+            "AvailabilitySetsPrefix": {
               "type": "string"
             },
             "AvailabilityZones": {
@@ -5653,12 +5653,12 @@
             {
               "copy": {
                 "name": "availabilitySets",
-                "count": "[length(range(0, parameters('AvailabilitySetCount')))]"
+                "count": "[length(range(0, parameters('AvailabilitySetsCount')))]"
               },
-              "condition": "[and(parameters('PooledHostPool'), equals(parameters('Availability'), 'AvailabilitySet'))]",
+              "condition": "[and(parameters('PooledHostPool'), equals(parameters('Availability'), 'AvailabilitySets'))]",
               "type": "Microsoft.Compute/availabilitySets",
               "apiVersion": "2019-07-01",
-              "name": "[format('{0}{1}', parameters('AvailabilitySetPrefix'), padLeft(add(range(0, parameters('AvailabilitySetCount'))[copyIndex()], parameters('AvailabilitySetIndex')), 2, '0'))]",
+              "name": "[format('{0}{1}', parameters('AvailabilitySetsPrefix'), padLeft(add(range(0, parameters('AvailabilitySetsCount'))[copyIndex()], parameters('AvailabilitySetsIndex')), 2, '0'))]",
               "location": "[parameters('Location')]",
               "tags": "[parameters('Tags')]",
               "sku": {
@@ -5757,8 +5757,8 @@
                   "AvailabilityZones": {
                     "value": "[parameters('AvailabilityZones')]"
                   },
-                  "AvailabilitySetPrefix": {
-                    "value": "[parameters('AvailabilitySetPrefix')]"
+                  "AvailabilitySetsPrefix": {
+                    "value": "[parameters('AvailabilitySetsPrefix')]"
                   },
                   "DeploymentScriptNamePrefix": {
                     "value": "[parameters('DeploymentScriptNamePrefix')]"
@@ -5905,7 +5905,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "3348451730901645065"
+                      "templateHash": "11152646005984137263"
                     }
                   },
                   "parameters": {
@@ -5921,7 +5921,7 @@
                     "Availability": {
                       "type": "string"
                     },
-                    "AvailabilitySetPrefix": {
+                    "AvailabilitySetsPrefix": {
                       "type": "string"
                     },
                     "AvailabilityZones": {
@@ -6149,7 +6149,7 @@
                       "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
                       "identity": "[variables('Identity')]",
                       "properties": {
-                        "availabilitySet": "[if(equals(parameters('Availability'), 'AvailabilitySet'), createObject('id', resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', parameters('AvailabilitySetPrefix'), div(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 200)))), null())]",
+                        "availabilitySet": "[if(equals(parameters('Availability'), 'AvailabilitySets'), createObject('id', resourceId('Microsoft.Compute/availabilitySets', format('{0}-{1}', parameters('AvailabilitySetsPrefix'), div(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 200)))), null())]",
                         "hardwareProfile": {
                           "vmSize": "[parameters('VirtualMachineSize')]"
                         },

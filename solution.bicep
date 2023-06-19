@@ -17,7 +17,7 @@ param _artifactsLocationSasToken string = ''
 param ActiveDirectorySolution string
 
 @allowed([
-  'AvailabilitySet'
+  'AvailabilitySets'
   'AvailabilityZones'
   'None'
 ])
@@ -248,11 +248,11 @@ var SessionHostBatchCount = DivisionRemainderValue > 0 ? DivisionValue + 1 : Div
 var MaxAvSetMembers = 200 // This is the max number of session hosts that can be deployed in an availability set.
 var BeginAvSetRange = SessionHostIndex / MaxAvSetMembers // This determines the availability set to start with.
 var EndAvSetRange = (SessionHostCount + SessionHostIndex) / MaxAvSetMembers // This determines the availability set to end with.
-var AvailabilitySetCount = length(range(BeginAvSetRange, (EndAvSetRange - BeginAvSetRange) + 1))
+var AvailabilitySetsCount = length(range(BeginAvSetRange, (EndAvSetRange - BeginAvSetRange) + 1))
 /*  END BATCHING AVAILABILITY SETS */
 
 var AppGroupName = 'dag-${NamingStandard}'
-var AvailabilitySetPrefix = 'as-${NamingStandard}'
+var AvailabilitySetsPrefix = 'as-${NamingStandard}'
 var AutomationAccountName = 'aa-${NamingStandard}'
 var DeploymentScriptNamePrefix = 'ds-${NamingStandard}-'
 var DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')
@@ -550,9 +550,9 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     AcceleratedNetworking: validations.outputs.acceleratedNetworking
     Availability: Availability
     AvailabilityZones: validations.outputs.availabilityZones
-    AvailabilitySetCount: AvailabilitySetCount
-    AvailabilitySetPrefix: AvailabilitySetPrefix
-    AvailabilitySetIndex: BeginAvSetRange
+    AvailabilitySetsCount: AvailabilitySetsCount
+    AvailabilitySetsPrefix: AvailabilitySetsPrefix
+    AvailabilitySetsIndex: BeginAvSetRange
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
     DiskEncryptionSetResourceId: diskEncryption.outputs.diskEncryptionSetResourceId
