@@ -181,14 +181,8 @@ param SecurityPrincipalObjectIds array = []
 @description('An array of Security Principal names to assign NTFS permissions on the Azure File Share to support Fslogix. This is only required for pooled host pools using FSLogix. The names should align to the object IDs provided in the "SecurityPrincipalObjectIds" parameter.')
 param SecurityPrincipalNames array = []
 
-@description('The name of the log analytics workspace used for Azure Sentinel.')
-param SentinelLogAnalyticsWorkspaceName string = ''
-
-@description('The name of the resource group containing the log analytics workspace used for Azure Sentinel.')
-param SentinelLogAnalyticsWorkspaceResourceGroupName string = ''
-
-@description('The ID of the subscription containing the log analytics workspace used for Azure Sentinel.')
-param SentinelLogAnalyticsWorkspaceSubscriptionId string = subscription().subscriptionId
+@description('The resource ID of the log analytics workspace used for Azure Sentinel. When using the Microsoft Monitoring Agent, this allows you to multihome the agent for Sentinel and AVD Insights.')
+param SentinelLogAnalyticsWorkspaceResourceId string = ''
 
 @maxValue(5000)
 @minValue(0)
@@ -223,6 +217,13 @@ param Timestamp string = utcNow('yyyyMMddhhmmss')
 
 @description('The value determines whether the hostpool should receive early AVD updates for testing.')
 param ValidationEnvironment bool = false
+
+@allowed([
+  'AzureMonitorAgent'
+  'LogAnalyticsAgent'
+])
+@description('')
+param VirtualMachineMonitoringAgent string = 'AzureMonitorAgent'
 
 @secure()
 @description('Local administrator password for the AVD session hosts')
@@ -302,8 +303,10 @@ var ResourceGroups = Fslogix ? [
 var ResourceGroupStorage = 'rg-${NamingStandard}-storage'
 var SecurityPrincipalIdsCount = length(SecurityPrincipalObjectIds)
 var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
-var Sentinel = empty(SentinelLogAnalyticsWorkspaceName) || empty(SentinelLogAnalyticsWorkspaceResourceGroupName) ? false : true
-var SentinelResourceGroup = Sentinel ? SentinelLogAnalyticsWorkspaceResourceGroupName : ResourceGroupManagement
+var Sentinel = empty(SentinelLogAnalyticsWorkspaceResourceId) ? false : true
+var SentinelLogAnalyticsWorkspaceName = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[8]
+var SentinelResourceGroup = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[4]
+var SentinelSubscriptionId = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[2]
 var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSolution = split(FslogixStorage, ' ')[0]
@@ -387,7 +390,8 @@ module validations 'modules/validations.bicep' = {
   ]
 }
 
-resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+// Role Assignment required for Start VM On Connect
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(AvdObjectId, DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId, subscription().id)
   properties: {
     roleDefinitionId: DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId
@@ -395,7 +399,8 @@ resource startVmOnConnect 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   }
 }
 
-module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool) {
+// Automation Account required for the AVD Scaling Tool and the Auto Increase Premium File Share Quota solution
+module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool || contains(FslogixSolution, 'AzureStorageAccount Premium')) {
   name: 'AutomationAccount_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
@@ -410,10 +415,10 @@ module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool)
   ]
 }
 
-// AVD Management Resources
+// AVD Control Plane Resources
 // This module deploys the host pool, desktop application group, & workspace
-module hostPool 'modules/hostPool.bicep' = {
-  name: 'HostPool_${Timestamp}'
+module controlPlane 'modules/controlPlane.bicep' = {
+  name: 'ControlPlane_${Timestamp}'
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     AppGroupName: AppGroupName
@@ -529,11 +534,11 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
 
 module sentinel 'modules/sentinel.bicep' = {
   name: 'Sentinel_${Timestamp}'
-  scope: resourceGroup(SentinelLogAnalyticsWorkspaceSubscriptionId, SentinelResourceGroup)
+  scope: resourceGroup(SentinelSubscriptionId, SentinelResourceGroup)
   params: {
     Sentinel: Sentinel
     SentinelLogAnalyticsWorkspaceName: SentinelLogAnalyticsWorkspaceName
-    SentinelLogAnalyticsWorkspaceResourceGroupName: SentinelLogAnalyticsWorkspaceResourceGroupName
+    SentinelLogAnalyticsWorkspaceResourceGroupName: SentinelResourceGroup
   }
   dependsOn: [
     resourceGroups

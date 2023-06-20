@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "1590283862666532287"
+      "templateHash": "14877239087924780387"
     }
   },
   "parameters": {
@@ -340,25 +340,11 @@
         "description": "An array of Security Principal names to assign NTFS permissions on the Azure File Share to support Fslogix. This is only required for pooled host pools using FSLogix. The names should align to the object IDs provided in the \"SecurityPrincipalObjectIds\" parameter."
       }
     },
-    "SentinelLogAnalyticsWorkspaceName": {
+    "SentinelLogAnalyticsWorkspaceResourceId": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
-        "description": "The name of the log analytics workspace used for Azure Sentinel."
-      }
-    },
-    "SentinelLogAnalyticsWorkspaceResourceGroupName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "The name of the resource group containing the log analytics workspace used for Azure Sentinel."
-      }
-    },
-    "SentinelLogAnalyticsWorkspaceSubscriptionId": {
-      "type": "string",
-      "defaultValue": "[subscription().subscriptionId]",
-      "metadata": {
-        "description": "The ID of the subscription containing the log analytics workspace used for Azure Sentinel."
+        "description": "The resource ID of the log analytics workspace used for Azure Sentinel. When using the Microsoft Monitoring Agent, this allows you to multihome the agent for Sentinel and AVD Insights."
       }
     },
     "SessionHostCount": {
@@ -429,6 +415,17 @@
       "metadata": {
         "description": "The value determines whether the hostpool should receive early AVD updates for testing."
       }
+    },
+    "VirtualMachineMonitoringAgent": {
+      "type": "string",
+      "defaultValue": "AzureMonitorAgent",
+      "metadata": {
+        "description": ""
+      },
+      "allowedValues": [
+        "AzureMonitorAgent",
+        "LogAnalyticsAgent"
+      ]
     },
     "VirtualMachinePassword": {
       "type": "securestring",
@@ -776,8 +773,10 @@
     "ResourceGroupStorage": "[format('rg-{0}-storage', variables('NamingStandard'))]",
     "SecurityPrincipalIdsCount": "[length(parameters('SecurityPrincipalObjectIds'))]",
     "SecurityPrincipalNamesCount": "[length(parameters('SecurityPrincipalNames'))]",
-    "Sentinel": "[if(or(empty(parameters('SentinelLogAnalyticsWorkspaceName')), empty(parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'))), false(), true())]",
-    "SentinelResourceGroup": "[if(variables('Sentinel'), parameters('SentinelLogAnalyticsWorkspaceResourceGroupName'), variables('ResourceGroupManagement'))]",
+    "Sentinel": "[if(empty(parameters('SentinelLogAnalyticsWorkspaceResourceId')), false(), true())]",
+    "SentinelLogAnalyticsWorkspaceName": "[split(parameters('SentinelLogAnalyticsWorkspaceResourceId'), '/')[8]]",
+    "SentinelResourceGroup": "[split(parameters('SentinelLogAnalyticsWorkspaceResourceId'), '/')[4]]",
+    "SentinelSubscriptionId": "[split(parameters('SentinelLogAnalyticsWorkspaceResourceId'), '/')[2]]",
     "StorageAccountPrefix": "[format('st{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
     "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
@@ -2189,7 +2188,7 @@
       ]
     },
     {
-      "condition": "[variables('PooledHostPool')]",
+      "condition": "[or(variables('PooledHostPool'), contains(parameters('FslogixSolution'), 'AzureStorageAccount Premium'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[format('AutomationAccount_{0}', parameters('Timestamp'))]",
@@ -2295,7 +2294,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('HostPool_{0}', parameters('Timestamp'))]",
+      "name": "[format('ControlPlane_{0}', parameters('Timestamp'))]",
       "resourceGroup": "[variables('ResourceGroupManagement')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -5207,7 +5206,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[format('Sentinel_{0}', parameters('Timestamp'))]",
-      "subscriptionId": "[parameters('SentinelLogAnalyticsWorkspaceSubscriptionId')]",
+      "subscriptionId": "[variables('SentinelSubscriptionId')]",
       "resourceGroup": "[variables('SentinelResourceGroup')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -5219,10 +5218,10 @@
             "value": "[variables('Sentinel')]"
           },
           "SentinelLogAnalyticsWorkspaceName": {
-            "value": "[parameters('SentinelLogAnalyticsWorkspaceName')]"
+            "value": "[variables('SentinelLogAnalyticsWorkspaceName')]"
           },
           "SentinelLogAnalyticsWorkspaceResourceGroupName": {
-            "value": "[parameters('SentinelLogAnalyticsWorkspaceResourceGroupName')]"
+            "value": "[variables('SentinelResourceGroup')]"
           }
         },
         "template": {
@@ -5396,10 +5395,10 @@
             "value": "[variables('Sentinel')]"
           },
           "SentinelWorkspaceId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp'))), '2022-09-01').outputs.sentinelWorkspaceId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('SentinelSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp'))), '2022-09-01').outputs.sentinelWorkspaceId.value]"
           },
           "SentinelWorkspaceResourceId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp'))), '2022-09-01').outputs.sentinelWorkspaceResourceId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('SentinelSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp'))), '2022-09-01').outputs.sentinelWorkspaceResourceId.value]"
           },
           "SessionHostBatchCount": {
             "value": "[variables('SessionHostBatchCount')]"
@@ -6516,7 +6515,7 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('FSLogix_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Monitoring_{0}', parameters('Timestamp')))]",
         "resourceGroups",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('SentinelLogAnalyticsWorkspaceSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('SentinelSubscriptionId'), variables('SentinelResourceGroup')), 'Microsoft.Resources/deployments', format('Sentinel_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp')))]"
       ]
