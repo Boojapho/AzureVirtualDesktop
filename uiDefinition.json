@@ -953,11 +953,35 @@
                     "label": "Monitoring",
                     "visible": true,
                     "elements": [
-                        // Security
-                        // Kerberos Encryption
-                        // Networking
-                        // Endpoint
-                        // Existing Private DNS Zone
+                        {
+                            "name": "enable",
+                            "type": "Microsoft.Common.CheckBox",
+                            "visible": true,
+                            "label": "Enable Monitoring",
+                            "defaultValue": false,
+                            "toolTip": "Deploy the required resources to enable AVD Insights."
+                        },
+                        {
+                            "name": "agent",
+                            "type": "Microsoft.Common.OptionsGroup",
+                            "visible": "[steps('monitoring').enable]",
+                            "label": "Agent",
+                            "defaultValue": "Azure Monitor Agent",
+                            "toolTip": "Select the desired agent to collect virtual machine events and performance counters for AVD Insights.",
+                            "constraints": {
+                                "required": true,
+                                "allowedValues": [
+                                    {
+                                        "label": "Azure Monitor Agent",
+                                        "value": "AzureMonitorAgent"
+                                    },
+                                    {
+                                        "label": "Log Analytics Agent (Classic)",
+                                        "value": "LogAnalyticsAgent"
+                                    }
+                                ]
+                            }
+                        }
                     ]
                 },
                 {
@@ -1015,7 +1039,7 @@
                 "Environment": "[steps('basics').naming.environment]",
                 "FslogixShareSizeInGB": "[if(equals(steps('userProfiles').profileSolution, 'local'), 100, steps('userProfiles').storageShareSize)]",
                 "FslogixSolution": "[steps('userProfiles').fslogixSolution]",
-                "FslogixStorage": "[if(equals(steps('userProfiles').profileSolution, 'local'), 'None', concat(steps('userProfiles').storageProduct, ' ', steps('userProfiles').storageSku, if(equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles'), '', steps('userProfiles').storageEndpoint)))]",
+                "FslogixStorage": "[if(equals(steps('userProfiles').profileSolution, 'local'), 'None', concat(steps('userProfiles').storageProduct, ' ', steps('userProfiles').storageSku, if(equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles'), '', concat( ' ', steps('userProfiles').storageEndpoint))))]",
                 "HostPoolType": "[if(equals(steps('management').hostpool.type, 'Pooled'), concat(step('management').hostpool.type, ' ', steps('management').hostpool.loadBalancerAlgorithm), concat(step('management').hostpool.type, ' ', steps('management').hostpool.assignmentType))]",
                 "Identifier": "[steps('basics').naming.identifier]",
                 "ImageOffer": "[steps('hosts').image.offer]",
@@ -1026,7 +1050,7 @@
                 "LogAnalyticsWorkspaceRetention": "",
                 "LogAnalyticsWorkspaceSku": "",
                 "MaxSessionLimit": "[if(equals(steps('management').hostpool.type, 'Pooled'), steps('management').hostpool.maxSessions, 1)]",
-                "Monitoring": "",
+                "Monitoring": "[steps('monitoring').enable]",
                 "OuPath": "[steps('hosts').identity.ouPath]",
                 "RecoveryServices": "",
                 "ScalingBeginPeakTime": "",
@@ -1038,9 +1062,7 @@
                 "ScreenCaptureProtection": "",
                 "SecurityPrincipalObjectIds": "",
                 "SecurityPrincipalNames": "",
-                "SentinelLogAnalyticsWorkspaceName": "",
-                "SentinelLogAnalyticsWorkspaceResourceGroupName": "",
-                "SentinelLogAnalyticsWorkspaceSubscriptionId": "",
+                "SentinelLogAnalyticsWorkspaceResourceId": "",
                 "SessionHostCount": "[steps('hosts').count]",
                 "SessionHostIndex": 0,
                 "StampIndex": "[steps('basics').naming.stampIndex]",
