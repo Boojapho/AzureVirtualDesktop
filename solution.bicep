@@ -80,7 +80,6 @@ param FslogixSolution string = 'ProfileContainer'
 @allowed([
   'AzureNetAppFiles Premium' // ANF with the Premium SKU, 450,000 IOPS
   'AzureNetAppFiles Standard' // ANF with the Standard SKU, 320,000 IOPS
-  'AzureNetAppFiles Ultra' // ANF with the Ultra SKU, 450,000 IOPS
   'AzureStorageAccount Premium PublicEndpoint' // Azure Files Premium with the default public endpoint, 100,000 IOPS
   'AzureStorageAccount Premium PrivateEndpoint' // Azure Files Premium with a Private Endpoint, 100,000 IOPS
   'AzureStorageAccount Premium ServiceEndpoint' // Azure Files Premium with a Service Endpoint, 100,000 IOPs
