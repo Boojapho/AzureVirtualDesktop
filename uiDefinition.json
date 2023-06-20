@@ -792,6 +792,20 @@
                             }
                         },
                         {
+                            "name": "storageCount",
+                            "type": "Microsoft.Common.Slider",
+                            "label": "Storage Count",
+                            "defaultValue": 1,
+                            "toolTip": "The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, '0' could be used for an office workers host pool and '1' could be used for a developers host pool.",
+                            "min": 0,
+                            "max": 9,
+                            "showStepMarkers": false,
+                            "constraints": {
+                                "required": true
+                            },
+                            "visible": "[and(equals(steps('userProfiles').profileSolution, 'fslogix'), equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'))]"
+                        },
+                        {
                             "name": "storageShareSize",
                             "type": "Microsoft.Common.Slider",
                             "label": "Storage Share Size (GB)",
@@ -1030,8 +1044,8 @@
                 "SessionHostCount": "[steps('hosts').count]",
                 "SessionHostIndex": 0,
                 "StampIndex": "[steps('basics').naming.stampIndex]",
-                "StorageCount": "",
-                "StorageIndex": "",
+                "StorageCount": "[if(or(steps('userProfiles').profileSolution, 'local', equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles')), 0, steps('userProfiles').storageCount)]",
+                "StorageIndex": 0,
                 "SubnetResourceId": "[steps('hosts').network.subnet]",
                 "Tags": "[steps('tags').tags]",
                 "ValidationEnvironment": "[steps('management').hostPool.validation]",
