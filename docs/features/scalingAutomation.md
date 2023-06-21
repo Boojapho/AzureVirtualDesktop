@@ -13,7 +13,6 @@
 - [**High Availability**](./highAvailability.md#high-availability)
 - [**Monitoring**](./monitoring.md#monitoring)
 - [**Scaling Automation**](./scalingAutomation.md#scaling-automation)
-- [**Screen Capture Protection**](./screenCaptureProtection.md#screen-capture-protection)
 - [**Security Technical Implementation Guides (STIG)**](./securityTechnicalImplementationGuides.md#security-technical-implementation-guides-stig)
 - [**SMB Multichannel**](./smbMultiChannel.md#smb-multichannel)
 - [**Start VM On Connect**](./startVmOnConnect.md#start-vm-on-connect)

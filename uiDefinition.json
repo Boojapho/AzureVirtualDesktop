@@ -1059,7 +1059,6 @@
                 "ScalingMinimumNumberOfRdsh": "",
                 "ScalingSessionThresholdPerCPU": "",
                 "ScalingTool": "",
-                "ScreenCaptureProtection": "",
                 "SecurityPrincipalObjectIds": "",
                 "SecurityPrincipalNames": "",
                 "SentinelLogAnalyticsWorkspaceResourceId": "",

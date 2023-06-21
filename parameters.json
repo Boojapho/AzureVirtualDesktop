@@ -123,9 +123,6 @@
         "scalingTool": {
             "value": true
         },
-        "screenCaptureProtection": {
-            "value": false
-        },
         "securityPrincipalObjectIds": {
             "value": [
                 "06c4afa5-b6dc-4719-8034-947887108e29"

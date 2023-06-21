@@ -172,9 +172,6 @@ param ScalingSessionThresholdPerCPU string = '1'
 @description('Deploys the required resources for the Scaling Tool. https://docs.microsoft.com/en-us/azure/virtual-desktop/scaling-automation-logic-apps')
 param ScalingTool bool = true
 
-@description('Determines whether the Screen Capture Protection feature is enabled. This feature is only supported on specific clients. https://learn.microsoft.com/azure/virtual-desktop/screen-capture-protection')
-param ScreenCaptureProtection bool = false
-
 @description('An array of Security Principal object IDs to assign to the AVD Application Group and FSLogix Storage.')
 param SecurityPrincipalObjectIds array = []
 
@@ -589,7 +586,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     PooledHostPool: PooledHostPool
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
-    ScreenCaptureProtection: ScreenCaptureProtection
     SecurityPrincipalObjectIds: SecurityPrincipalObjectIds
     Sentinel: Sentinel
     SentinelWorkspaceId: sentinel.outputs.sentinelWorkspaceId

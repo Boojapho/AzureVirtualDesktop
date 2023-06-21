@@ -38,7 +38,6 @@ param OuPath string
 param PooledHostPool bool
 param ResourceGroupHosts string
 param ResourceGroupManagement string
-param ScreenCaptureProtection bool
 param SecurityPrincipalObjectIds array
 param Sentinel bool
 param SentinelWorkspaceId string
@@ -124,7 +123,6 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
     ResourceGroupManagement: ResourceGroupManagement
-    ScreenCaptureProtection: ScreenCaptureProtection
     Sentinel: Sentinel
     SentinelWorkspaceId: SentinelWorkspaceId
     SentinelWorkspaceResourceId: SentinelWorkspaceResourceId
