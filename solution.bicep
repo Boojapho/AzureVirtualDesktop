@@ -219,7 +219,7 @@ param ValidationEnvironment bool = false
   'AzureMonitorAgent'
   'LogAnalyticsAgent'
 ])
-@description('')
+@description('Input the desired monitoring agent to send events and performance counters to a log analytics workspace.')
 param VirtualMachineMonitoringAgent string = 'AzureMonitorAgent'
 
 @secure()

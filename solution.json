@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "14877239087924780387"
+      "templateHash": "2771804285583425854"
     }
   },
   "parameters": {
@@ -319,13 +319,6 @@
         "description": "Deploys the required resources for the Scaling Tool. https://docs.microsoft.com/en-us/azure/virtual-desktop/scaling-automation-logic-apps"
       }
     },
-    "ScreenCaptureProtection": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Determines whether the Screen Capture Protection feature is enabled. This feature is only supported on specific clients. https://learn.microsoft.com/azure/virtual-desktop/screen-capture-protection"
-      }
-    },
     "SecurityPrincipalObjectIds": {
       "type": "array",
       "defaultValue": [],
@@ -420,7 +413,7 @@
       "type": "string",
       "defaultValue": "AzureMonitorAgent",
       "metadata": {
-        "description": ""
+        "description": "Input the desired monitoring agent to send events and performance counters to a log analytics workspace."
       },
       "allowedValues": [
         "AzureMonitorAgent",
@@ -5385,9 +5378,6 @@
           "ResourceGroupManagement": {
             "value": "[variables('ResourceGroupManagement')]"
           },
-          "ScreenCaptureProtection": {
-            "value": "[parameters('ScreenCaptureProtection')]"
-          },
           "SecurityPrincipalObjectIds": {
             "value": "[parameters('SecurityPrincipalObjectIds')]"
           },
@@ -5459,7 +5449,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "8873640959781078480"
+              "templateHash": "14891361966599296563"
             }
           },
           "parameters": {
@@ -5576,9 +5566,6 @@
             },
             "ResourceGroupManagement": {
               "type": "string"
-            },
-            "ScreenCaptureProtection": {
-              "type": "bool"
             },
             "SecurityPrincipalObjectIds": {
               "type": "array"
@@ -5833,9 +5820,6 @@
                   "ResourceGroupManagement": {
                     "value": "[parameters('ResourceGroupManagement')]"
                   },
-                  "ScreenCaptureProtection": {
-                    "value": "[parameters('ScreenCaptureProtection')]"
-                  },
                   "Sentinel": {
                     "value": "[parameters('Sentinel')]"
                   },
@@ -5903,7 +5887,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "11152646005984137263"
+                      "templateHash": "2171675979784107618"
                     }
                   },
                   "parameters": {
@@ -6002,9 +5986,6 @@
                     },
                     "ResourceGroupManagement": {
                       "type": "string"
-                    },
-                    "ScreenCaptureProtection": {
-                      "type": "bool"
                     },
                     "Sentinel": {
                       "type": "bool"
@@ -6284,7 +6265,7 @@
                           "timestamp": "[parameters('Timestamp')]"
                         },
                         "protectedSettings": {
-                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -ActiveDirectorySolution {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -ScreenCaptureProtection {13} -Sentinel {14} -SentinelWorkspaceId {15} -SentinelWorkspaceKey {16} -StorageAccountPrefix {17} -StorageCount {18} -StorageIndex {19} -StorageSolution {20} -StorageSuffix {21}', variables('AmdVmSize'), parameters('DomainName'), parameters('ActiveDirectorySolution'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('ScreenCaptureProtection'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
+                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -ActiveDirectorySolution {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -Sentinel {13} -SentinelWorkspaceId {14} -SentinelWorkspaceKey {15} -StorageAccountPrefix {16} -StorageCount {17} -StorageIndex {18} -StorageSolution {19} -StorageSuffix {20}', variables('AmdVmSize'), parameters('DomainName'), parameters('ActiveDirectorySolution'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
                         }
                       },
                       "dependsOn": [
