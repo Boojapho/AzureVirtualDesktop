@@ -762,7 +762,7 @@
                             "type": "Microsoft.Common.DropDown",
                             "visible": true,
                             "label": "Profile Solution",
-                            "defaultValue": "[if(equals(steps('management').hostPool.type, 'Pooled'), 'FSLogix', 'Local')]",
+                            "defaultValue": "",
                             "toolTip": "Select the user profile solution for your end users.",
                             "constraints": {
                                 "required": true,
