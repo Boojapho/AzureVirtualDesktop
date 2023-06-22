@@ -1040,7 +1040,7 @@
                 "FslogixShareSizeInGB": "[if(equals(steps('userProfiles').profileSolution, 'local'), 100, steps('userProfiles').storageShareSize)]",
                 "FslogixSolution": "[steps('userProfiles').fslogixSolution]",
                 "FslogixStorage": "[if(equals(steps('userProfiles').profileSolution, 'local'), 'None', concat(steps('userProfiles').storageProduct, ' ', steps('userProfiles').storageSku, if(equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles'), '', concat( ' ', steps('userProfiles').storageEndpoint))))]",
-                "HostPoolType": "[if(equals(steps('management').hostPool.type, 'Pooled'), concat(step('management').hostPool.type, ' ', steps('management').hostPool.loadBalancerAlgorithm), concat(step('management').hostPool.type, ' ', steps('management').hostPool.assignmentType))]",
+                "HostPoolType": "[if(equals(steps('management').hostPool.type, 'Pooled'), concat(steps('management').hostPool.type, ' ', steps('management').hostPool.loadBalancerAlgorithm), concat(steps('management').hostPool.type, ' ', steps('management').hostPool.assignmentType))]",
                 "Identifier": "[steps('basics').naming.identifier]",
                 "ImageOffer": "[steps('hosts').image.offer]",
                 "ImagePublisher": "MicrosoftWindowsDesktop",
