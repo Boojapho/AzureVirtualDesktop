@@ -671,9 +671,11 @@
                                     "type": "Microsoft.Common.TextBox",
                                     "visible": "[not(equals(steps('hosts').identity.solution, 'AzureActiveDirectory'))]",
                                     "label": "OU Path",
-                                    "toolTip": "Input the distinguished name of the desired organization unit for the AVD session hosts. If a value is not provided, the session hosts will be placed in the default organizational unit.",
-                                    "placeholder": "Example: OU=session-hosts,OU=avd,DC=contoso,DC=com",
-                                    "constraints": {}
+                                    "toolTip": "Input the distinguished name of the desired organization unit for the AVD session hosts.",
+                                    "placeholder": "Example: OU=pooled,OU=avd,DC=contoso,DC=com",
+                                    "constraints": {
+                                        "required": true
+                                    }
                                 }
                             ]
                         },
