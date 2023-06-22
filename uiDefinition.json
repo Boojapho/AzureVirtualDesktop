@@ -10,15 +10,11 @@
                     "label": "Basics",
                     "elements": [
                         {
-                            "name": "deploymentScope",
-                            "type": "Microsoft.Common.Section",
-                            "label": "Deployment Scope",
-                            "elements": [
-                                {
-                                    "name": "scope",
-                                    "type": "Microsoft.Common.ResourceScope"
-                                }
-                            ]
+                            "name": "scope",
+                            "type": "Microsoft.Common.ResourceScope",
+                            "location": {
+                                "resourceTypes": []
+                            }
                         },
                         {
                             "name": "naming",
@@ -42,7 +38,7 @@
                                     "type": "Microsoft.Common.DropDown",
                                     "visible": true,
                                     "label": "Environment",
-                                    "defaultValue": "Development",
+                                    "defaultValue": "Development (d)",
                                     "toolTip": "Select the target environment for the solution: Development (d), Test (t), Production (p). The abbreviation will be used as part of the naming convention for the resoure groups and resources.",
                                     "constraints": {
                                         "required": true,
@@ -98,11 +94,9 @@
                             "type": "Microsoft.Common.LocationSelector",
                             "label": "Location",
                             "toolTip": "Select the location for the AVD management resources: host pool, workspace, application group, etc.",
-                            "location": {
-                                "resourceTypes": [
-                                    "Microsoft.DesktopVirtualization/hostPools"
-                                ]
-                            }
+                            "resourceTypes": [
+                                "Microsoft.DesktopVirtualization/hostPools"
+                            ]
                         },
                         {
                             "name": "hostPool",
@@ -144,7 +138,7 @@
                                 {
                                     "name": "loadBalancerAlgorithm",
                                     "type": "Microsoft.Common.DropDown",
-                                    "visible": "[equals(steps('management').hostpool.type, 'Pooled')]",
+                                    "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
                                     "label": "Load Balancing Algorithm",
                                     "defaultValue": "BreadthFirst",
                                     "multiLine": true,
@@ -168,7 +162,7 @@
                                 {
                                     "name": "maxSessions",
                                     "type": "Microsoft.Common.TextBox",
-                                    "visible": "[equals(steps('management').hostpool.type, 'Pooled')]",
+                                    "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
                                     "label": "Max Session Limit",
                                     "defaultValue": "8",
                                     "toolTip": "The maximum number of users that have concurrent sessions on a session host. When setting a host pool to have depth first load balancing or planning to use Autoscaling, you must set an appropriate max session limit according to the configuration of your deployment and capacity of your VMs.",
@@ -181,7 +175,7 @@
                                 {
                                     "name": "assignmentType",
                                     "type": "Microsoft.Common.DropDown",
-                                    "visible": "[equals(steps('management').hostpool.type, 'Personal')]",
+                                    "visible": "[equals(steps('management').hostPool.type, 'Personal')]",
                                     "label": "Assignment Type",
                                     "defaultValue": "Automatic (Recommended)",
                                     "multiLine": true,
@@ -201,13 +195,6 @@
                                             }
                                         ]
                                     }
-                                },
-                                {
-                                    "name": "rdpProperties",
-                                    "type": "Microsoft.Common.Section",
-                                    "label": "RDP Properties",
-                                    "visible": true,
-                                    "elements": []
                                 }
                             ]
                         },
@@ -215,7 +202,7 @@
                             "name": "scaling",
                             "type": "Microsoft.Common.Section",
                             "label": "Scaling",
-                            "visible": true,
+                            "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
                             "elements": [
                                 {
                                     "name": "enable",
@@ -321,32 +308,49 @@
                             ]
                         },
                         {
-                            "name": "recoveryServices",
-                            "type": "Microsoft.Common.CheckBox",
+                            "name": "backup",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Backup",
                             "visible": true,
-                            "label": "Enable Recovery Services",
-                            "defaultValue": false,
-                            "toolTip": "Choose to deploy backups for your solution. For a personal host pool, this will enable backups on the virtual machines. For a pooled host pool, this will enable backups on the FSLogix file share."
+                            "elements": [
+                                {
+                                    "name": "recoveryServices",
+                                    "type": "Microsoft.Common.CheckBox",
+                                    "visible": true,
+                                    "label": "Enable Recovery Services",
+                                    "defaultValue": false,
+                                    "toolTip": "Choose to deploy backups for your solution. For a personal host pool, this will enable backups on the virtual machines. For a pooled host pool, this will enable backups on the FSLogix file share when using Azure Files."
+                                }
+                            ]
                         },
                         {
-                            "name": "groupsApi",
-                            "type": "Microsoft.Solutions.GraphApiControl",
-                            "request": {
-                                "method": "GET",
-                                "path": "/v1.0/groups"
-                            }
-                        },
-                        {
-                            "name": "groups",
-                            "type": "Microsoft.Common.DropDown",
-                            "label": "Groups",
-                            "defaultValue": "",
-                            "toolTip": "Select the desired group(s) to give access to this AVD stamp and if applicable, the FSLogix file share.",
-                            "constraints": {
-                                "allowedValues": "[map(steps('management').groupsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}')))]",
-                                "required": true
-                            },
-                            "visible": true
+                            "name": "assignment",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Assignment",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "groupsApi",
+                                    "type": "Microsoft.Solutions.GraphApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "/v1.0/groups"
+                                    }
+                                },
+                                {
+                                    "name": "groups",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "label": "Groups",
+                                    "defaultValue": "",
+                                    "toolTip": "Select the desired group(s) to give access to this AVD stamp and if applicable, the FSLogix file share.",
+                                    "multiselect": true,
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('management').assignment.groupsApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\": {\"name\":\"', item.displayName, '\",\"id\":\"', item.id, '\"}}')))]",
+                                        "required": true
+                                    },
+                                    "visible": true
+                                }
+                            ]
                         }
                     ]
                 },
@@ -360,11 +364,9 @@
                             "type": "Microsoft.Common.LocationSelector",
                             "label": "Location",
                             "toolTip": "Select the location for the AVD session host resources: virtual machines, disks, network interfaces, etc.",
-                            "location": {
-                                "resourceTypes": [
-                                    "Microsoft.ComputeVirtualMachines/virtualMachines"
-                                ]
-                            }
+                            "resourceTypes": [
+                                "Microsoft.Compute/virtualMachines"
+                            ]
                         },
                         {
                             "name": "availability",
@@ -406,22 +408,32 @@
                             "visible": true
                         },
                         {
+                            "name": "vmSizesApi",
+                            "type": "Microsoft.Solutions.ArmApiControl",
+                            "request": {
+                                "method": "GET",
+                                "path": "[concat(steps('basics').scope.subscription.id, '/providers/Microsoft.Compute/locations/', steps('hosts').location.name, '/vmSizes?api-version=2023-03-01')]"
+                            }
+                        },
+                        {
                             "name": "size",
                             "type": "Microsoft.Compute.SizeSelector",
                             "label": "Virtual Machine Size",
                             "toolTip": "Select the size of the virtual machines. Multi-session hosts should have 4 - 24 vCPUs. Single session host should have 2 or more vCPUs.",
                             "recommendedSizes": [
-                                "Standard_D2ads_v5",
                                 "Standard_D4ads_v5",
                                 "Standard_D8ads_v5",
                                 "Standard_D16ads_v5"
                             ],
+                            "constraints": {
+                                "allowedSizes": "[map(filter(steps('hosts').vmSizesApi.value, (item) => greater(item.numberOfCores, if(equals(steps('management').hostPool.type, 'Personal'), 2, 4))), (item) => parse(concat('\"', item.name, '\"')))]",
+                                "numAvailabilityZonesRequired": "[if(equals(steps('hosts').availability, 'AvailabilityZones'), 2, 1)]"
+                            },
+                            "options": {
+                                "hideDiskTypeFilter": false
+                            },
                             "osPlatform": "Windows",
                             "visible": true,
-                            "scope": {
-                                "subscriptionId": "[steps('basics').deploymentScope.scope.subscription.id]",
-                                "location": "[steps('basics').deploymentScope.scope.location.name]"
-                            },
                             "count": "[steps('hosts').count]"
                         },
                         {
@@ -429,7 +441,7 @@
                             "type": "Microsoft.Common.DropDown",
                             "label": "OS Disk SKU",
                             "filter": true,
-                            "defaultValue": "Premium",
+                            "defaultValue": "Premium_LRS",
                             "toolTip": "Select the disk SKU for the operating system disk.",
                             "constraints": {
                                 "required": true,
@@ -466,7 +478,7 @@
                         {
                             "name": "image",
                             "type": "Microsoft.Common.Section",
-                            "visible": "[equals(steps('sessionHosts').deploySessionHosts, true)]",
+                            "visible": true,
                             "label": "Image",
                             "elements": [
                                 {
@@ -513,14 +525,14 @@
                                         ],
                                         "required": true
                                     },
-                                    "visible": true
+                                    "visible": "[equals(steps('hosts').image.source, 'marketplace')]"
                                 },
                                 {
                                     "name": "skuApi",
                                     "type": "Microsoft.Solutions.ArmApiControl",
                                     "request": {
                                         "method": "GET",
-                                        "path": "[concat(subscription().id, '/providers/Microsoft.Compute/locations/', steps('basics').deploymentScope.scope.location.name, '/publishers/MicrosoftWindowsDesktop/artifacttypes/vmimage/offers/', steps('hosts').image.offer, '/skus?api-version=2022-08-01')]"
+                                        "path": "[concat(steps('basics').scope.subscription.id, '/providers/Microsoft.Compute/locations/', steps('hosts').location.name, '/publishers/MicrosoftWindowsDesktop/artifacttypes/vmimage/offers/', steps('hosts').image.offer, '/skus?api-version=2022-08-01')]"
                                     }
                                 },
                                 {
@@ -533,7 +545,7 @@
                                         "allowedValues": "[map(steps('hosts').image.skuApi, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.name, '\"}')))]",
                                         "required": true
                                     },
-                                    "visible": true
+                                    "visible": "[equals(steps('hosts').image.source, 'marketplace')]"
                                 },
                                 {
                                     "name": "galleryImage",
@@ -543,81 +555,6 @@
                                     "resourceType": "Microsoft.Compute/galleries/images",
                                     "constraints": {
                                         "required": true
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "name": "security",
-                            "type": "Microsoft.Common.Section",
-                            "label": "Security",
-                            "visible": true,
-                            "elements": [
-                                {
-                                    "name": "type",
-                                    "type": "Microsoft.Common.DropDown",
-                                    "label": "Type",
-                                    "filter": true,
-                                    "defaultValue": "Trusted Launch",
-                                    "toolTip": "Choose a type of security that matches your needs: Standard includes basic protections at no additional cost. Trusted launch virtual machines provide additional security features on Gen2 virtual machines to protect against persistent and advanced attacks.",
-                                    "constraints": {
-                                        "required": true,
-                                        "allowedValues": [
-                                            {
-                                                "label": "Confidential Virtual Machines",
-                                                "value": "ConfidentialVM"
-                                            },
-                                            {
-                                                "label": "Standard",
-                                                "value": "Standard"
-                                            },
-                                            {
-                                                "label": "Trusted Launch",
-                                                "value": "TrustedLaunch"
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "secureBoot",
-                                    "type": "Microsoft.Common.OptionsGroup",
-                                    "visible": "[or(equals(steps('sessionHosts').sessionHostsSecuritySection.securityType, 'TrustedLaunch'), equals(steps('sessionHosts').sessionHostsSecuritySection.securityType, 'ConfidentialVM'))]",
-                                    "label": "Enable secure boot",
-                                    "defaultValue": "Yes",
-                                    "toolTip": "Secure boot helps protect your VMs against boot kits, rootkits, and kernel-level malware.",
-                                    "constraints": {
-                                        "required": true,
-                                        "allowedValues": [
-                                            {
-                                                "label": "Yes",
-                                                "value": true
-                                            },
-                                            {
-                                                "label": "No",
-                                                "value": false
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "vTpm",
-                                    "type": "Microsoft.Common.OptionsGroup",
-                                    "visible": "[or(equals(steps('sessionHosts').sessionHostsSecuritySection.securityType, 'TrustedLaunch'), equals(steps('sessionHosts').sessionHostsSecuritySection.securityType, 'ConfidentialVM'))]",
-                                    "label": "Enable vTPM",
-                                    "defaultValue": "Yes",
-                                    "toolTip": "Virtual Trusted Platform Module (vTPM) is TPM2.0 compliant and validates your VM boot integrity apart from securely storing keys and secrets.",
-                                    "constraints": {
-                                        "required": true,
-                                        "allowedValues": [
-                                            {
-                                                "label": "Yes",
-                                                "value": true
-                                            },
-                                            {
-                                                "label": "No",
-                                                "value": false
-                                            }
-                                        ]
                                     }
                                 }
                             ]
@@ -634,6 +571,9 @@
                                     "visible": true,
                                     "label": "Virtual network",
                                     "resourceType": "Microsoft.Network/virtualNetworks",
+                                    "constraints": {
+                                        "required": true
+                                    },
                                     "options": {
                                         "filter": {
                                             "subscription": "onBasics",
@@ -657,6 +597,7 @@
                                     "defaultValue": "",
                                     "toolTip": "Select an existing subnet for the AVD session hosts.",
                                     "constraints": {
+                                        "required": true,
                                         "allowedValues": "[map(steps('hosts').network.subnetsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]"
                                     }
                                 }
@@ -728,48 +669,45 @@
                                 {
                                     "name": "ouPath",
                                     "type": "Microsoft.Common.TextBox",
-                                    "visible": "[not(equals(steps('identity').identityDomainInformation.identityServiceProvider, 'AzureActiveDirectory'))]",
+                                    "visible": "[not(equals(steps('hosts').identity.solution, 'AzureActiveDirectory'))]",
                                     "label": "OU Path",
                                     "toolTip": "Input the distinguished name of the desired organization unit for the AVD session hosts. If a value is not provided, the session hosts will be placed in the default organizational unit.",
                                     "placeholder": "Example: OU=session-hosts,OU=avd,DC=contoso,DC=com",
                                     "constraints": {}
+                                }
+                            ]
+                        },
+                        {
+                            "name": "domainJoinCredentials",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Domain Join Credentials",
+                            "visible": "[not(equals(steps('hosts').identity.solution, 'AzureActiveDirectory'))]",
+                            "elements": [
+                                {
+                                    "name": "userPrincipalName",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "User Principal Name",
+                                    "toolTip": "Enter the user principal name with domain join privileges.",
+                                    "placeholder": "",
+                                    "constraints": {
+                                        "required": true,
+                                        "regex": "^[a-z0-9A-Z_.-]+@(?:[a-z0-9]+\\.)+[a-z]+$",
+                                        "validationMessage": "The value must be a valid user principal name."
+                                    }
                                 },
                                 {
-                                    "name": "domainJoinCredentials",
-                                    "type": "Microsoft.Common.Section",
-                                    "label": "Example section",
-                                    "elements": [
-                                        {
-                                            "name": "userPrincipalName",
-                                            "type": "Microsoft.Common.TextBox",
-                                            "visible": "[equals(steps('sessionHosts').domain.directory, 'ActiveDirectory')]",
-                                            "label": "User Principal Name",
-                                            "toolTip": "Enter the user principal name with domain join privileges.",
-                                            "placeholder": "",
-                                            "constraints": {
-                                                "required": true,
-                                                "regex": "^[a-z0-9A-Z_.-]+@(?:[a-z0-9]+\\.)+[a-z]+$",
-                                                "validationMessage": "The value must be a valid user principal name."
-                                            }
-                                        },
-                                        {
-                                            "name": "password",
-                                            "type": "Microsoft.Common.PasswordBox",
-                                            "label": {
-                                                "password": "Password"
-                                            },
-                                            "toolTip": "Enter a password that is alphanumeric, contains at least 12 characters, 1 letter, 1 number and 1 special character.",
-                                            "constraints": {
-                                                "required": true,
-                                                "regex": "",
-                                                "validationMessage": ""
-                                            },
-                                            "options": {
-                                                "hideConfirmation": true
-                                            },
-                                            "visible": "[equals(steps('sessionHosts').domain.directory, 'ActiveDirectory')]"
-                                        }
-                                    ]
+                                    "name": "password",
+                                    "type": "Microsoft.Common.PasswordBox",
+                                    "label": {
+                                        "password": "Password"
+                                    },
+                                    "toolTip": "Enter a password that is alphanumeric, contains at least 12 characters, 1 letter, 1 number and 1 special character.",
+                                    "constraints": {
+                                        "required": true
+                                    },
+                                    "options": {
+                                        "hideConfirmation": true
+                                    }
                                 }
                             ]
                         },
@@ -821,10 +759,10 @@
                     "elements": [
                         {
                             "name": "profileSolution",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": true,
                             "label": "Profile Solution",
-                            "defaultValue": "Local",
+                            "defaultValue": "[if(equals(steps('management').hostPool.type, 'Pooled'), 'FSLogix', 'Local')]",
                             "toolTip": "Select the user profile solution for your end users.",
                             "constraints": {
                                 "required": true,
@@ -842,7 +780,7 @@
                         },
                         {
                             "name": "storageProduct",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": "[equals(steps('userProfiles').profileSolution, 'fslogix')]",
                             "label": "Storage Product",
                             "defaultValue": "Azure Files",
@@ -863,10 +801,10 @@
                         },
                         {
                             "name": "storageSku",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": "[equals(steps('userProfiles').profileSolution, 'fslogix')]",
                             "label": "Storage SKU",
-                            "defaultValue": "Azure Files",
+                            "defaultValue": "Premium",
                             "toolTip": "Select the storage SKU for the FSLogix profiles.",
                             "constraints": {
                                 "required": true,
@@ -884,10 +822,10 @@
                         },
                         {
                             "name": "storageEndpoint",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": "[and(equals(steps('userProfiles').profileSolution, 'fslogix'), equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'))]",
                             "label": "Storage Endpoint",
-                            "defaultValue": "PublicEndpoint",
+                            "defaultValue": "Service",
                             "toolTip": "Select the storage endpoint for the FSLogix profiles.",
                             "constraints": {
                                 "required": true,
@@ -909,16 +847,42 @@
                         },
                         {
                             "name": "privateDnsZone",
-                            "type": "Microsoft.Solutions.ResourceSelector",
-                            "label": "Existing Private DNS Zone for Azure Files",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Private DNS Zone",
                             "visible": "[and(equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'), equals(steps('userProfiles').storageEndpoint, 'PrivateEndpoint'))]",
-                            "resourceType": "Microsoft.Network/privateDnsZones",
-                            "toolTip": "Select the existing private DNS zone for Azure Files.",
-                            "options": {}
+                            "elements": [
+                                {
+                                    "name": "subscription",
+                                    "visible": true,
+                                    "type": "Microsoft.Common.SubscriptionSelector"
+
+                                },
+                                {
+                                    "name": "api",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat('/subscriptions/', steps('userProfiles').privateDnsZone.subscription.subscriptionId, '/providers/Microsoft.Network/privateDnsZones?api-version=2018-09-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "resource",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "visible": true,
+                                    "label": "Resource",
+                                    "defaultValue": "",
+                                    "multiLine": true,
+                                    "toolTip": "Select the existing Private DNS Zone for Azure Files.",
+                                    "constraints": {
+                                        "required": false,
+                                        "allowedValues": "[map(filter(steps('userProfiles').privateDnsZone.api.value, (item) => contains(item.name, 'privatelink.file.')), (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"Resource group: ', first(skip(split(item.id, '/'), 4)), '\",\"value\":\"', item.id, '\"}')))]"
+                                    }
+                                }
+                            ]
                         },
                         {
                             "name": "storageKerberosEncryption",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": "[and(equals(steps('userProfiles').profileSolution, 'fslogix'), equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'))]",
                             "label": "Storage Kerberos Encryption",
                             "defaultValue": "RC4",
@@ -963,11 +927,11 @@
                             "constraints": {
                                 "required": true
                             },
-                            "visible": true
+                            "visible": "[equals(steps('userProfiles').profileSolution, 'fslogix')]"
                         },
                         {
                             "name": "fslogixSolution",
-                            "type": "Microsoft.Common.OptionsGroup",
+                            "type": "Microsoft.Common.DropDown",
                             "visible": "[equals(steps('userProfiles').profileSolution, 'fslogix')]",
                             "label": "FSLogix Solution",
                             "defaultValue": "Profile Container",
@@ -1065,7 +1029,7 @@
                 "ActiveDirectorySolution": "[if(and(equals(steps('hosts').identity.solution, 'AzureActiveDirectory'), steps('hosts').identity.intune), 'AzureActiveDirectoryIntuneEnrollment', steps('hosts').identity.solution)]",
                 "Availability": "[steps('hosts').availability]",
                 "AvdObjectId": "[first(map(steps('basics').servicePrincipalApi.value, (item) => item.id))]",
-                "AzureFilesPrivateDnsZoneResourceId": "[if(and(equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'), equals(steps('userProfiles').storageEndpoint, 'PrivateEndpoint')), steps('userProfiles').privateDnsZone, '')]",
+                "AzureFilesPrivateDnsZoneResourceId": "[if(and(equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'), equals(steps('userProfiles').storageEndpoint, 'PrivateEndpoint')), steps('userProfiles').privateDnsZone.resource, '')]",
                 "DiskEncryption": "[steps('hosts').diskEncryption]",
                 "DiskSku": "[steps('hosts').diskSku]",
                 "DomainJoinPassword": "[steps('hosts').identity.domainJoinCredentials.password]",
@@ -1088,15 +1052,15 @@
                 "MaxSessionLimit": "[if(equals(steps('management').hostpool.type, 'Pooled'), steps('management').hostpool.maxSessions, 1)]",
                 "Monitoring": "[steps('monitoring').enable]",
                 "OuPath": "[steps('hosts').identity.ouPath]",
-                "RecoveryServices": "[steps('management').recoveryServices]",
+                "RecoveryServices": "[steps('management').backup.recoveryServices]",
                 "ScalingBeginPeakTime": "[if(equals(steps('management').scaling.enable), steps('management').scaling.beginPeakTime, '9:00')]",
                 "ScalingEndPeakTime": "[if(equals(steps('management').scaling.enable), steps('management').scaling.endPeakTime, '17:00')]",
                 "ScalingLimitSecondsToForceLogOffUser": "[if(equals(steps('management').scaling.enable), steps('management').scaling.forceLogOff, '0')]",
                 "ScalingMinimumNumberOfRdsh": "[if(equals(steps('management').scaling.enable), steps('management').scaling.minimumHosts, '0')]",
                 "ScalingSessionThresholdPerCPU": "[if(equals(steps('management').scaling.enable), steps('management').scaling.cpuThreshold, '1')]",
                 "ScalingTool": "[steps('management').scaling.enable]",
-                "SecurityPrincipalObjectIds": "",
-                "SecurityPrincipalNames": "",
+                "SecurityPrincipalObjectIds": "[map(steps('management').assignment.groups, (item) => item.id)]",
+                "SecurityPrincipalNames": "[map(steps('management').assignment.groups, (item) => item.name)]",
                 "SentinelLogAnalyticsWorkspaceResourceId": "[steps('monitoring').logAnalyticsWorkspace.id]",
                 "SessionHostCount": "[steps('hosts').count]",
                 "SessionHostIndex": 0,
@@ -1111,8 +1075,8 @@
                 "VirtualMachineUsername": "[steps('hosts').localAdminCredentials.username]"
             },
             "kind": "Subscription",
-            "location": "[steps('basics').deploymentScope.scope.location.name]",
-            "subscriptionId": "[steps('basics').deploymentScope.scope.subscription.id]"
+            "location": "[steps('basics').scope.location.name]",
+            "subscriptionId": "[steps('basics').scope.subscription.id]"
         }
     }
 }
