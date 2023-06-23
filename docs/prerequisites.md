@@ -16,7 +16,7 @@ To successfully deploy this solution, you will need to ensure the following prer
     - "Join the Domain" on the domain
     - "Create Computer" on the parent OU or domain
     - "Delete Computer" on the parent OU or domain
-- Create a security group for your AVD users and if applicable (Azure AD DS & AD DS), ensure the principal has successfully synchronized.
+- Create a security group for your AVD users and if applicable (Azure AD DS & AD DS), ensure the principal has successfully synchronized to Azure AD.
 - Azure Files for FSLogix:
   - If you plan to deploy Azure Files with a Service Endpoint, be sure the subnet for the sessions hosts has the "Azure Storage" service endpoint enabled on the subnet.
   - If you plan to deploy Azure Files with a Private Endpoint, ensure the [Private Endpoint Network Policy has been disabled](https://docs.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy). Otherwise, the private endpoint resource will fail to deploy.
@@ -24,3 +24,24 @@ To successfully deploy this solution, you will need to ensure the following prer
   - [Register the resource provider](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-register)
   - [Delegate a subnet to Azure NetApp Files](https://docs.microsoft.com/en-us/azure/azure-netapp-files/azure-netapp-files-delegate-subnet)
   - [Enable the shared AD feature](https://docs.microsoft.com/en-us/azure/azure-netapp-files/create-active-directory-connections#shared_ad): this feature is required if you plan to deploy more than one domain joined NetApp account in the same Azure subscription and region.  As of 1/31/2022, this feature is in "public preview" in Azure Cloud and not available in Azure US Government.
+- Marketplace Image: If you plan to deploy this solution using PowerShell or AzureCLI and use a marketplace image for the virtual machines, use the code below to find the appropriate image:
+
+```powershell
+# Determine the Publisher; input the location for your AVD deployment
+$Location = ''
+(Get-AzVMImagePublisher -Location $Location).PublisherName
+
+# Determine the Offer; common publisher is 'MicrosoftWindowsDesktop' for Win 10/11
+$Publisher = ''
+(Get-AzVMImageOffer -Location $Location -PublisherName $Publisher).Offer
+
+# Determine the SKU; common offers are 'Windows-10' for Win 10 and 'office-365' for the Win10/11 multi-session with M365 apps
+$Offer = ''
+(Get-AzVMImageSku -Location $Location -PublisherName $Publisher -Offer $Offer).Skus
+
+# Determine the Image Version; common offers are '21h1-evd-o365pp' and 'win11-21h2-avd-m365'
+$Sku = ''
+Get-AzVMImage -Location $Location -PublisherName $Publisher -Offer $Offer -Skus $Sku | Select-Object * | Format-List
+
+# Common version is 'latest'
+```
