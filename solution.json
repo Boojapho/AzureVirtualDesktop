@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "2771804285583425854"
+      "templateHash": "7143267174954130685"
     }
   },
   "parameters": {
@@ -1075,7 +1075,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "7149418401349953329"
+              "templateHash": "3495990351158364332"
             }
           },
           "parameters": {
@@ -1269,7 +1269,7 @@
                     "value": "[format('{0}availabilityZonesValidation', parameters('DeploymentScriptNamePrefix'))]"
                   },
                   "Script": {
-                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"zones\"] = $Sku.locationInfo.zones[0] | Sort-Object | ConvertTo-Json -AsArray"
+                    "value": "param([string]$Location,[string]$VmSize); $ErrorActionPreference = \"Stop\"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq \"virtualMachines\" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"zones\"] = $Sku.locationInfo.zones | Sort-Object | ConvertTo-Json -AsArray"
                   },
                   "Tags": {
                     "value": "[parameters('Tags')]"

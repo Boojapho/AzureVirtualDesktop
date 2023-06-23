@@ -42,7 +42,7 @@ module availabilityZones 'deploymentScript.bicep' = if (Availability == 'Availab
     Arguments: '-Location ${Location} -VmSize ${VirtualMachineSize}'
     Location: Location
     Name: '${DeploymentScriptNamePrefix}availabilityZonesValidation'
-    Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["zones"] = $Sku.locationInfo.zones[0] | Sort-Object | ConvertTo-Json -AsArray'
+    Script: 'param([string]$Location,[string]$VmSize); $ErrorActionPreference = "Stop"; $Sku = Get-AzComputeResourceSku -Location $Location | Where-Object {$_.ResourceType -eq "virtualMachines" -and $_.Name -eq $VmSize}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["zones"] = $Sku.locationInfo.zones | Sort-Object | ConvertTo-Json -AsArray'
     Tags: Tags
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
