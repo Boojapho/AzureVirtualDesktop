@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "956124217039660840"
+      "templateHash": "15644280835516448315"
     }
   },
   "parameters": {
@@ -794,7 +794,7 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
-      "name": "[guid(variables('UserAssignedIdentityName'), variables('ReaderRoleDefinitionResourceId'), subscription().id)]",
+      "name": "[guid(variables('ResourceGroupManagement'), variables('UserAssignedIdentityName'), variables('ReaderRoleDefinitionResourceId'), subscription().id)]",
       "properties": {
         "roleDefinitionId": "[variables('ReaderRoleDefinitionResourceId')]",
         "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('UserAssignedIdentity_{0}', parameters('Timestamp'))), '2022-09-01').outputs.principalId.value]",

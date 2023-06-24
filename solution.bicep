@@ -345,7 +345,7 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
 // Role Assignment for Validation
 // This role assignment is required to collect validation information
 resource roleAssignment_validation 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(UserAssignedIdentityName, ReaderRoleDefinitionResourceId, subscription().id)
+  name: guid(ResourceGroupManagement, UserAssignedIdentityName, ReaderRoleDefinitionResourceId, subscription().id)
   properties: {
     roleDefinitionId: ReaderRoleDefinitionResourceId
     principalId: userAssignedIdentity.outputs.principalId
