@@ -65,7 +65,7 @@
                                     "defaultValue": 0,
                                     "toolTip": "The stamp index differentiates multiple AVD stamps within the same business unit or project. For example, '0' could be used for an office workers host pool and '1' could be used for a developers host pool.",
                                     "min": 0,
-                                    "max": 99,
+                                    "max": 9,
                                     "showStepMarkers": false,
                                     "constraints": {
                                         "required": true
@@ -85,8 +85,8 @@
                     ]
                 },
                 {
-                    "name": "management",
-                    "label": "Management",
+                    "name": "controlPlane",
+                    "label": "Control Plane",
                     "visible": true,
                     "elements": [
                         {
@@ -195,131 +195,6 @@
                                             }
                                         ]
                                     }
-                                }
-                            ]
-                        },
-                        {
-                            "name": "scaling",
-                            "type": "Microsoft.Common.Section",
-                            "label": "Scaling",
-                            "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
-                            "elements": [
-                                {
-                                    "name": "enable",
-                                    "type": "Microsoft.Common.CheckBox",
-                                    "visible": true,
-                                    "label": "Enable Scaling Tool",
-                                    "defaultValue": false,
-                                    "toolTip": "Choose whether to deploy the required resources to enable the Scaling Tool."
-                                },
-                                {
-                                    "name": "beginPeakTime",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "Begin Peak Time",
-                                    "visible": "[steps('management').scaling.enable]",
-                                    "defaultValue": "8:00",
-                                    "placeholder": "",
-                                    "toolTip": "Input the time when peak hours begin for your end users.",
-                                    "constraints": {
-                                        "required": true,
-                                        "validations": [
-                                            {
-                                                "regex": "^[012]?[0-9]:[0-5][0-9]$",
-                                                "message": "The value must be in a proper time format with a two digit hour and two digit minutes, e.g. 12am should be input as 00:00."
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "endPeakTime",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "End Peak Time",
-                                    "visible": "[steps('management').scaling.enable]",
-                                    "defaultValue": "17:00",
-                                    "placeholder": "",
-                                    "toolTip": "Input the time when peak hours end for your end users.",
-                                    "constraints": {
-                                        "required": true,
-                                        "validations": [
-                                            {
-                                                "regex": "^[012]?[0-9]:[0-5][0-9]$",
-                                                "message": "The value must be in a proper time format with a two digit hour and two digit minutes, e.g. 8pm should be input as 20:00."
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "forceLogOff",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "Force Log Off (Seconds)",
-                                    "visible": "[steps('management').scaling.enable]",
-                                    "defaultValue": "0",
-                                    "toolTip": "Use this setting to force logoff users if session time limit settings cannot be used.",
-                                    "placeholder": "",
-                                    "multiLine": false,
-                                    "constraints": {
-                                        "required": true,
-                                        "validations": [
-                                            {
-                                                "regex": "^[0-9]{1,3}$",
-                                                "message": "The value must be between 1 and 3 digits."
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "minimumHosts",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "Minimum Number of Session Hosts",
-                                    "visible": "[steps('management').scaling.enable]",
-                                    "defaultValue": "0",
-                                    "toolTip": "Use this setting to determine the minimum number of sessions hosts to keep online.",
-                                    "placeholder": "",
-                                    "multiLine": false,
-                                    "constraints": {
-                                        "required": true,
-                                        "validations": [
-                                            {
-                                                "regex": "^[0-9]{1,4}$",
-                                                "message": "The value must be between 1 and 4 digits."
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "cpuThreshold",
-                                    "type": "Microsoft.Common.TextBox",
-                                    "label": "Session Threshold Per CPU",
-                                    "visible": "[steps('management').scaling.enable]",
-                                    "defaultValue": "1",
-                                    "toolTip": "Use this setting to determine the number of sessions per CPU before turning on another host.",
-                                    "placeholder": "",
-                                    "multiLine": false,
-                                    "constraints": {
-                                        "required": true,
-                                        "validations": [
-                                            {
-                                                "regex": "^[0-9]{0,1}(?:\\.[0-9]{0,2})?$",
-                                                "message": "The value must be a number with 1 whole number and, if desired, a single or two digit decimal number."
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "name": "backup",
-                            "type": "Microsoft.Common.Section",
-                            "label": "Backup",
-                            "visible": true,
-                            "elements": [
-                                {
-                                    "name": "recoveryServices",
-                                    "type": "Microsoft.Common.CheckBox",
-                                    "visible": true,
-                                    "label": "Enable Recovery Services",
-                                    "defaultValue": false,
-                                    "toolTip": "Choose to deploy backups for your solution. For a personal host pool, this will enable backups on the virtual machines. For a pooled host pool, this will enable backups on the FSLogix file share when using Azure Files."
                                 }
                             ]
                         },
@@ -967,27 +842,160 @@
                     ]
                 },
                 {
-                    "name": "monitoring",
-                    "label": "Monitoring",
+                    "name": "management",
+                    "label": "Management",
                     "visible": true,
                     "elements": [
                         {
-                            "name": "enable",
-                            "type": "Microsoft.Common.CheckBox",
-                            "visible": true,
-                            "label": "Enable Monitoring",
-                            "defaultValue": false,
-                            "toolTip": "Deploy the required resources to enable AVD Insights."
+                            "name": "scaling",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Scaling",
+                            "visible": "[equals(steps('controlPlane').hostPool.type, 'Pooled')]",
+                            "elements": [
+                                {
+                                    "name": "enable",
+                                    "type": "Microsoft.Common.CheckBox",
+                                    "visible": true,
+                                    "label": "Enable Scaling Tool",
+                                    "defaultValue": false,
+                                    "toolTip": "Choose whether to deploy the required resources to enable the Scaling Tool."
+                                },
+                                {
+                                    "name": "beginPeakTime",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "Begin Peak Time",
+                                    "visible": "[steps('management').scaling.enable]",
+                                    "defaultValue": "8:00",
+                                    "placeholder": "",
+                                    "toolTip": "Input the time when peak hours begin for your end users.",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[012]?[0-9]:[0-5][0-9]$",
+                                                "message": "The value must be in a proper time format with a two digit hour and two digit minutes, e.g. 12am should be input as 00:00."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "endPeakTime",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "End Peak Time",
+                                    "visible": "[steps('management').scaling.enable]",
+                                    "defaultValue": "17:00",
+                                    "placeholder": "",
+                                    "toolTip": "Input the time when peak hours end for your end users.",
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[012]?[0-9]:[0-5][0-9]$",
+                                                "message": "The value must be in a proper time format with a two digit hour and two digit minutes, e.g. 8pm should be input as 20:00."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "forceLogOff",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "Force Log Off (Seconds)",
+                                    "visible": "[steps('management').scaling.enable]",
+                                    "defaultValue": "0",
+                                    "toolTip": "Use this setting to force logoff users if session time limit settings cannot be used.",
+                                    "placeholder": "",
+                                    "multiLine": false,
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[0-9]{1,3}$",
+                                                "message": "The value must be between 1 and 3 digits."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "minimumHosts",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "Minimum Number of Session Hosts",
+                                    "visible": "[steps('management').scaling.enable]",
+                                    "defaultValue": "0",
+                                    "toolTip": "Use this setting to determine the minimum number of sessions hosts to keep online.",
+                                    "placeholder": "",
+                                    "multiLine": false,
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[0-9]{1,4}$",
+                                                "message": "The value must be between 1 and 4 digits."
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "cpuThreshold",
+                                    "type": "Microsoft.Common.TextBox",
+                                    "label": "Session Threshold Per CPU",
+                                    "visible": "[steps('management').scaling.enable]",
+                                    "defaultValue": "1",
+                                    "toolTip": "Use this setting to determine the number of sessions per CPU before turning on another host.",
+                                    "placeholder": "",
+                                    "multiLine": false,
+                                    "constraints": {
+                                        "required": true,
+                                        "validations": [
+                                            {
+                                                "regex": "^[0-9]{0,1}(?:\\.[0-9]{0,2})?$",
+                                                "message": "The value must be a number with 1 whole number and, if desired, a single or two digit decimal number."
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
                         },
                         {
-                            "name": "logAnalyticsWorkspace",
-                            "type": "Microsoft.Solutions.ResourceSelector",
-                            "label": "Existing Log Analytics Workspace for Security",
-                            "visible": "[steps('monitoring').enable]",
-                            "resourceType": "Microsoft.OperationalInsights/workspaces",
-                            "toolTip": "Select the log analytics workspace used for collecting security data for Sentinel or Defender for Cloud. This is required to multihome the Microsoft Monitoring Agent.",
-                            "options": {}
-                        }
+                            "name": "backup",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Backup",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "recoveryServices",
+                                    "type": "Microsoft.Common.CheckBox",
+                                    "visible": true,
+                                    "label": "Enable Recovery Services",
+                                    "defaultValue": false,
+                                    "toolTip": "Choose to deploy backups for your solution. For a personal host pool, this will enable backups on the virtual machines. For a pooled host pool, this will enable backups on the FSLogix file share when using Azure Files."
+                                }
+                            ]
+                        },
+                        {
+                            "name": "monitoring",
+                            "type": "Microsoft.Common.Section",
+                            "label": "Monitoring",
+                            "visible": true,
+                            "elements": [
+                                {
+                                    "name": "enable",
+                                    "type": "Microsoft.Common.CheckBox",
+                                    "visible": true,
+                                    "label": "Enable Monitoring",
+                                    "defaultValue": false,
+                                    "toolTip": "Deploy the required resources to enable AVD Insights."
+                                },
+                                {
+                                    "name": "logAnalyticsWorkspace",
+                                    "type": "Microsoft.Solutions.ResourceSelector",
+                                    "label": "Existing Log Analytics Workspace for Security",
+                                    "visible": "[steps('management').monitoring.enable]",
+                                    "resourceType": "Microsoft.OperationalInsights/workspaces",
+                                    "toolTip": "Select the log analytics workspace used for collecting security data for Sentinel or Defender for Cloud. This is required to multihome the Microsoft Monitoring Agent.",
+                                    "options": {}
+                                }
+                            ]
+                        } 
                     ]
                 },
                 {
@@ -1028,6 +1036,7 @@
                 "Availability": "[steps('hosts').availability]",
                 "AvdObjectId": "[first(map(steps('basics').servicePrincipalApi.value, (item) => item.id))]",
                 "AzureFilesPrivateDnsZoneResourceId": "[if(and(equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'), equals(steps('userProfiles').storageEndpoint, 'PrivateEndpoint')), steps('userProfiles').privateDnsZone.resource, '')]",
+                "ControlPlaneLocation": "[steps('controlPlane').location]",
                 "DiskEncryption": "[steps('hosts').diskEncryption]",
                 "DiskSku": "[steps('hosts').diskSku]",
                 "DomainJoinPassword": "[steps('hosts').domainJoinCredentials.password]",
@@ -1038,7 +1047,7 @@
                 "FslogixShareSizeInGB": "[if(equals(steps('userProfiles').profileSolution, 'local'), 100, steps('userProfiles').storageShareSize)]",
                 "FslogixSolution": "[steps('userProfiles').fslogixSolution]",
                 "FslogixStorage": "[if(equals(steps('userProfiles').profileSolution, 'local'), 'None', concat(steps('userProfiles').storageProduct, ' ', steps('userProfiles').storageSku, if(equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles'), '', concat( ' ', steps('userProfiles').storageEndpoint))))]",
-                "HostPoolType": "[if(equals(steps('management').hostPool.type, 'Pooled'), concat(steps('management').hostPool.type, ' ', steps('management').hostPool.loadBalancerAlgorithm), concat(steps('management').hostPool.type, ' ', steps('management').hostPool.assignmentType))]",
+                "HostPoolType": "[if(equals(steps('controlPlane').hostPool.type, 'Pooled'), concat(steps('controlPlane').hostPool.type, ' ', steps('controlPlane').hostPool.loadBalancerAlgorithm), concat(steps('controlPlane').hostPool.type, ' ', steps('controlPlane').hostPool.assignmentType))]",
                 "Identifier": "[steps('basics').naming.identifier]",
                 "ImageOffer": "[steps('hosts').image.offer]",
                 "ImagePublisher": "MicrosoftWindowsDesktop",
@@ -1047,8 +1056,8 @@
                 "KerberosEncryption": "[if(or(equals(steps('userProfiles').profileSolution, 'local'), equals(steps('userProfiles').storageProduct, 'AzureNetAppFiles')), 'RC4', steps('userProfiles').storageKerberosEncryption)]",
                 "LogAnalyticsWorkspaceRetention": 30,
                 "LogAnalyticsWorkspaceSku": "PerGB2018",
-                "MaxSessionLimit": "[if(equals(steps('management').hostPool.type, 'Pooled'), steps('management').hostPool.maxSessions, 1)]",
-                "Monitoring": "[steps('monitoring').enable]",
+                "MaxSessionLimit": "[if(equals(steps('controlPlane').hostPool.type, 'Pooled'), steps('controlPlane').hostPool.maxSessions, 1)]",
+                "Monitoring": "[steps('management').monitoring.enable]",
                 "OuPath": "[steps('hosts').identity.ouPath]",
                 "RecoveryServices": "[steps('management').backup.recoveryServices]",
                 "ScalingBeginPeakTime": "[if(steps('management').scaling.enable, steps('management').scaling.beginPeakTime, '9:00')]",
@@ -1057,9 +1066,9 @@
                 "ScalingMinimumNumberOfRdsh": "[if(steps('management').scaling.enable, steps('management').scaling.minimumHosts, '0')]",
                 "ScalingSessionThresholdPerCPU": "[if(steps('management').scaling.enable, steps('management').scaling.cpuThreshold, '1')]",
                 "ScalingTool": "[steps('management').scaling.enable]",
-                "SecurityPrincipalObjectIds": "[map(steps('management').assignment.groups, (item) => item.id)]",
-                "SecurityPrincipalNames": "[map(steps('management').assignment.groups, (item) => item.name)]",
-                "SentinelLogAnalyticsWorkspaceResourceId": "[steps('monitoring').logAnalyticsWorkspace.id]",
+                "SecurityPrincipalObjectIds": "[map(steps('controlPlane').assignment.groups, (item) => item.id)]",
+                "SecurityPrincipalNames": "[map(steps('controlPlane').assignment.groups, (item) => item.name)]",
+                "SentinelLogAnalyticsWorkspaceResourceId": "[steps('management').monitoring.logAnalyticsWorkspace.id]",
                 "SessionHostCount": "[steps('hosts').count]",
                 "SessionHostIndex": 0,
                 "StampIndex": "[steps('basics').naming.stampIndex]",
@@ -1067,7 +1076,7 @@
                 "StorageIndex": 0,
                 "SubnetResourceId": "[steps('hosts').network.subnet]",
                 "Tags": "[steps('tags').tags]",
-                "ValidationEnvironment": "[steps('management').hostPool.validation]",
+                "ValidationEnvironment": "[steps('controlPlane').hostPool.validation]",
                 "VirtualMachineLocation": "[steps('hosts').location]",
                 "VirtualMachinePassword": "[steps('hosts').localAdminCredentials.password]",
                 "VirtualMachineSize": "[steps('hosts').size]",

@@ -123,7 +123,8 @@ param ImageVersionResourceId string = ''
 @description('The Active Directory computer object Kerberos encryption type for the Azure Storage Account or Azure NetApp Files Account.')
 param KerberosEncryption string = 'RC4'
 
-param Location string = deployment().location
+@description('The deployment location for the AVD management resources.')
+param ControlPlaneLocation string = deployment().location
 
 @maxValue(730)
 @minValue(30)
@@ -192,14 +193,17 @@ param SessionHostCount int = 1
 param SessionHostIndex int = 0
 
 @maxValue(9)
+@minValue(0)
 @description('The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, "0" could be used for an office workers host pool and "1" could be used for a developers host pool within the "finance" business unit.')
 param StampIndex int = 0
 
 @maxValue(10)
+@minValue(0)
 @description('The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageCount int = 1
 
 @maxValue(9)
+@minValue(0)
 @description('The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageIndex int = 0
 
@@ -251,13 +255,13 @@ var EndAvSetRange = (SessionHostCount + SessionHostIndex) / MaxAvSetMembers // T
 var AvailabilitySetsCount = length(range(BeginAvSetRange, (EndAvSetRange - BeginAvSetRange) + 1))
 /*  END BATCHING AVAILABILITY SETS */
 
-var AppGroupName = 'dag-${NamingStandard}'
-var AvailabilitySetsPrefix = 'as-${NamingStandard}'
-var AutomationAccountName = 'aa-${NamingStandard}'
-var DeploymentScriptNamePrefix = 'ds-${NamingStandard}-'
+var AppGroupName = 'dag${NamingStandard}${Locations[ControlPlaneLocation].acronym}'
+var AvailabilitySetsPrefix = 'as${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var AutomationAccountName = 'aa${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var DeploymentScriptNamePrefix = 'ds${NamingStandard}${Locations[VirtualMachineLocation].acronym}-'
 var DesktopVirtualizationPowerOnContributorRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', '489581de-a3bd-480d-9518-53dea7416b33')
-var DiskEncryptionSetName = 'des-${NamingStandard}'
-var DiskName = 'disk-${NamingStandard}'
+var DiskEncryptionSetName = 'des${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var DiskName = 'disk${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var FileShareNames = {
   CloudCacheProfileContainer: [
     'profile-containers'
@@ -276,50 +280,52 @@ var FileShareNames = {
 }
 var FileShares = FileShareNames[FslogixSolution]
 var Fslogix = FslogixStorage == 'None' || !contains(ActiveDirectorySolution, 'DomainServices') ? false : true
-var HostPoolName = 'hp-${NamingStandard}'
-var KeyVaultName = 'kv-${NamingStandard}'
+var HostPoolName = 'hp${NamingStandard}${Locations[ControlPlaneLocation].acronym}'
+var KeyVaultName = 'kv${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var Locations = loadJsonContent('artifacts/locations.json')
-var LocationShortName = Locations[Location].acronym
-var LogAnalyticsWorkspaceName = 'law-${NamingStandard}'
+var LogAnalyticsWorkspaceName = 'law${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var ManagementVmName = '${VmName}mgt'
-var NamingStandard = '${Identifier}-${Environment}-${LocationShortName}-${StampIndex}'
-var NetAppAccountName = 'naa-${NamingStandard}'
-var NetAppCapacityPoolName = 'nacp-${NamingStandard}'
+var NamingStandard = '-avd-${Identifier}-${Environment}-${StampIndex}-'
+var NetAppAccountName = 'naa${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var NetAppCapacityPoolName = 'nacp${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var Netbios = split(DomainName, '.')[0]
 var PooledHostPool = split(HostPoolType, ' ')[0] == 'Pooled' ? true : false
 var PrivateEndpoint = contains(FslogixStorage, 'PrivateEndpoint') ? true : false
 var ReaderRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')
-var RecoveryServicesVaultName = 'rsv-${NamingStandard}'
-var ResourceGroupHosts = 'rg-${NamingStandard}-hosts'
-var ResourceGroupManagement = 'rg-${NamingStandard}-management'
+var RecoveryServicesVaultName = 'rsv${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var ResourceGroupControlPlane = 'rg${NamingStandard}${Locations[ControlPlaneLocation].acronym}-controlPlane'
+var ResourceGroupHosts = 'rg${NamingStandard}${Locations[VirtualMachineLocation].acronym}-hosts'
+var ResourceGroupManagement = 'rg${NamingStandard}${Locations[VirtualMachineLocation].acronym}-management'
 var ResourceGroups = Fslogix ? [
-  ResourceGroupManagement
+  ResourceGroupControlPlane
   ResourceGroupHosts
+  ResourceGroupManagement
   ResourceGroupStorage
 ] : [
-  ResourceGroupManagement
+  ResourceGroupControlPlane
   ResourceGroupHosts
+  ResourceGroupManagement
 ]
-var ResourceGroupStorage = 'rg-${NamingStandard}-storage'
+var ResourceGroupStorage = 'rg${NamingStandard}${Locations[VirtualMachineLocation].acronym}-storage'
 var SecurityPrincipalIdsCount = length(SecurityPrincipalObjectIds)
 var SecurityPrincipalNamesCount = length(SecurityPrincipalNames)
 var Sentinel = empty(SentinelLogAnalyticsWorkspaceResourceId) ? false : true
 var SentinelLogAnalyticsWorkspaceName = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[8]
 var SentinelResourceGroup = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[4]
 var SentinelSubscriptionId = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[2]
-var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${StampIndex}'
+var StorageAccountPrefix = 'sa${Identifier}${Environment}${StampIndex}${Locations[VirtualMachineLocation].acronym}'
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
-var UserAssignedIdentityName = 'uai-${NamingStandard}'
-var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
+var UserAssignedIdentityName = 'uai${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
+var VmName = 'vm${Identifier}${Environment}${Locations[VirtualMachineLocation].acronym}${StampIndex}'
 var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"VirtualMachineSize":{"id":"${VirtualMachineSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
-var WorkspaceName = 'ws-${NamingStandard}'
+var WorkspaceName = 'ws${NamingStandard}${Locations[ControlPlaneLocation].acronym}'
 
 // Resource Groups needed for the solution
 resource resourceGroups 'Microsoft.Resources/resourceGroups@2020-10-01' = [for i in range(0, length(ResourceGroups)): {
   name: ResourceGroups[i]
-  location: Location
+  location: contains(ResourceGroups[i], 'controlPlane') ? ControlPlaneLocation : VirtualMachineLocation
   tags: contains(Tags, 'Microsoft.Resources/resourceGroups') ? Tags['Microsoft.Resources/resourceGroups'] : {}
 }]
 
@@ -331,7 +337,7 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
     DrainMode: DrainMode
     Fslogix: Fslogix
     FslogixStorage: FslogixStorage
-    Location: Location
+    Location: VirtualMachineLocation
     UserAssignedIdentityName: UserAssignedIdentityName
     ResourceGroupStorage: ResourceGroupStorage
     Tags: union({
@@ -371,7 +377,7 @@ module validations 'modules/validations.bicep' = {
     HostPoolType: HostPoolType
     ImageSku: ImageSku
     KerberosEncryption: KerberosEncryption
-    Location: Location
+    Location: VirtualMachineLocation
     SecurityPrincipalIdsCount: SecurityPrincipalIdsCount
     SecurityPrincipalNamesCount: SecurityPrincipalNamesCount
     SessionHostCount: SessionHostCount
@@ -406,7 +412,7 @@ module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool 
   scope: resourceGroup(ResourceGroupManagement)
   params: {
     AutomationAccountName: AutomationAccountName
-    Location: Location
+    Location: VirtualMachineLocation
     LogAnalyticsWorkspaceResourceId: Monitoring ? logAnalyticsWorkspace.outputs.ResourceId : ''
     Monitoring: Monitoring
     Tags: union({
@@ -422,14 +428,14 @@ module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool 
 // This module deploys the host pool, desktop application group, & workspace
 module controlPlane 'modules/controlPlane.bicep' = {
   name: 'ControlPlane_${Timestamp}'
-  scope: resourceGroup(ResourceGroupManagement)
+  scope: resourceGroup(ResourceGroupControlPlane)
   params: {
     AppGroupName: AppGroupName
     CustomRdpProperty: CustomRdpProperty
     ActiveDirectorySolution: ActiveDirectorySolution
     HostPoolName: HostPoolName
     HostPoolType: HostPoolType
-    Location: Location
+    Location: ControlPlaneLocation
     LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
     SecurityPrincipalIds: SecurityPrincipalObjectIds
@@ -460,7 +466,7 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if (Monitor
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     LogAnalyticsWorkspaceRetention: LogAnalyticsWorkspaceRetention
     LogAnalyticsWorkspaceSku: LogAnalyticsWorkspaceSku
-    Location: Location
+    Location: VirtualMachineLocation
     Tags: union({
       'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
     }, contains(Tags, 'Microsoft.OperationalInsights/workspaces') ? Tags['Microsoft.OperationalInsights/workspaces'] : {})
@@ -478,7 +484,7 @@ module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
     DiskEncryptionSetName: DiskEncryptionSetName
     Environment: Environment
     KeyVaultName: KeyVaultName
-    Location: Location
+    Location: VirtualMachineLocation
     TagsDeploymentScripts: union({
       'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
     }, contains(Tags, 'Microsoft.Resources/deploymentScripts') ? Tags['Microsoft.Resources/deploymentScripts'] : {})
@@ -519,7 +525,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     FslogixSolution: FslogixSolution
     FslogixStorage: FslogixStorage
     KerberosEncryption: KerberosEncryption
-    Location: Location
+    Location: VirtualMachineLocation
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
     NetAppAccountName: NetAppAccountName
@@ -531,7 +537,7 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     ResourceGroupStorage: ResourceGroupStorage
     SecurityPrincipalIds: SecurityPrincipalObjectIds
     SecurityPrincipalNames: SecurityPrincipalNames
-    SmbServerLocation: LocationShortName
+    SmbServerLocation: Locations[VirtualMachineLocation].acronym
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex
@@ -614,7 +620,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     ImagePublisher: ImagePublisher
     ImageSku: ImageSku
     ImageVersionResourceId: ImageVersionResourceId
-    Location: Location
+    Location: VirtualMachineLocation
     LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     ManagedIdentityResourceId: userAssignedIdentity.outputs.id
     MaxResourcesPerTemplateDeployment: MaxResourcesPerTemplateDeployment
@@ -653,7 +659,6 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     }, contains(Tags, 'Microsoft.Compute/virtualMachines') ? Tags['Microsoft.Compute/virtualMachines'] : {})
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
-    VirtualMachineLocation: VirtualMachineLocation
     VirtualMachinePassword: VirtualMachinePassword
     VirtualMachineSize: VirtualMachineSize
     VirtualMachineUsername: VirtualMachineUsername
@@ -675,7 +680,7 @@ module backup 'modules/backup/backup.bicep' = if (RecoveryServices) {
     DivisionRemainderValue: DivisionRemainderValue
     FileShares: FileShares
     Fslogix: Fslogix
-    Location: Location
+    Location: VirtualMachineLocation
     MaxResourcesPerTemplateDeployment: MaxResourcesPerTemplateDeployment
     RecoveryServicesVaultName: RecoveryServicesVaultName
     SessionHostBatchCount: SessionHostBatchCount
@@ -689,7 +694,7 @@ module backup 'modules/backup/backup.bicep' = if (RecoveryServices) {
       'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
     }, contains(Tags, 'Microsoft.RecoveryServices/vaults') ? Tags['Microsoft.RecoveryServices/vaults'] : {})
     Timestamp: Timestamp
-    TimeZone: Locations[Location].timeZone
+    TimeZone: Locations[VirtualMachineLocation].timeZone
     VmName: VmName
     VmResourceGroupName: ResourceGroupHosts
   }
@@ -711,7 +716,7 @@ module scalingTool 'modules/scalingTool.bicep' = if (ScalingTool && PooledHostPo
     HostPoolName: HostPoolName
     HostPoolResourceGroupName: ResourceGroupManagement
     LimitSecondsToForceLogOffUser: ScalingLimitSecondsToForceLogOffUser
-    Location: Location
+    Location: VirtualMachineLocation
     MinimumNumberOfRdsh: ScalingMinimumNumberOfRdsh
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
@@ -719,8 +724,8 @@ module scalingTool 'modules/scalingTool.bicep' = if (ScalingTool && PooledHostPo
     Tags: union({
       'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
     }, contains(Tags, 'Microsoft.Automation/automationAccounts') ? Tags['Microsoft.Automation/automationAccounts'] : {})
-    TimeDifference: Locations[Location].timeDifference
-    TimeZone: Locations[Location].timeZone
+    TimeDifference: Locations[VirtualMachineLocation].timeDifference
+    TimeZone: Locations[VirtualMachineLocation].timeZone
   }
   dependsOn: [
     automationAccount
@@ -736,7 +741,7 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AutomationAccountName: AutomationAccountName
-    Location: Location
+    Location: VirtualMachineLocation
     StorageAccountPrefix: StorageAccountPrefix
     StorageCount: StorageCount
     StorageIndex: StorageIndex
@@ -745,7 +750,7 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
       'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
     }, contains(Tags, 'Microsoft.Automation/automationAccounts') ? Tags['Microsoft.Automation/automationAccounts'] : {})
     Timestamp: Timestamp
-    TimeZone: Locations[Location].timeZone
+    TimeZone: Locations[VirtualMachineLocation].timeZone
   }
   dependsOn: [
     automationAccount

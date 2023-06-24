@@ -56,7 +56,6 @@ param TagsNetworkInterfaces object
 param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
-param VirtualMachineLocation string
 @secure()
 param VirtualMachinePassword string
 param VirtualMachineSize string
@@ -69,7 +68,7 @@ var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Auth
 
 resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetsCount): if (PooledHostPool && Availability == 'AvailabilitySets') {
   name: '${AvailabilitySetsPrefix}${padLeft((i + AvailabilitySetsIndex), 2, '0')}'
-  location: VirtualMachineLocation
+  location: Location
   tags: TagsAvailabilitySets
   sku: {
     name: 'Aligned'
@@ -144,14 +143,12 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     TrustedLaunch: TrustedLaunch
-    VirtualMachineLocation: VirtualMachineLocation
     VirtualMachinePassword: VirtualMachinePassword
     VirtualMachineSize: VirtualMachineSize
     VirtualMachineUsername: VirtualMachineUsername
     VirtualNetwork: VirtualNetwork
     VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
     VmName: VmName
-    
   }
   dependsOn: [
     availabilitySets
