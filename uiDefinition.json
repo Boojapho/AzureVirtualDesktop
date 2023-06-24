@@ -566,19 +566,23 @@
                             "visible": true,
                             "elements": [
                                 {
-                                    "name": "virtualNetworkSelection",
-                                    "type": "Microsoft.Solutions.ResourceSelector",
+                                    "name": "virtualNetworksApi",
+                                    "type": "Microsoft.Solutions.ArmApiControl",
+                                    "request": {
+                                        "method": "GET",
+                                        "path": "[concat(steps('basics').scope.subscription.id, '/providers/Microsoft.Network/virtualNetworks?api-version=2022-11-01')]"
+                                    }
+                                },
+                                {
+                                    "name": "virtualNetwork",
+                                    "type": "Microsoft.Common.DropDown",
                                     "visible": true,
-                                    "label": "Virtual network",
-                                    "resourceType": "Microsoft.Network/virtualNetworks",
+                                    "label": "Virtual Network",
+                                    "defaultValue": "",
+                                    "toolTip": "Select an existing virtual network for the AVD session hosts.",
                                     "constraints": {
-                                        "required": true
-                                    },
-                                    "options": {
-                                        "filter": {
-                                            "subscription": "onBasics",
-                                            "location": "[steps('hosts').location]"
-                                        }
+                                        "required": true,
+                                        "allowedValues": "[map(filter(steps('hosts').network.virtualNetworksApi.value, (item) => equals(item.location, steps('hosts').location.name)), (item) => parse(concat('{\"label\":\"', item.name, '\",\"description\":\"Resource group: ', first(skip(split(item.id, '/'), 4)), '\",\"value\":\"', item.id, '\"}')))]"
                                     }
                                 },
                                 {
@@ -586,7 +590,7 @@
                                     "type": "Microsoft.Solutions.ArmApiControl",
                                     "request": {
                                         "method": "GET",
-                                        "path": "[concat(steps('hosts').network.virtualNetworkSelection.id, '/subnets?api-version=2022-05-01')]"
+                                        "path": "[concat(steps('hosts').network.virtualNetwork, '/subnets?api-version=2022-05-01')]"
                                     }
                                 },
                                 {
