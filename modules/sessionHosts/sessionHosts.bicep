@@ -56,19 +56,20 @@ param TagsNetworkInterfaces object
 param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
-param VirtualNetwork string
-param VirtualNetworkResourceGroup string
-param VmName string
+param VirtualMachineLocation string
 @secure()
 param VirtualMachinePassword string
 param VirtualMachineSize string
 param VirtualMachineUsername string
+param VirtualNetwork string
+param VirtualNetworkResourceGroup string
+param VmName string
 
 var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Authorization/roleDefinitions', 'fb879df8-f326-4884-b1cf-06f3ad86be52')
 
 resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetsCount): if (PooledHostPool && Availability == 'AvailabilitySets') {
   name: '${AvailabilitySetsPrefix}${padLeft((i + AvailabilitySetsIndex), 2, '0')}'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsAvailabilitySets
   sku: {
     name: 'Aligned'
@@ -98,17 +99,18 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     _artifactsLocation: _artifactsLocation
     _artifactsLocationSasToken: _artifactsLocationSasToken
     AcceleratedNetworking: AcceleratedNetworking
+    ActiveDirectorySolution: ActiveDirectorySolution
     Availability: Availability
     AvailabilityZones: AvailabilityZones
     AvailabilitySetsPrefix: AvailabilitySetsPrefix
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     DiskEncryption: DiskEncryption
+    DiskEncryptionSetResourceId: DiskEncryptionSetResourceId
     DiskName: DiskName
     DiskSku: DiskSku
     DomainJoinPassword: DomainJoinPassword
     DomainJoinUserPrincipalName: DomainJoinUserPrincipalName
     DomainName: DomainName
-    ActiveDirectorySolution: ActiveDirectorySolution
     DrainMode: DrainMode
     Fslogix: Fslogix
     FslogixSolution: FslogixSolution
@@ -142,13 +144,14 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     TrustedLaunch: TrustedLaunch
-    VirtualNetwork: VirtualNetwork
-    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
-    VmName: VmName
+    VirtualMachineLocation: VirtualMachineLocation
     VirtualMachinePassword: VirtualMachinePassword
     VirtualMachineSize: VirtualMachineSize
     VirtualMachineUsername: VirtualMachineUsername
-    DiskEncryptionSetResourceId: DiskEncryptionSetResourceId
+    VirtualNetwork: VirtualNetwork
+    VirtualNetworkResourceGroup: VirtualNetworkResourceGroup
+    VmName: VmName
+    
   }
   dependsOn: [
     availabilitySets

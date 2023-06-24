@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "15644280835516448315"
+      "templateHash": "18356841366475446810"
     }
   },
   "parameters": {
@@ -407,6 +407,13 @@
       "defaultValue": false,
       "metadata": {
         "description": "The value determines whether the hostpool should receive early AVD updates for testing."
+      }
+    },
+    "VirtualMachineLocation": {
+      "type": "string",
+      "defaultValue": "[deployment().location]",
+      "metadata": {
+        "description": "Input the desired location for the virtual machines and their associated resources."
       }
     },
     "VirtualMachineMonitoringAgent": {
@@ -5533,14 +5540,8 @@
           "TrustedLaunch": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupManagement')), 'Microsoft.Resources/deployments', format('Validations_{0}', parameters('Timestamp'))), '2022-09-01').outputs.trustedLaunch.value]"
           },
-          "VirtualNetwork": {
-            "value": "[split(parameters('SubnetResourceId'), '/')[8]]"
-          },
-          "VirtualNetworkResourceGroup": {
-            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
-          },
-          "VmName": {
-            "value": "[variables('VmName')]"
+          "VirtualMachineLocation": {
+            "value": "[parameters('VirtualMachineLocation')]"
           },
           "VirtualMachinePassword": {
             "value": "[parameters('VirtualMachinePassword')]"
@@ -5550,6 +5551,15 @@
           },
           "VirtualMachineUsername": {
             "value": "[parameters('VirtualMachineUsername')]"
+          },
+          "VirtualNetwork": {
+            "value": "[split(parameters('SubnetResourceId'), '/')[8]]"
+          },
+          "VirtualNetworkResourceGroup": {
+            "value": "[split(parameters('SubnetResourceId'), '/')[4]]"
+          },
+          "VmName": {
+            "value": "[variables('VmName')]"
           }
         },
         "template": {
@@ -5559,7 +5569,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "7304080564060923255"
+              "templateHash": "13689370769582187045"
             }
           },
           "parameters": {
@@ -5731,13 +5741,7 @@
             "TrustedLaunch": {
               "type": "string"
             },
-            "VirtualNetwork": {
-              "type": "string"
-            },
-            "VirtualNetworkResourceGroup": {
-              "type": "string"
-            },
-            "VmName": {
+            "VirtualMachineLocation": {
               "type": "string"
             },
             "VirtualMachinePassword": {
@@ -5747,6 +5751,15 @@
               "type": "string"
             },
             "VirtualMachineUsername": {
+              "type": "string"
+            },
+            "VirtualNetwork": {
+              "type": "string"
+            },
+            "VirtualNetworkResourceGroup": {
+              "type": "string"
+            },
+            "VmName": {
               "type": "string"
             }
           },
@@ -5763,7 +5776,7 @@
               "type": "Microsoft.Compute/availabilitySets",
               "apiVersion": "2019-07-01",
               "name": "[format('{0}{1}', parameters('AvailabilitySetsPrefix'), padLeft(add(range(0, parameters('AvailabilitySetsCount'))[copyIndex()], parameters('AvailabilitySetsIndex')), 2, '0'))]",
-              "location": "[parameters('Location')]",
+              "location": "[parameters('VirtualMachineLocation')]",
               "tags": "[parameters('TagsAvailabilitySets')]",
               "sku": {
                 "name": "Aligned"
@@ -5855,6 +5868,9 @@
                   "AcceleratedNetworking": {
                     "value": "[parameters('AcceleratedNetworking')]"
                   },
+                  "ActiveDirectorySolution": {
+                    "value": "[parameters('ActiveDirectorySolution')]"
+                  },
                   "Availability": {
                     "value": "[parameters('Availability')]"
                   },
@@ -5870,6 +5886,9 @@
                   "DiskEncryption": {
                     "value": "[parameters('DiskEncryption')]"
                   },
+                  "DiskEncryptionSetResourceId": {
+                    "value": "[parameters('DiskEncryptionSetResourceId')]"
+                  },
                   "DiskName": {
                     "value": "[parameters('DiskName')]"
                   },
@@ -5884,9 +5903,6 @@
                   },
                   "DomainName": {
                     "value": "[parameters('DomainName')]"
-                  },
-                  "ActiveDirectorySolution": {
-                    "value": "[parameters('ActiveDirectorySolution')]"
                   },
                   "DrainMode": {
                     "value": "[parameters('DrainMode')]"
@@ -5983,14 +5999,8 @@
                   "TrustedLaunch": {
                     "value": "[parameters('TrustedLaunch')]"
                   },
-                  "VirtualNetwork": {
-                    "value": "[parameters('VirtualNetwork')]"
-                  },
-                  "VirtualNetworkResourceGroup": {
-                    "value": "[parameters('VirtualNetworkResourceGroup')]"
-                  },
-                  "VmName": {
-                    "value": "[parameters('VmName')]"
+                  "VirtualMachineLocation": {
+                    "value": "[parameters('VirtualMachineLocation')]"
                   },
                   "VirtualMachinePassword": {
                     "value": "[parameters('VirtualMachinePassword')]"
@@ -6001,8 +6011,14 @@
                   "VirtualMachineUsername": {
                     "value": "[parameters('VirtualMachineUsername')]"
                   },
-                  "DiskEncryptionSetResourceId": {
-                    "value": "[parameters('DiskEncryptionSetResourceId')]"
+                  "VirtualNetwork": {
+                    "value": "[parameters('VirtualNetwork')]"
+                  },
+                  "VirtualNetworkResourceGroup": {
+                    "value": "[parameters('VirtualNetworkResourceGroup')]"
+                  },
+                  "VmName": {
+                    "value": "[parameters('VmName')]"
                   }
                 },
                 "template": {
@@ -6012,7 +6028,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1946591028278930342"
+                      "templateHash": "2371946551762612153"
                     }
                   },
                   "parameters": {
@@ -6160,13 +6176,7 @@
                     "TrustedLaunch": {
                       "type": "string"
                     },
-                    "VirtualNetwork": {
-                      "type": "string"
-                    },
-                    "VirtualNetworkResourceGroup": {
-                      "type": "string"
-                    },
-                    "VmName": {
+                    "VirtualMachineLocation": {
                       "type": "string"
                     },
                     "VirtualMachinePassword": {
@@ -6176,6 +6186,15 @@
                       "type": "string"
                     },
                     "VirtualMachineUsername": {
+                      "type": "string"
+                    },
+                    "VirtualNetwork": {
+                      "type": "string"
+                    },
+                    "VirtualNetworkResourceGroup": {
+                      "type": "string"
+                    },
+                    "VmName": {
                       "type": "string"
                     }
                   },
@@ -6226,7 +6245,7 @@
                       "type": "Microsoft.Network/networkInterfaces",
                       "apiVersion": "2020-05-01",
                       "name": "[format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsNetworkInterfaces')]",
                       "properties": {
                         "ipConfigurations": [
@@ -6254,7 +6273,7 @@
                       "type": "Microsoft.Compute/virtualMachines",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
                       "identity": "[variables('Identity')]",
@@ -6323,7 +6342,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'IaaSAntimalware')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Azure.Security",
@@ -6356,7 +6375,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'MicrosoftMonitoringAgent')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
@@ -6383,7 +6402,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'CustomScriptExtension')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Compute",
@@ -6414,7 +6433,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'JsonADDomainExtension')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "forceUpdateTag": "[parameters('Timestamp')]",
@@ -6447,7 +6466,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AADLoginForWindows')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Azure.ActiveDirectory",
@@ -6470,7 +6489,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AmdGpuDriverWindows')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.HpcCompute",
@@ -6494,7 +6513,7 @@
                       "type": "Microsoft.Compute/virtualMachines/extensions",
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'NvidiaGpuDriverWindows')]",
-                      "location": "[parameters('Location')]",
+                      "location": "[parameters('VirtualMachineLocation')]",
                       "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.HpcCompute",

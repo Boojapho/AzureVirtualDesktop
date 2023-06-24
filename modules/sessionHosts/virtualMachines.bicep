@@ -48,13 +48,14 @@ param TagsNetworkInterfaces object
 param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
-param VirtualNetwork string
-param VirtualNetworkResourceGroup string
-param VmName string
+param VirtualMachineLocation string
 @secure()
 param VirtualMachinePassword string
 param VirtualMachineSize string
 param VirtualMachineUsername string
+param VirtualNetwork string
+param VirtualNetworkResourceGroup string
+param VmName string
 
 var AmdVmSize = contains(AmdVmSizes, VirtualMachineSize)
 var AmdVmSizes = [
@@ -105,7 +106,7 @@ var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '202
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
   name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsNetworkInterfaces
   properties: {
     ipConfigurations: [
@@ -128,7 +129,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [fo
 
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i in range(0, SessionHostCount): {
   name: '${VmName}${padLeft((i + SessionHostIndex), 4, '0')}'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   zones: Availability == 'AvailabilityZones' ? [
     AvailabilityZones[i % length(AvailabilityZones)]
@@ -202,7 +203,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
 resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
   parent: virtualMachine[i]
   name: 'IaaSAntimalware'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Azure.Security'
@@ -229,7 +230,7 @@ resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions
 resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (Monitoring) {
   parent: virtualMachine[i]
   name: 'MicrosoftMonitoringAgent'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.EnterpriseCloud.Monitoring'
@@ -251,7 +252,7 @@ resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/e
 resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): {
   parent: virtualMachine[i]
   name: 'CustomScriptExtension'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Compute'
@@ -294,7 +295,7 @@ module drainMode '../deploymentScript.bicep' = if (DrainMode) {
 resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (contains(ActiveDirectorySolution, 'DomainServices')) {
   parent: virtualMachine[i]
   name: 'JsonADDomainExtension'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     forceUpdateTag: Timestamp
@@ -321,7 +322,7 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
 resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (!contains(ActiveDirectorySolution, 'DomainServices')) {
   parent: virtualMachine[i]
   name: 'AADLoginForWindows'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Azure.ActiveDirectory'
@@ -340,7 +341,7 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
 resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (AmdVmSize) {
   parent: virtualMachine[i]
   name: 'AmdGpuDriverWindows'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.HpcCompute'
@@ -358,7 +359,7 @@ resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extens
 resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = [for i in range(0, SessionHostCount): if (NvidiaVmSize) {
   parent: virtualMachine[i]
   name: 'NvidiaGpuDriverWindows'
-  location: Location
+  location: VirtualMachineLocation
   tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.HpcCompute'

@@ -215,6 +215,9 @@ param Timestamp string = utcNow('yyyyMMddhhmmss')
 @description('The value determines whether the hostpool should receive early AVD updates for testing.')
 param ValidationEnvironment bool = false
 
+@description('Input the desired location for the virtual machines and their associated resources.')
+param VirtualMachineLocation string = deployment().location
+
 @allowed([
   'AzureMonitorAgent'
   'LogAnalyticsAgent'
@@ -650,12 +653,13 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     }, contains(Tags, 'Microsoft.Compute/virtualMachines') ? Tags['Microsoft.Compute/virtualMachines'] : {})
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
-    VirtualNetwork: split(SubnetResourceId, '/')[8]
-    VirtualNetworkResourceGroup: split(SubnetResourceId, '/')[4]
-    VmName: VmName
+    VirtualMachineLocation: VirtualMachineLocation
     VirtualMachinePassword: VirtualMachinePassword
     VirtualMachineSize: VirtualMachineSize
     VirtualMachineUsername: VirtualMachineUsername
+    VirtualNetwork: split(SubnetResourceId, '/')[8]
+    VirtualNetworkResourceGroup: split(SubnetResourceId, '/')[4]
+    VmName: VmName
   }
   dependsOn: [
     diskEncryption
