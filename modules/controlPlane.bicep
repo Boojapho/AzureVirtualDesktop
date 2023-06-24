@@ -7,7 +7,9 @@ param Location string
 param LogAnalyticsWorkspaceResourceId string
 param MaxSessionLimit int
 param SecurityPrincipalIds array
-param Tags object
+param TagsApplicationGroup object
+param TagsHostPool object
+param TagsWorkspace object
 param Timestamp string = utcNow('u')
 param ValidationEnvironment bool
 param VmTemplate string
@@ -45,7 +47,7 @@ var HostPoolLogs = [
 resource hostPool 'Microsoft.DesktopVirtualization/hostPools@2021-03-09-preview' = {
   name: HostPoolName
   location: Location
-  tags: Tags
+  tags: TagsHostPool
   properties: {
     hostPoolType: split(HostPoolType, ' ')[0]
     maxSessionLimit: MaxSessionLimit
@@ -76,7 +78,7 @@ resource hostPoolDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-p
 resource appGroup 'Microsoft.DesktopVirtualization/applicationGroups@2021-03-09-preview' = {
   name: AppGroupName
   location: Location
-  tags: Tags
+  tags: TagsApplicationGroup
   properties: {
     hostPoolArmPath: hostPool.id
     applicationGroupType: 'Desktop'
@@ -95,7 +97,7 @@ resource appGroupAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01'
 resource workspace 'Microsoft.DesktopVirtualization/workspaces@2021-03-09-preview' = {
   name: WorkspaceName
   location: Location
-  tags: Tags
+  tags: TagsWorkspace
   properties: {
     applicationGroupReferences: [
       appGroup.id

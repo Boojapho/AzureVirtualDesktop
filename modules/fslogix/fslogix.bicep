@@ -40,7 +40,12 @@ param StorageIndex int
 param StorageSku string
 param StorageSolution string
 param Subnet string
-param Tags object
+param TagsDeploymentScripts object
+param TagsNetAppAccount object
+param TagsNetworkInterfaces object
+param TagsPrivateEndpoints object
+param TagsStorageAccounts object
+param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
 param UserAssignedIdentityResourceId string
@@ -66,7 +71,8 @@ module managementVirtualMachine 'managementVirtualMachine.bicep' = if (contains(
     ManagementVmName: ManagementVmName
     NamingStandard: NamingStandard
     Subnet: Subnet
-    Tags: Tags
+    TagsNetworkInterfaces: TagsNetworkInterfaces
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     TrustedLaunch: TrustedLaunch
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
@@ -103,7 +109,9 @@ module azureNetAppFiles 'azureNetAppFiles.bicep' = if (StorageSolution == 'Azure
     SmbServerLocation: SmbServerLocation
     StorageSku: StorageSku
     StorageSolution: StorageSolution
-    Tags: Tags
+    TagsDeploymentScripts: TagsDeploymentScripts
+    TagsNetAppAccount: TagsNetAppAccount
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
@@ -146,7 +154,10 @@ module azureFiles 'azureFiles/azureFiles.bicep' = if (StorageSolution == 'AzureS
     StorageSku: StorageSku
     StorageSolution: StorageSolution
     Subnet: Subnet
-    Tags: Tags
+    TagsDeploymentScripts: TagsDeploymentScripts
+    TagsPrivateEndpoints: TagsPrivateEndpoints
+    TagsStorageAccounts: TagsStorageAccounts
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
     VirtualNetwork: VirtualNetwork

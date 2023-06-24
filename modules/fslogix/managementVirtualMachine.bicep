@@ -9,7 +9,8 @@ param Location string
 param ManagementVmName string
 param NamingStandard string
 param Subnet string
-param Tags object
+param TagsNetworkInterfaces object
+param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
 param UserAssignedIdentityResourceId string
@@ -24,7 +25,7 @@ var NicName = 'nic-${NamingStandard}-mgt'
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = {
   name: NicName
   location: Location
-  tags: Tags
+  tags: TagsNetworkInterfaces
   properties: {
     ipConfigurations: [
       {
@@ -47,7 +48,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = {
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-11-01' = {
   name: ManagementVmName
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_B2s'
@@ -122,7 +123,7 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
   parent: virtualMachine
   name: 'JsonADDomainExtension'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     forceUpdateTag: Timestamp
     publisher: 'Microsoft.Compute'

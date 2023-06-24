@@ -29,7 +29,10 @@ param StorageIndex int
 param StorageSku string
 param StorageSolution string
 param Subnet string
-param Tags object
+param TagsDeploymentScripts object
+param TagsPrivateEndpoints object
+param TagsStorageAccounts object
+param TagsVirtualMachines object
 param Timestamp string
 param UserAssignedIdentityResourceId string
 param VirtualNetwork string
@@ -64,7 +67,7 @@ var VirtualNetworkRules = {
 resource storageAccounts 'Microsoft.Storage/storageAccounts@2022-09-01' = [for i in range(0, StorageCount): {
   name: '${StorageAccountPrefix}${i + StorageIndex}'
   location: Location
-  tags: Tags
+  tags: TagsStorageAccounts
   sku: {
     name: '${StorageSku}${StorageRedundancy}'
   }
@@ -134,7 +137,7 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
 resource privateEndpoints 'Microsoft.Network/privateEndpoints@2020-05-01' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
   name: 'pe-${StorageAccountPrefix}${i + StorageIndex}'
   location: Location
-  tags: Tags
+  tags: TagsPrivateEndpoints
   properties: {
     subnet: {
       id: SubnetId
@@ -181,7 +184,8 @@ module ntfsPermissions '../ntfsPermissions.bicep' = if (contains(ActiveDirectory
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     Location: Location
     ManagementVmName: ManagementVmName
-    Tags: Tags
+    TagsDeploymentScripts: TagsDeploymentScripts
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }

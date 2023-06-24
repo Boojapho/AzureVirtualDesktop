@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "7143267174954130685"
+      "templateHash": "956124217039660840"
     }
   },
   "parameters": {
@@ -392,7 +392,7 @@
       "type": "object",
       "defaultValue": {},
       "metadata": {
-        "description": "Key / value pairs of metadata for the Azure resources."
+        "description": "Key / value pairs of metadata for the Azure resource groups and resources."
       }
     },
     "Timestamp": {
@@ -774,7 +774,6 @@
     "StorageSku": "[if(equals(parameters('FslogixStorage'), 'None'), 'None', split(parameters('FslogixStorage'), ' ')[1])]",
     "StorageSolution": "[split(parameters('FslogixStorage'), ' ')[0]]",
     "StorageSuffix": "[environment().suffixes.storage]",
-    "TagsAll": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), parameters('Tags'))]",
     "UserAssignedIdentityName": "[format('uai-{0}', variables('NamingStandard'))]",
     "VmName": "[format('vm{0}{1}{2}{3}', parameters('Identifier'), parameters('Environment'), variables('LocationShortName'), parameters('StampIndex'))]",
     "VmTemplate": "[format('{{\"domain\":\"{0}\",\"galleryImageOffer\":\"{1}\",\"galleryImagePublisher\":\"{2}\",\"galleryImageSKU\":\"{3}\",\"imageType\":\"Gallery\",\"imageUri\":null,\"customImageId\":null,\"namePrefix\":\"{4}\",\"osDiskType\":\"{5}\",\"useManagedDisks\":true,\"VirtualMachineSize\":{{\"id\":\"{6}\",\"cores\":null,\"ram\":null}},\"galleryItemId\":\"{7}.{8}{9}\"}}', parameters('DomainName'), parameters('ImageOffer'), parameters('ImagePublisher'), parameters('ImageSku'), variables('VmName'), parameters('DiskSku'), parameters('VirtualMachineSize'), parameters('ImagePublisher'), parameters('ImageOffer'), parameters('ImageSku'))]",
@@ -790,7 +789,7 @@
       "apiVersion": "2020-10-01",
       "name": "[variables('ResourceGroups')[range(0, length(variables('ResourceGroups')))[copyIndex()]]]",
       "location": "[parameters('Location')]",
-      "tags": "[variables('TagsAll')]"
+      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Resources/resourceGroups'), parameters('Tags')['Microsoft.Resources/resourceGroups'], createObject())]"
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
@@ -847,7 +846,7 @@
             "value": "[variables('ResourceGroupStorage')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.ManagedIdentity/userAssignedIdentities'), parameters('Tags')['Microsoft.ManagedIdentity/userAssignedIdentities'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -1050,7 +1049,7 @@
             "value": "[variables('StorageSolution')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Resources/deploymentScripts'), parameters('Tags')['Microsoft.Resources/deploymentScripts'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -2203,7 +2202,7 @@
             "value": "[parameters('Monitoring')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts'), parameters('Tags')['Microsoft.Automation/automationAccounts'], createObject()))]"
           }
         },
         "template": {
@@ -2322,8 +2321,14 @@
           "SecurityPrincipalIds": {
             "value": "[parameters('SecurityPrincipalObjectIds')]"
           },
-          "Tags": {
-            "value": "[variables('TagsAll')]"
+          "TagsApplicationGroup": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.DesktopVirtualization/applicationGroups'), parameters('Tags')['Microsoft.DesktopVirtualization/applicationGroups'], createObject()))]"
+          },
+          "TagsHostPool": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.DesktopVirtualization/hostPools'), parameters('Tags')['Microsoft.DesktopVirtualization/hostPools'], createObject()))]"
+          },
+          "TagsWorkspace": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.DesktopVirtualization/workspaces'), parameters('Tags')['Microsoft.DesktopVirtualization/workspaces'], createObject()))]"
           },
           "ValidationEnvironment": {
             "value": "[parameters('ValidationEnvironment')]"
@@ -2342,7 +2347,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "9881481074649894650"
+              "templateHash": "1319377602869702878"
             }
           },
           "parameters": {
@@ -2373,7 +2378,13 @@
             "SecurityPrincipalIds": {
               "type": "array"
             },
-            "Tags": {
+            "TagsApplicationGroup": {
+              "type": "object"
+            },
+            "TagsHostPool": {
+              "type": "object"
+            },
+            "TagsWorkspace": {
               "type": "object"
             },
             "Timestamp": {
@@ -2426,7 +2437,7 @@
               "apiVersion": "2021-03-09-preview",
               "name": "[parameters('HostPoolName')]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsHostPool')]",
               "properties": {
                 "hostPoolType": "[split(parameters('HostPoolType'), ' ')[0]]",
                 "maxSessionLimit": "[parameters('MaxSessionLimit')]",
@@ -2461,7 +2472,7 @@
               "apiVersion": "2021-03-09-preview",
               "name": "[parameters('AppGroupName')]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsApplicationGroup')]",
               "properties": {
                 "hostPoolArmPath": "[resourceId('Microsoft.DesktopVirtualization/hostPools', parameters('HostPoolName'))]",
                 "applicationGroupType": "Desktop"
@@ -2492,7 +2503,7 @@
               "apiVersion": "2021-03-09-preview",
               "name": "[parameters('WorkspaceName')]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsWorkspace')]",
               "properties": {
                 "applicationGroupReferences": [
                   "[resourceId('Microsoft.DesktopVirtualization/applicationGroups', parameters('AppGroupName'))]"
@@ -2565,7 +2576,7 @@
             "value": "[parameters('Location')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.OperationalInsights/workspaces'), parameters('Tags')['Microsoft.OperationalInsights/workspaces'], createObject()))]"
           }
         },
         "template": {
@@ -3081,8 +3092,14 @@
           "Location": {
             "value": "[parameters('Location')]"
           },
-          "Tags": {
-            "value": "[variables('TagsAll')]"
+          "TagsDeploymentScripts": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Resources/deploymentScripts'), parameters('Tags')['Microsoft.Resources/deploymentScripts'], createObject()))]"
+          },
+          "TagsDiskEncryptionSet": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Compute/diskEncryptionSets'), parameters('Tags')['Microsoft.Compute/diskEncryptionSets'], createObject()))]"
+          },
+          "TagsKeyVault": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.KeyVault/vaults'), parameters('Tags')['Microsoft.KeyVault/vaults'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -3101,7 +3118,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "3719744021702976523"
+              "templateHash": "2684431667147176359"
             }
           },
           "parameters": {
@@ -3124,7 +3141,13 @@
             "Location": {
               "type": "string"
             },
-            "Tags": {
+            "TagsDeploymentScripts": {
+              "type": "object"
+            },
+            "TagsDiskEncryptionSet": {
+              "type": "object"
+            },
+            "TagsKeyVault": {
               "type": "object"
             },
             "Timestamp": {
@@ -3143,7 +3166,7 @@
               "apiVersion": "2022-07-01",
               "name": "[parameters('KeyVaultName')]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsKeyVault')]",
               "properties": {
                 "enabledForDeployment": false,
                 "enabledForDiskEncryption": true,
@@ -3164,7 +3187,7 @@
               "apiVersion": "2022-07-02",
               "name": "[parameters('DiskEncryptionSetName')]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsDiskEncryptionSet')]",
               "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
@@ -3210,7 +3233,7 @@
                     "value": "param([string]$VaultName); $ErrorActionPreference = \"Stop\"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq \"DiskEncryptionKey\"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = \"True\"}else{$Exists = \"False\"}; $DeploymentScriptOutputs[\"exists\"] = $Exists"
                   },
                   "Tags": {
-                    "value": "[parameters('Tags')]"
+                    "value": "[parameters('TagsDeploymentScripts')]"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -3309,7 +3332,7 @@
                     "value": "[parameters('KeyVaultName')]"
                   },
                   "Tags": {
-                    "value": "[parameters('Tags')]"
+                    "value": "[parameters('TagsKeyVault')]"
                   }
                 },
                 "template": {
@@ -3591,8 +3614,23 @@
           "Subnet": {
             "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
-          "Tags": {
-            "value": "[variables('TagsAll')]"
+          "TagsDeploymentScripts": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Resources/deploymentScripts'), parameters('Tags')['Microsoft.Resources/deploymentScripts'], createObject()))]"
+          },
+          "TagsNetAppAccount": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.NetApp/netAppAccounts'), parameters('Tags')['Microsoft.NetApp/netAppAccounts'], createObject()))]"
+          },
+          "TagsNetworkInterfaces": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Network/networkInterfaces'), parameters('Tags')['Microsoft.Network/networkInterfaces'], createObject()))]"
+          },
+          "TagsPrivateEndpoints": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Network/privateEndpoints'), parameters('Tags')['Microsoft.Network/privateEndpoints'], createObject()))]"
+          },
+          "TagsStorageAccounts": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Storage/storageAccounts'), parameters('Tags')['Microsoft.Storage/storageAccounts'], createObject()))]"
+          },
+          "TagsVirtualMachines": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Compute/virtualMachines'), parameters('Tags')['Microsoft.Compute/virtualMachines'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -3623,7 +3661,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "102270893768887613"
+              "templateHash": "12404136149009087440"
             }
           },
           "parameters": {
@@ -3747,7 +3785,22 @@
             "Subnet": {
               "type": "string"
             },
-            "Tags": {
+            "TagsDeploymentScripts": {
+              "type": "object"
+            },
+            "TagsNetAppAccount": {
+              "type": "object"
+            },
+            "TagsNetworkInterfaces": {
+              "type": "object"
+            },
+            "TagsPrivateEndpoints": {
+              "type": "object"
+            },
+            "TagsStorageAccounts": {
+              "type": "object"
+            },
+            "TagsVirtualMachines": {
               "type": "object"
             },
             "Timestamp": {
@@ -3815,8 +3868,11 @@
                   "Subnet": {
                     "value": "[parameters('Subnet')]"
                   },
-                  "Tags": {
-                    "value": "[parameters('Tags')]"
+                  "TagsNetworkInterfaces": {
+                    "value": "[parameters('TagsNetworkInterfaces')]"
+                  },
+                  "TagsVirtualMachines": {
+                    "value": "[parameters('TagsVirtualMachines')]"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -3847,7 +3903,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "11610288145782948784"
+                      "templateHash": "13074707802715874560"
                     }
                   },
                   "parameters": {
@@ -3881,7 +3937,10 @@
                     "Subnet": {
                       "type": "string"
                     },
-                    "Tags": {
+                    "TagsNetworkInterfaces": {
+                      "type": "object"
+                    },
+                    "TagsVirtualMachines": {
                       "type": "object"
                     },
                     "Timestamp": {
@@ -3915,7 +3974,7 @@
                       "apiVersion": "2020-05-01",
                       "name": "[variables('NicName')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsNetworkInterfaces')]",
                       "properties": {
                         "ipConfigurations": [
                           {
@@ -3939,7 +3998,7 @@
                       "apiVersion": "2021-11-01",
                       "name": "[parameters('ManagementVmName')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "hardwareProfile": {
                           "vmSize": "Standard_B2s"
@@ -4012,7 +4071,7 @@
                       "apiVersion": "2019-07-01",
                       "name": "[format('{0}/{1}', parameters('ManagementVmName'), 'JsonADDomainExtension')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "forceUpdateTag": "[parameters('Timestamp')]",
                         "publisher": "Microsoft.Compute",
@@ -4112,8 +4171,14 @@
                   "StorageSolution": {
                     "value": "[parameters('StorageSolution')]"
                   },
-                  "Tags": {
-                    "value": "[parameters('Tags')]"
+                  "TagsDeploymentScripts": {
+                    "value": "[parameters('TagsDeploymentScripts')]"
+                  },
+                  "TagsNetAppAccount": {
+                    "value": "[parameters('TagsNetAppAccount')]"
+                  },
+                  "TagsVirtualMachines": {
+                    "value": "[parameters('TagsVirtualMachines')]"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -4129,7 +4194,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "2491265716886786084"
+                      "templateHash": "6599220122746106831"
                     }
                   },
                   "parameters": {
@@ -4196,7 +4261,13 @@
                     "StorageSolution": {
                       "type": "string"
                     },
-                    "Tags": {
+                    "TagsDeploymentScripts": {
+                      "type": "object"
+                    },
+                    "TagsNetAppAccount": {
+                      "type": "object"
+                    },
+                    "TagsVirtualMachines": {
                       "type": "object"
                     },
                     "Timestamp": {
@@ -4212,7 +4283,7 @@
                       "apiVersion": "2021-06-01",
                       "name": "[parameters('NetAppAccountName')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsNetAppAccount')]",
                       "properties": {
                         "activeDirectories": "[if(equals(parameters('ActiveDirectoryConnection'), 'false'), null(), createArray(createObject('aesEncryption', false(), 'domain', parameters('DomainName'), 'dns', parameters('DnsServers'), 'organizationalUnit', parameters('OuPath'), 'password', parameters('DomainJoinPassword'), 'smbServerName', format('anf-{0}', parameters('SmbServerLocation')), 'username', split(parameters('DomainJoinUserPrincipalName'), '@')[0])))]",
                         "encryption": {
@@ -4225,7 +4296,7 @@
                       "apiVersion": "2021-06-01",
                       "name": "[format('{0}/{1}', parameters('NetAppAccountName'), parameters('NetAppCapacityPoolName'))]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsNetAppAccount')]",
                       "properties": {
                         "coolAccess": false,
                         "encryptionType": "Single",
@@ -4246,7 +4317,7 @@
                       "apiVersion": "2021-06-01",
                       "name": "[format('{0}/{1}/{2}', parameters('NetAppAccountName'), parameters('NetAppCapacityPoolName'), parameters('FileShares')[range(0, length(parameters('FileShares')))[copyIndex()]])]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsNetAppAccount')]",
                       "properties": {
                         "avsDataStore": "Disabled",
                         "coolAccess": false,
@@ -4301,8 +4372,11 @@
                           "ManagementVmName": {
                             "value": "[parameters('ManagementVmName')]"
                           },
-                          "Tags": {
-                            "value": "[parameters('Tags')]"
+                          "TagsDeploymentScripts": {
+                            "value": "[parameters('TagsDeploymentScripts')]"
+                          },
+                          "TagsVirtualMachines": {
+                            "value": "[parameters('TagsVirtualMachines')]"
                           },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
@@ -4318,7 +4392,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "1073951024653831084"
+                              "templateHash": "9576499269349362372"
                             }
                           },
                           "parameters": {
@@ -4340,7 +4414,10 @@
                             "ManagementVmName": {
                               "type": "string"
                             },
-                            "Tags": {
+                            "TagsDeploymentScripts": {
+                              "type": "object"
+                            },
+                            "TagsVirtualMachines": {
                               "type": "object"
                             },
                             "Timestamp": {
@@ -4356,7 +4433,7 @@
                               "apiVersion": "2020-12-01",
                               "name": "[format('{0}/CustomScriptExtension', parameters('ManagementVmName'))]",
                               "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
+                              "tags": "[parameters('TagsVirtualMachines')]",
                               "properties": {
                                 "publisher": "Microsoft.Compute",
                                 "type": "CustomScriptExtension",
@@ -4396,7 +4473,7 @@
                                     "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
                                   "Tags": {
-                                    "value": "[parameters('Tags')]"
+                                    "value": "[parameters('TagsDeploymentScripts')]"
                                   },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
@@ -4594,8 +4671,17 @@
                   "Subnet": {
                     "value": "[parameters('Subnet')]"
                   },
-                  "Tags": {
-                    "value": "[parameters('Tags')]"
+                  "TagsDeploymentScripts": {
+                    "value": "[parameters('TagsDeploymentScripts')]"
+                  },
+                  "TagsPrivateEndpoints": {
+                    "value": "[parameters('TagsPrivateEndpoints')]"
+                  },
+                  "TagsStorageAccounts": {
+                    "value": "[parameters('TagsStorageAccounts')]"
+                  },
+                  "TagsVirtualMachines": {
+                    "value": "[parameters('TagsVirtualMachines')]"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -4617,7 +4703,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "8112095089231748581"
+                      "templateHash": "15415366398949705110"
                     }
                   },
                   "parameters": {
@@ -4708,7 +4794,16 @@
                     "Subnet": {
                       "type": "string"
                     },
-                    "Tags": {
+                    "TagsDeploymentScripts": {
+                      "type": "object"
+                    },
+                    "TagsPrivateEndpoints": {
+                      "type": "object"
+                    },
+                    "TagsStorageAccounts": {
+                      "type": "object"
+                    },
+                    "TagsVirtualMachines": {
                       "type": "object"
                     },
                     "Timestamp": {
@@ -4761,7 +4856,7 @@
                       "apiVersion": "2022-09-01",
                       "name": "[format('{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsStorageAccounts')]",
                       "sku": {
                         "name": "[format('{0}{1}', parameters('StorageSku'), variables('StorageRedundancy'))]"
                       },
@@ -4839,7 +4934,7 @@
                       "apiVersion": "2020-05-01",
                       "name": "[format('pe-{0}{1}', parameters('StorageAccountPrefix'), add(range(0, parameters('StorageCount'))[copyIndex()], parameters('StorageIndex')))]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsPrivateEndpoints')]",
                       "properties": {
                         "subnet": {
                           "id": "[variables('SubnetId')]"
@@ -4990,8 +5085,11 @@
                           "ManagementVmName": {
                             "value": "[parameters('ManagementVmName')]"
                           },
-                          "Tags": {
-                            "value": "[parameters('Tags')]"
+                          "TagsDeploymentScripts": {
+                            "value": "[parameters('TagsDeploymentScripts')]"
+                          },
+                          "TagsVirtualMachines": {
+                            "value": "[parameters('TagsVirtualMachines')]"
                           },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
@@ -5007,7 +5105,7 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.18.4.5664",
-                              "templateHash": "1073951024653831084"
+                              "templateHash": "9576499269349362372"
                             }
                           },
                           "parameters": {
@@ -5029,7 +5127,10 @@
                             "ManagementVmName": {
                               "type": "string"
                             },
-                            "Tags": {
+                            "TagsDeploymentScripts": {
+                              "type": "object"
+                            },
+                            "TagsVirtualMachines": {
                               "type": "object"
                             },
                             "Timestamp": {
@@ -5045,7 +5146,7 @@
                               "apiVersion": "2020-12-01",
                               "name": "[format('{0}/CustomScriptExtension', parameters('ManagementVmName'))]",
                               "location": "[parameters('Location')]",
-                              "tags": "[parameters('Tags')]",
+                              "tags": "[parameters('TagsVirtualMachines')]",
                               "properties": {
                                 "publisher": "Microsoft.Compute",
                                 "type": "CustomScriptExtension",
@@ -5085,7 +5186,7 @@
                                     "value": "param([string]$ResourceGroupName,[string]$VirtualMachineName); Remove-AzVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -ForceDeletion $true -Force; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"virtualMachineName\"] = $VirtualMachineName"
                                   },
                                   "Tags": {
-                                    "value": "[parameters('Tags')]"
+                                    "value": "[parameters('TagsDeploymentScripts')]"
                                   },
                                   "Timestamp": {
                                     "value": "[parameters('Timestamp')]"
@@ -5414,8 +5515,17 @@
           "Subnet": {
             "value": "[split(parameters('SubnetResourceId'), '/')[10]]"
           },
-          "Tags": {
-            "value": "[variables('TagsAll')]"
+          "TagsAvailabilitySets": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Compute/availabilitySets'), parameters('Tags')['Microsoft.Compute/availabilitySets'], createObject()))]"
+          },
+          "TagsDeploymentScripts": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Resources/deploymentScripts'), parameters('Tags')['Microsoft.Resources/deploymentScripts'], createObject()))]"
+          },
+          "TagsNetworkInterfaces": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Network/networkInterfaces'), parameters('Tags')['Microsoft.Network/networkInterfaces'], createObject()))]"
+          },
+          "TagsVirtualMachines": {
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Compute/virtualMachines'), parameters('Tags')['Microsoft.Compute/virtualMachines'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -5449,7 +5559,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "14891361966599296563"
+              "templateHash": "7304080564060923255"
             }
           },
           "parameters": {
@@ -5603,7 +5713,16 @@
             "Subnet": {
               "type": "string"
             },
-            "Tags": {
+            "TagsAvailabilitySets": {
+              "type": "object"
+            },
+            "TagsDeploymentScripts": {
+              "type": "object"
+            },
+            "TagsNetworkInterfaces": {
+              "type": "object"
+            },
+            "TagsVirtualMachines": {
               "type": "object"
             },
             "Timestamp": {
@@ -5645,7 +5764,7 @@
               "apiVersion": "2019-07-01",
               "name": "[format('{0}{1}', parameters('AvailabilitySetsPrefix'), padLeft(add(range(0, parameters('AvailabilitySetsCount'))[copyIndex()], parameters('AvailabilitySetsIndex')), 2, '0'))]",
               "location": "[parameters('Location')]",
-              "tags": "[parameters('Tags')]",
+              "tags": "[parameters('TagsAvailabilitySets')]",
               "sku": {
                 "name": "Aligned"
               },
@@ -5849,8 +5968,14 @@
                   "Subnet": {
                     "value": "[parameters('Subnet')]"
                   },
-                  "Tags": {
-                    "value": "[parameters('Tags')]"
+                  "TagsDeploymentScripts": {
+                    "value": "[parameters('TagsDeploymentScripts')]"
+                  },
+                  "TagsNetworkInterfaces": {
+                    "value": "[parameters('TagsNetworkInterfaces')]"
+                  },
+                  "TagsVirtualMachines": {
+                    "value": "[parameters('TagsVirtualMachines')]"
                   },
                   "Timestamp": {
                     "value": "[parameters('Timestamp')]"
@@ -5887,7 +6012,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "2171675979784107618"
+                      "templateHash": "1946591028278930342"
                     }
                   },
                   "parameters": {
@@ -6020,7 +6145,13 @@
                     "Subnet": {
                       "type": "string"
                     },
-                    "Tags": {
+                    "TagsDeploymentScripts": {
+                      "type": "object"
+                    },
+                    "TagsNetworkInterfaces": {
+                      "type": "object"
+                    },
+                    "TagsVirtualMachines": {
                       "type": "object"
                     },
                     "Timestamp": {
@@ -6096,7 +6227,7 @@
                       "apiVersion": "2020-05-01",
                       "name": "[format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsNetworkInterfaces')]",
                       "properties": {
                         "ipConfigurations": [
                           {
@@ -6124,7 +6255,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "zones": "[if(equals(parameters('Availability'), 'AvailabilityZones'), createArray(parameters('AvailabilityZones')[mod(range(0, parameters('SessionHostCount'))[copyIndex()], length(parameters('AvailabilityZones')))]), null())]",
                       "identity": "[variables('Identity')]",
                       "properties": {
@@ -6193,7 +6324,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'IaaSAntimalware')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Azure.Security",
                         "type": "IaaSAntimalware",
@@ -6226,6 +6357,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'MicrosoftMonitoringAgent')]",
                       "location": "[parameters('Location')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
                         "type": "MicrosoftMonitoringAgent",
@@ -6252,7 +6384,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'CustomScriptExtension')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Compute",
                         "type": "CustomScriptExtension",
@@ -6283,7 +6415,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'JsonADDomainExtension')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "forceUpdateTag": "[parameters('Timestamp')]",
                         "publisher": "Microsoft.Compute",
@@ -6316,7 +6448,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AADLoginForWindows')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.Azure.ActiveDirectory",
                         "type": "AADLoginForWindows",
@@ -6339,7 +6471,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'AmdGpuDriverWindows')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.HpcCompute",
                         "type": "AmdGpuDriverWindows",
@@ -6363,7 +6495,7 @@
                       "apiVersion": "2021-03-01",
                       "name": "[format('{0}/{1}', format('{0}{1}', parameters('VmName'), padLeft(add(range(0, parameters('SessionHostCount'))[range(0, parameters('SessionHostCount'))[copyIndex()]], parameters('SessionHostIndex')), 4, '0')), 'NvidiaGpuDriverWindows')]",
                       "location": "[parameters('Location')]",
-                      "tags": "[parameters('Tags')]",
+                      "tags": "[parameters('TagsVirtualMachines')]",
                       "properties": {
                         "publisher": "Microsoft.HpcCompute",
                         "type": "NvidiaGpuDriverWindows",
@@ -6402,7 +6534,7 @@
                             "value": "param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split \"/\")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs[\"hostPool\"] = $HostPool"
                           },
                           "Tags": {
-                            "value": "[parameters('Tags')]"
+                            "value": "[parameters('TagsDeploymentScripts')]"
                           },
                           "Timestamp": {
                             "value": "[parameters('Timestamp')]"
@@ -6553,7 +6685,7 @@
             "value": "[variables('StorageSolution')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.RecoveryServices/vaults'), parameters('Tags')['Microsoft.RecoveryServices/vaults'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"
@@ -6975,7 +7107,7 @@
             "value": "[parameters('ScalingSessionThresholdPerCPU')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts'), parameters('Tags')['Microsoft.Automation/automationAccounts'], createObject()))]"
           },
           "TimeDifference": {
             "value": "[variables('Locations')[parameters('Location')].timeDifference]"
@@ -7228,7 +7360,7 @@
             "value": "[variables('ResourceGroupStorage')]"
           },
           "Tags": {
-            "value": "[variables('TagsAll')]"
+            "value": "[union(createObject('cm-resource-parent', format('{0}}}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostpools/{2}', subscription().id, variables('ResourceGroupManagement'), variables('HostPoolName'))), if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts'), parameters('Tags')['Microsoft.Automation/automationAccounts'], createObject()))]"
           },
           "Timestamp": {
             "value": "[parameters('Timestamp')]"

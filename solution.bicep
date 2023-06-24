@@ -206,7 +206,7 @@ param StorageIndex int = 0
 @description('The resource ID of the subnet to place the network interfaces for the AVD session hosts.')
 param SubnetResourceId string
 
-@description('Key / value pairs of metadata for the Azure resources.')
+@description('Key / value pairs of metadata for the Azure resource groups and resources.')
 param Tags object = {}
 
 @description('DO NOT MODIFY THIS VALUE! The timestamp is needed to differentiate deployments for certain Azure resources and must be set using a parameter.')
@@ -308,9 +308,6 @@ var StorageAccountPrefix = 'st${Identifier}${Environment}${LocationShortName}${S
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
-var TagsAll = union({
-  'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
-}, Tags)
 var UserAssignedIdentityName = 'uai-${NamingStandard}'
 var VmName = 'vm${Identifier}${Environment}${LocationShortName}${StampIndex}'
 var VmTemplate = '{"domain":"${DomainName}","galleryImageOffer":"${ImageOffer}","galleryImagePublisher":"${ImagePublisher}","galleryImageSKU":"${ImageSku}","imageType":"Gallery","imageUri":null,"customImageId":null,"namePrefix":"${VmName}","osDiskType":"${DiskSku}","useManagedDisks":true,"VirtualMachineSize":{"id":"${VirtualMachineSize}","cores":null,"ram":null},"galleryItemId":"${ImagePublisher}.${ImageOffer}${ImageSku}"}'
@@ -320,7 +317,7 @@ var WorkspaceName = 'ws-${NamingStandard}'
 resource resourceGroups 'Microsoft.Resources/resourceGroups@2020-10-01' = [for i in range(0, length(ResourceGroups)): {
   name: ResourceGroups[i]
   location: Location
-  tags: TagsAll
+  tags: contains(Tags, 'Microsoft.Resources/resourceGroups') ? Tags['Microsoft.Resources/resourceGroups'] : {}
 }]
 
 module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
@@ -334,7 +331,9 @@ module userAssignedIdentity 'modules/userAssignedManagedIdentity.bicep' = {
     Location: Location
     UserAssignedIdentityName: UserAssignedIdentityName
     ResourceGroupStorage: ResourceGroupStorage
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.ManagedIdentity/userAssignedIdentities') ? Tags['Microsoft.ManagedIdentity/userAssignedIdentities'] : {})
     Timestamp: Timestamp
     VirtualNetworkResourceGroupName: split(SubnetResourceId, '/')[4]
   }
@@ -375,7 +374,9 @@ module validations 'modules/validations.bicep' = {
     SessionHostCount: SessionHostCount
     StorageCount: StorageCount
     StorageSolution: StorageSolution
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Resources/deploymentScripts') ? Tags['Microsoft.Resources/deploymentScripts'] : {})
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
     VirtualMachineSize: VirtualMachineSize
@@ -405,7 +406,9 @@ module automationAccount 'modules/automationAccount.bicep' = if (PooledHostPool 
     Location: Location
     LogAnalyticsWorkspaceResourceId: Monitoring ? logAnalyticsWorkspace.outputs.ResourceId : ''
     Monitoring: Monitoring
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Automation/automationAccounts') ? Tags['Microsoft.Automation/automationAccounts'] : {})
   }
   dependsOn: [
     resourceGroups
@@ -427,7 +430,15 @@ module controlPlane 'modules/controlPlane.bicep' = {
     LogAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.ResourceId
     MaxSessionLimit: MaxSessionLimit
     SecurityPrincipalIds: SecurityPrincipalObjectIds
-    Tags: TagsAll
+    TagsApplicationGroup: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.DesktopVirtualization/applicationGroups') ? Tags['Microsoft.DesktopVirtualization/applicationGroups'] : {})
+    TagsHostPool: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.DesktopVirtualization/hostPools') ? Tags['Microsoft.DesktopVirtualization/hostPools'] : {})
+    TagsWorkspace: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.DesktopVirtualization/workspaces') ? Tags['Microsoft.DesktopVirtualization/workspaces'] : {})
     ValidationEnvironment: ValidationEnvironment
     VmTemplate: VmTemplate
     WorkspaceName: WorkspaceName
@@ -447,7 +458,9 @@ module logAnalyticsWorkspace 'modules/logAnalyticsWorkspace.bicep' = if (Monitor
     LogAnalyticsWorkspaceRetention: LogAnalyticsWorkspaceRetention
     LogAnalyticsWorkspaceSku: LogAnalyticsWorkspaceSku
     Location: Location
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.OperationalInsights/workspaces') ? Tags['Microsoft.OperationalInsights/workspaces'] : {})
   }
   dependsOn: [
     resourceGroups
@@ -463,7 +476,15 @@ module diskEncryption 'modules/diskEncryption.bicep' = if (DiskEncryption) {
     Environment: Environment
     KeyVaultName: KeyVaultName
     Location: Location
-    Tags: TagsAll
+    TagsDeploymentScripts: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Resources/deploymentScripts') ? Tags['Microsoft.Resources/deploymentScripts'] : {})
+    TagsDiskEncryptionSet: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Compute/diskEncryptionSets') ? Tags['Microsoft.Compute/diskEncryptionSets'] : {})
+    TagsKeyVault: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.KeyVault/vaults') ? Tags['Microsoft.KeyVault/vaults'] : {})
     Timestamp: Timestamp
     UserAssignedIdentityPrincipalId: userAssignedIdentity.outputs.principalId
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
@@ -514,7 +535,24 @@ module fslogix 'modules/fslogix/fslogix.bicep' = if (Fslogix) {
     StorageSku: StorageSku
     StorageSolution: StorageSolution
     Subnet: split(SubnetResourceId, '/')[10]
-    Tags: TagsAll
+    TagsDeploymentScripts: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Resources/deploymentScripts') ? Tags['Microsoft.Resources/deploymentScripts'] : {})
+    TagsNetAppAccount: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.NetApp/netAppAccounts') ? Tags['Microsoft.NetApp/netAppAccounts'] : {})
+    TagsNetworkInterfaces: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Network/networkInterfaces') ? Tags['Microsoft.Network/networkInterfaces'] : {})
+    TagsPrivateEndpoints: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Network/privateEndpoints') ? Tags['Microsoft.Network/privateEndpoints'] : {})
+    TagsStorageAccounts: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Storage/storageAccounts') ? Tags['Microsoft.Storage/storageAccounts'] : {})
+    TagsVirtualMachines: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Compute/virtualMachines') ? Tags['Microsoft.Compute/virtualMachines'] : {})
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
     UserAssignedIdentityResourceId: userAssignedIdentity.outputs.id
@@ -598,7 +636,18 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
     Subnet: split(SubnetResourceId, '/')[10]
-    Tags: TagsAll
+    TagsAvailabilitySets: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Compute/availabilitySets') ? Tags['Microsoft.Compute/availabilitySets'] : {})
+    TagsDeploymentScripts: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Resources/deploymentScripts') ? Tags['Microsoft.Resources/deploymentScripts'] : {})
+    TagsNetworkInterfaces: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Network/networkInterfaces') ? Tags['Microsoft.Network/networkInterfaces'] : {})
+    TagsVirtualMachines: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Compute/virtualMachines') ? Tags['Microsoft.Compute/virtualMachines'] : {})
     Timestamp: Timestamp
     TrustedLaunch: validations.outputs.trustedLaunch
     VirtualNetwork: split(SubnetResourceId, '/')[8]
@@ -632,7 +681,9 @@ module backup 'modules/backup/backup.bicep' = if (RecoveryServices) {
     StorageIndex: StorageIndex
     StorageResourceGroupName: ResourceGroupStorage
     StorageSolution: StorageSolution
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.RecoveryServices/vaults') ? Tags['Microsoft.RecoveryServices/vaults'] : {})
     Timestamp: Timestamp
     TimeZone: Locations[Location].timeZone
     VmName: VmName
@@ -661,7 +712,9 @@ module scalingTool 'modules/scalingTool.bicep' = if (ScalingTool && PooledHostPo
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
     SessionThresholdPerCPU: ScalingSessionThresholdPerCPU
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Automation/automationAccounts') ? Tags['Microsoft.Automation/automationAccounts'] : {})
     TimeDifference: Locations[Location].timeDifference
     TimeZone: Locations[Location].timeZone
   }
@@ -684,7 +737,9 @@ module autoIncreasePremiumFileShareQuota 'modules/autoIncreasePremiumFileShareQu
     StorageCount: StorageCount
     StorageIndex: StorageIndex
     StorageResourceGroupName: ResourceGroupStorage
-    Tags: TagsAll
+    Tags: union({
+      'cm-resource-parent': '${subscription().id}}/resourceGroups/${ResourceGroupManagement}/providers/Microsoft.DesktopVirtualization/hostpools/${HostPoolName}'
+    }, contains(Tags, 'Microsoft.Automation/automationAccounts') ? Tags['Microsoft.Automation/automationAccounts'] : {})
     Timestamp: Timestamp
     TimeZone: Locations[Location].timeZone
   }

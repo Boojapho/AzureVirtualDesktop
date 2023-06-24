@@ -21,14 +21,16 @@ param SecurityPrincipalNames array
 param SmbServerLocation string
 param StorageSku string
 param StorageSolution string
-param Tags object
+param TagsDeploymentScripts object
+param TagsNetAppAccount object
+param TagsVirtualMachines object
 param Timestamp string
 param UserAssignedIdentityResourceId string
 
 resource netAppAccount 'Microsoft.NetApp/netAppAccounts@2021-06-01' = {
   name: NetAppAccountName
   location: Location
-  tags: Tags
+  tags: TagsNetAppAccount
   properties: {
     activeDirectories: ActiveDirectoryConnection == 'false' ? null : [
       {
@@ -51,7 +53,7 @@ resource capacityPool 'Microsoft.NetApp/netAppAccounts/capacityPools@2021-06-01'
   parent: netAppAccount
   name: NetAppCapacityPoolName
   location: Location
-  tags: Tags
+  tags: TagsNetAppAccount
   properties: {
     coolAccess: false
     encryptionType: 'Single'
@@ -65,7 +67,7 @@ resource volumes 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes@2021-06-
   parent: capacityPool
   name: FileShares[i]
   location: Location
-  tags: Tags
+  tags: TagsNetAppAccount
   properties: {
     avsDataStore: 'Disabled'
     // backupId: 'string'
@@ -143,7 +145,8 @@ module ntfsPermissions 'ntfsPermissions.bicep' = {
     DeploymentScriptNamePrefix: DeploymentScriptNamePrefix
     Location: Location
     ManagementVmName: ManagementVmName
-    Tags: Tags
+    TagsDeploymentScripts: TagsDeploymentScripts
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }

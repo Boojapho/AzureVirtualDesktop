@@ -43,7 +43,9 @@ param StorageIndex int
 param StorageSolution string
 param StorageSuffix string
 param Subnet string
-param Tags object
+param TagsDeploymentScripts object
+param TagsNetworkInterfaces object
+param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
 param VirtualNetwork string
@@ -104,7 +106,7 @@ var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '202
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
   name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}'
   location: Location
-  tags: Tags
+  tags: TagsNetworkInterfaces
   properties: {
     ipConfigurations: [
       {
@@ -127,7 +129,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [fo
 resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i in range(0, SessionHostCount): {
   name: '${VmName}${padLeft((i + SessionHostIndex), 4, '0')}'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   zones: Availability == 'AvailabilityZones' ? [
     AvailabilityZones[i % length(AvailabilityZones)]
   ] : null
@@ -201,7 +203,7 @@ resource extension_IaasAntimalware 'Microsoft.Compute/virtualMachines/extensions
   parent: virtualMachine[i]
   name: 'IaaSAntimalware'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Azure.Security'
     type: 'IaaSAntimalware'
@@ -228,6 +230,7 @@ resource extension_MicrosoftMonitoringAgent 'Microsoft.Compute/virtualMachines/e
   parent: virtualMachine[i]
   name: 'MicrosoftMonitoringAgent'
   location: Location
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.EnterpriseCloud.Monitoring'
     type: 'MicrosoftMonitoringAgent'
@@ -249,7 +252,7 @@ resource extension_CustomScriptExtension 'Microsoft.Compute/virtualMachines/exte
   parent: virtualMachine[i]
   name: 'CustomScriptExtension'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Compute'
     type: 'CustomScriptExtension'
@@ -279,7 +282,7 @@ module drainMode '../deploymentScript.bicep' = if (DrainMode) {
     Location: Location
     Name: '${DeploymentScriptNamePrefix}drain'
     Script: 'param([Parameter(Mandatory)][string]$HostPool,[Parameter(Mandatory)][string]$ResourceGroup); $SessionHosts = (Get-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool).Name; foreach($SessionHost in $SessionHosts){$Name = ($SessionHost -split "/")[1]; Update-AzWvdSessionHost -ResourceGroupName $ResourceGroup -HostPoolName $HostPool -Name $Name -AllowNewSession:$False}; $DeploymentScriptOutputs = @{}; $DeploymentScriptOutputs["hostPool"] = $HostPool'
-    Tags: Tags
+    Tags: TagsDeploymentScripts
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: ManagedIdentityResourceId
   }
@@ -292,7 +295,7 @@ resource extension_JsonADDomainExtension 'Microsoft.Compute/virtualMachines/exte
   parent: virtualMachine[i]
   name: 'JsonADDomainExtension'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     forceUpdateTag: Timestamp
     publisher: 'Microsoft.Compute'
@@ -319,7 +322,7 @@ resource extension_AADLoginForWindows 'Microsoft.Compute/virtualMachines/extensi
   parent: virtualMachine[i]
   name: 'AADLoginForWindows'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.Azure.ActiveDirectory'
     type: 'AADLoginForWindows'
@@ -338,7 +341,7 @@ resource extension_AmdGpuDriverWindows 'Microsoft.Compute/virtualMachines/extens
   parent: virtualMachine[i]
   name: 'AmdGpuDriverWindows'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.HpcCompute'
     type: 'AmdGpuDriverWindows'
@@ -356,7 +359,7 @@ resource extension_NvidiaGpuDriverWindows 'Microsoft.Compute/virtualMachines/ext
   parent: virtualMachine[i]
   name: 'NvidiaGpuDriverWindows'
   location: Location
-  tags: Tags
+  tags: TagsVirtualMachines
   properties: {
     publisher: 'Microsoft.HpcCompute'
     type: 'NvidiaGpuDriverWindows'

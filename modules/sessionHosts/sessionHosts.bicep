@@ -50,7 +50,10 @@ param StorageIndex int
 param StorageSolution string
 param StorageSuffix string
 param Subnet string
-param Tags object
+param TagsAvailabilitySets object
+param TagsDeploymentScripts object
+param TagsNetworkInterfaces object
+param TagsVirtualMachines object
 param Timestamp string
 param TrustedLaunch string
 param VirtualNetwork string
@@ -66,7 +69,7 @@ var VirtualMachineUserLoginRoleDefinitionResourceId = resourceId('Microsoft.Auth
 resource availabilitySets 'Microsoft.Compute/availabilitySets@2019-07-01' = [for i in range(0, AvailabilitySetsCount): if (PooledHostPool && Availability == 'AvailabilitySets') {
   name: '${AvailabilitySetsPrefix}${padLeft((i + AvailabilitySetsIndex), 2, '0')}'
   location: Location
-  tags: Tags
+  tags: TagsAvailabilitySets
   sku: {
     name: 'Aligned'
   }
@@ -134,7 +137,9 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     StorageSolution: StorageSolution
     StorageSuffix: StorageSuffix
     Subnet: Subnet
-    Tags: Tags
+    TagsDeploymentScripts: TagsDeploymentScripts
+    TagsNetworkInterfaces: TagsNetworkInterfaces
+    TagsVirtualMachines: TagsVirtualMachines
     Timestamp: Timestamp
     TrustedLaunch: TrustedLaunch
     VirtualNetwork: VirtualNetwork

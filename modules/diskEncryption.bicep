@@ -4,7 +4,9 @@ param DiskEncryptionSetName string
 param Environment string
 param KeyVaultName string
 param Location string
-param Tags object
+param TagsDeploymentScripts object
+param TagsDiskEncryptionSet object
+param TagsKeyVault object
 param Timestamp string
 param UserAssignedIdentityPrincipalId string
 param UserAssignedIdentityResourceId string
@@ -12,7 +14,7 @@ param UserAssignedIdentityResourceId string
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: KeyVaultName
   location: Location
-  tags: Tags
+  tags: TagsKeyVault
   properties: {
     enabledForDeployment: false
     enabledForDiskEncryption: true
@@ -36,7 +38,7 @@ module keyValidation 'deploymentScript.bicep' = {
     Location: Location
     Name: '${DeploymentScriptNamePrefix}diskEncryptionKeyValidation'
     Script: 'param([string]$VaultName); $ErrorActionPreference = "Stop"; $Key = Get-AzKeyVaultKey -VaultName $VaultName | Where-Object {$_.Name -eq "DiskEncryptionKey"}; $DeploymentScriptOutputs = @{}; if($Key){$Exists = "True"}else{$Exists = "False"}; $DeploymentScriptOutputs["exists"] = $Exists'
-    Tags: Tags
+    Tags: TagsDeploymentScripts
     Timestamp: Timestamp
     UserAssignedIdentityResourceId: UserAssignedIdentityResourceId
   }
@@ -48,7 +50,7 @@ module key 'key.bicep' = {
     DiskEncryptionKeyExpirationInDays: DiskEncryptionKeyExpirationInDays
     KeyDoesNotExist: keyValidation.outputs.properties.exists == 'False'
     KeyVaultName: KeyVaultName
-    Tags: Tags
+    Tags: TagsKeyVault
   }
 }
 
@@ -63,7 +65,7 @@ module roleAssignment 'roleAssignment.bicep' = {
 resource diskEncryptionSet 'Microsoft.Compute/diskEncryptionSets@2022-07-02' = {
   name: DiskEncryptionSetName
   location: Location
-  tags: Tags
+  tags: TagsDiskEncryptionSet
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
