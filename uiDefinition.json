@@ -220,7 +220,7 @@
                                     "toolTip": "Select the desired group(s) to give access to this AVD stamp and if applicable, the FSLogix file share.",
                                     "multiselect": true,
                                     "constraints": {
-                                        "allowedValues": "[map(steps('management').assignment.groupsApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\": {\"name\":\"', item.displayName, '\",\"id\":\"', item.id, '\"}}')))]",
+                                        "allowedValues": "[map(steps('controlPlane').assignment.groupsApi.value, (item) => parse(concat('{\"label\":\"', item.displayName, '\",\"value\": {\"name\":\"', item.displayName, '\",\"id\":\"', item.id, '\"}}')))]",
                                         "required": true
                                     },
                                     "visible": true
