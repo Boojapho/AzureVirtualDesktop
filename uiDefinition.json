@@ -1036,7 +1036,7 @@
                 "Availability": "[steps('hosts').availability]",
                 "AvdObjectId": "[first(map(steps('basics').servicePrincipalApi.value, (item) => item.id))]",
                 "AzureFilesPrivateDnsZoneResourceId": "[if(and(equals(steps('userProfiles').storageProduct, 'AzureStorageAccount'), equals(steps('userProfiles').storageEndpoint, 'PrivateEndpoint')), steps('userProfiles').privateDnsZone.resource, '')]",
-                "ControlPlaneLocation": "[steps('controlPlane').location]",
+                "ControlPlaneLocation": "[steps('controlPlane').location.name]",
                 "DiskEncryption": "[steps('hosts').diskEncryption]",
                 "DiskSku": "[steps('hosts').diskSku]",
                 "DomainJoinPassword": "[steps('hosts').domainJoinCredentials.password]",
@@ -1077,7 +1077,7 @@
                 "SubnetResourceId": "[steps('hosts').network.subnet]",
                 "Tags": "[steps('tags').tags]",
                 "ValidationEnvironment": "[steps('controlPlane').hostPool.validation]",
-                "VirtualMachineLocation": "[steps('hosts').location]",
+                "VirtualMachineLocation": "[steps('hosts').location.name]",
                 "VirtualMachinePassword": "[steps('hosts').localAdminCredentials.password]",
                 "VirtualMachineSize": "[steps('hosts').size]",
                 "VirtualMachineUsername": "[steps('hosts').localAdminCredentials.username]"
