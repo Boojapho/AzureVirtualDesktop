@@ -36,6 +36,7 @@ param NamingStandard string
 param NetAppFileShares array
 param OuPath string
 param PooledHostPool bool
+param ResourceGroupControlPlane string
 param ResourceGroupHosts string
 param ResourceGroupManagement string
 param SecurityPrincipalObjectIds array
@@ -126,6 +127,7 @@ module virtualMachines 'virtualMachines.bicep' = [for i in range(1, SessionHostB
     NamingStandard: NamingStandard
     NetAppFileShares: NetAppFileShares
     OuPath: OuPath
+    ResourceGroupControlPlane: ResourceGroupControlPlane
     ResourceGroupManagement: ResourceGroupManagement
     Sentinel: Sentinel
     SentinelWorkspaceId: SentinelWorkspaceId

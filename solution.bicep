@@ -631,6 +631,7 @@ module sessionHosts 'modules/sessionHosts/sessionHosts.bicep' = {
     ]
     OuPath: OuPath
     PooledHostPool: PooledHostPool
+    ResourceGroupControlPlane: ResourceGroupControlPlane
     ResourceGroupHosts: ResourceGroupHosts
     ResourceGroupManagement: ResourceGroupManagement
     SecurityPrincipalObjectIds: SecurityPrincipalObjectIds

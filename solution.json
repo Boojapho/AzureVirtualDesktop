@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "11760554206694066898"
+      "templateHash": "7649517680503609469"
     }
   },
   "parameters": {
@@ -5486,6 +5486,9 @@
           "PooledHostPool": {
             "value": "[variables('PooledHostPool')]"
           },
+          "ResourceGroupControlPlane": {
+            "value": "[variables('ResourceGroupControlPlane')]"
+          },
           "ResourceGroupHosts": {
             "value": "[variables('ResourceGroupHosts')]"
           },
@@ -5572,7 +5575,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "15331126501948650647"
+              "templateHash": "13177801783672413389"
             }
           },
           "parameters": {
@@ -5683,6 +5686,9 @@
             },
             "PooledHostPool": {
               "type": "bool"
+            },
+            "ResourceGroupControlPlane": {
+              "type": "string"
             },
             "ResourceGroupHosts": {
               "type": "string"
@@ -5952,6 +5958,9 @@
                   "OuPath": {
                     "value": "[parameters('OuPath')]"
                   },
+                  "ResourceGroupControlPlane": {
+                    "value": "[parameters('ResourceGroupControlPlane')]"
+                  },
                   "ResourceGroupManagement": {
                     "value": "[parameters('ResourceGroupManagement')]"
                   },
@@ -6025,7 +6034,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "120296970335818752"
+                      "templateHash": "14326241524295583857"
                     }
                   },
                   "parameters": {
@@ -6120,6 +6129,9 @@
                       "type": "array"
                     },
                     "OuPath": {
+                      "type": "string"
+                    },
+                    "ResourceGroupControlPlane": {
                       "type": "string"
                     },
                     "ResourceGroupManagement": {
@@ -6410,7 +6422,7 @@
                           "timestamp": "[parameters('Timestamp')]"
                         },
                         "protectedSettings": {
-                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -ActiveDirectorySolution {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -Sentinel {13} -SentinelWorkspaceId {14} -SentinelWorkspaceKey {15} -StorageAccountPrefix {16} -StorageCount {17} -StorageIndex {18} -StorageSolution {19} -StorageSuffix {20}', variables('AmdVmSize'), parameters('DomainName'), parameters('ActiveDirectorySolution'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupManagement'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
+                          "commandToExecute": "[format('powershell -ExecutionPolicy Unrestricted -File Set-SessionHostConfiguration.ps1 -AmdVmSize {0} -DomainName {1} -ActiveDirectorySolution {2} -Environment {3} -FSLogix {4} -FslogixSolution {5} -HostPoolName {6} -HostPoolRegistrationToken {7} -ImageOffer {8} -ImagePublisher {9} -NetAppFileShares {10} -NvidiaVmSize {11} -PooledHostPool {12} -Sentinel {13} -SentinelWorkspaceId {14} -SentinelWorkspaceKey {15} -StorageAccountPrefix {16} -StorageCount {17} -StorageIndex {18} -StorageSolution {19} -StorageSuffix {20}', variables('AmdVmSize'), parameters('DomainName'), parameters('ActiveDirectorySolution'), environment().name, parameters('Fslogix'), parameters('FslogixSolution'), parameters('HostPoolName'), reference(resourceId(parameters('ResourceGroupControlPlane'), 'Microsoft.DesktopVirtualization/hostpools', parameters('HostPoolName')), '2019-12-10-preview').registrationInfo.token, parameters('ImageOffer'), parameters('ImagePublisher'), parameters('NetAppFileShares'), variables('NvidiaVmSize'), variables('PooledHostPool'), parameters('Sentinel'), parameters('SentinelWorkspaceId'), if(parameters('Sentinel'), listKeys(parameters('SentinelWorkspaceResourceId'), '2021-06-01').primarySharedKey, 'NotApplicable'), parameters('StorageAccountPrefix'), parameters('StorageCount'), parameters('StorageIndex'), parameters('StorageSolution'), parameters('StorageSuffix'))]"
                         }
                       },
                       "dependsOn": [
