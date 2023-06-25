@@ -138,7 +138,7 @@
                                 {
                                     "name": "loadBalancerAlgorithm",
                                     "type": "Microsoft.Common.DropDown",
-                                    "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
+                                    "visible": "[equals(steps('controlPlane').hostPool.type, 'Pooled')]",
                                     "label": "Load Balancing Algorithm",
                                     "defaultValue": "BreadthFirst",
                                     "multiLine": true,
@@ -162,7 +162,7 @@
                                 {
                                     "name": "maxSessions",
                                     "type": "Microsoft.Common.TextBox",
-                                    "visible": "[equals(steps('management').hostPool.type, 'Pooled')]",
+                                    "visible": "[equals(steps('controlPlane').hostPool.type, 'Pooled')]",
                                     "label": "Max Session Limit",
                                     "defaultValue": "8",
                                     "toolTip": "The maximum number of users that have concurrent sessions on a session host. When setting a host pool to have depth first load balancing or planning to use Autoscaling, you must set an appropriate max session limit according to the configuration of your deployment and capacity of your VMs.",
@@ -175,7 +175,7 @@
                                 {
                                     "name": "assignmentType",
                                     "type": "Microsoft.Common.DropDown",
-                                    "visible": "[equals(steps('management').hostPool.type, 'Personal')]",
+                                    "visible": "[equals(steps('controlPlane').hostPool.type, 'Personal')]",
                                     "label": "Assignment Type",
                                     "defaultValue": "Automatic (Recommended)",
                                     "multiLine": true,
