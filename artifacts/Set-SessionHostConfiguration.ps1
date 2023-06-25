@@ -266,10 +266,10 @@ try
             'AzureStorageAccount' {
                 for($i = $StorageIndex; $i -lt $($StorageIndex + $StorageCount); $i++)
                 {
-                    $CloudCacheOfficeContainers += 'type=smb,connectionString=\\' + $StorageAccountPrefix + $i.ToString() + $FilesSuffix + '\office-containers;'
-                    $CloudCacheProfileContainers += 'type=smb,connectionString=\\' + $StorageAccountPrefix + $i.ToString() + $FilesSuffix + '\profile-containers;'
-                    $OfficeContainers += '\\' + $StorageAccountPrefix + $i.ToString() + $FilesSuffix + '\office-containers'
-                    $ProfileContainers += '\\' + $StorageAccountPrefix + $i.ToString() + $FilesSuffix + '\profile-containers'
+                    $CloudCacheOfficeContainers += 'type=smb,connectionString=\\' + $StorageAccountPrefix + $i.ToString().PadLeft(2,'0') + $FilesSuffix + '\office-containers;'
+                    $CloudCacheProfileContainers += 'type=smb,connectionString=\\' + $StorageAccountPrefix + $i.ToString().PadLeft(2,'0') + $FilesSuffix + '\profile-containers;'
+                    $OfficeContainers += '\\' + $StorageAccountPrefix + $i.ToString().PadLeft(2,'0') + $FilesSuffix + '\office-containers'
+                    $ProfileContainers += '\\' + $StorageAccountPrefix + $i.ToString().PadLeft(2,'0') + $FilesSuffix + '\profile-containers'
                 }
             }
             'AzureNetAppFiles' {

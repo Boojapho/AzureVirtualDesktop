@@ -67,8 +67,8 @@ var FslogixExclusions = '"%TEMP%\\*\\*.VHDX";"%Windir%\\TEMP\\*\\*.VHDX"${Fslogi
 var FslogixExclusionsCloudCache = contains(FslogixSolution, 'CloudCache') ? ';"%ProgramData%\\FSLogix\\Cache\\*";"%ProgramData%\\FSLogix\\Proxy\\*"' : ''
 var FslogixExclusionsOfficeContainers = contains(FslogixSolution, 'Office') ? ';"${FslogixOfficeShare}";"${FslogixOfficeShare}.lock";"${FslogixOfficeShare}.meta";"${FslogixOfficeShare}.metadata"' : ''
 var FslogixExclusionsProfileContainers = ';"${FslogixProfileShare}";"${FslogixProfileShare}.lock";"${FslogixProfileShare}.meta";"${FslogixProfileShare}.metadata"'
-var FslogixOfficeShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\office-containers\\*\\*.VHDX'
-var FslogixProfileShare = '\\\\${StorageAccountPrefix}?.file.${StorageSuffix}\\profile-containers\\*\\*.VHDX'
+var FslogixOfficeShare = '\\\\${StorageAccountPrefix}??.file.${StorageSuffix}\\office-containers\\*\\*.VHDX'
+var FslogixProfileShare = '\\\\${StorageAccountPrefix}??.file.${StorageSuffix}\\profile-containers\\*\\*.VHDX'
 var Identity = !contains(ActiveDirectorySolution, 'DomainServices') ? {
   type: 'SystemAssigned'
 } : null

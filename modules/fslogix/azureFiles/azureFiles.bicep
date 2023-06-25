@@ -65,7 +65,7 @@ var VirtualNetworkRules = {
 }
 
 resource storageAccounts 'Microsoft.Storage/storageAccounts@2022-09-01' = [for i in range(0, StorageCount): {
-  name: '${StorageAccountPrefix}${i + StorageIndex}'
+  name: '${StorageAccountPrefix}${padLeft(i + StorageIndex, 2, '0')}'
   location: Location
   tags: TagsStorageAccounts
   sku: {
@@ -135,7 +135,7 @@ module shares 'shares.bicep' = [for i in range(0, StorageCount): {
 }]
 
 resource privateEndpoints 'Microsoft.Network/privateEndpoints@2020-05-01' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
-  name: 'pe-${StorageAccountPrefix}${i + StorageIndex}'
+  name: 'pe-${StorageAccountPrefix}${padLeft(i + StorageIndex, 2, '0')}'
   location: Location
   tags: TagsPrivateEndpoints
   properties: {
@@ -158,7 +158,7 @@ resource privateEndpoints 'Microsoft.Network/privateEndpoints@2020-05-01' = [for
 
 resource privateDnsZoneGroups 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2021-08-01' = [for i in range(0, StorageCount): if (PrivateEndpoint) {
   parent: privateEndpoints[i]
-  name: '${StorageAccountPrefix}${i + StorageIndex}'
+  name: '${StorageAccountPrefix}${padLeft(i + StorageIndex, 2, '0')}'
   properties: {
     privateDnsZoneConfigs: [
       {

@@ -197,12 +197,12 @@ param SessionHostIndex int = 0
 @description('The stamp index allows for multiple AVD stamps with the same business unit or project to support different use cases. For example, "0" could be used for an office workers host pool and "1" could be used for a developers host pool within the "finance" business unit.')
 param StampIndex int = 0
 
-@maxValue(10)
+@maxValue(100)
 @minValue(0)
 @description('The number of storage accounts to deploy to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageCount int = 1
 
-@maxValue(9)
+@maxValue(99)
 @minValue(0)
 @description('The starting number for the storage accounts to support the required use case for the AVD stamp. https://docs.microsoft.com/en-us/azure/architecture/patterns/sharding')
 param StorageIndex int = 0
@@ -285,7 +285,7 @@ var KeyVaultName = 'kv${NamingStandard}${Locations[VirtualMachineLocation].acron
 var Locations = loadJsonContent('artifacts/locations.json')
 var LogAnalyticsWorkspaceName = 'law${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var ManagementVmName = '${VmName}mgt'
-var NamingStandard = '-avd-${Identifier}-${Environment}-${StampIndex}-'
+var NamingStandard = '-vd-${Identifier}-${Environment}-${StampIndex}-'
 var NetAppAccountName = 'naa${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var NetAppCapacityPoolName = 'nacp${NamingStandard}${Locations[VirtualMachineLocation].acronym}'
 var Netbios = split(DomainName, '.')[0]
@@ -313,7 +313,7 @@ var Sentinel = empty(SentinelLogAnalyticsWorkspaceResourceId) ? false : true
 var SentinelLogAnalyticsWorkspaceName = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[8]
 var SentinelResourceGroup = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[4]
 var SentinelSubscriptionId = split(SentinelLogAnalyticsWorkspaceResourceId, '/')[2]
-var StorageAccountPrefix = 'sa${Identifier}${Environment}${StampIndex}${Locations[VirtualMachineLocation].acronym}'
+var StorageAccountPrefix = 'savd${Identifier}${Environment}${StampIndex}${Locations[VirtualMachineLocation].acronym}'
 var StorageSku = FslogixStorage == 'None' ? 'None' : split(FslogixStorage, ' ')[1]
 var StorageSolution = split(FslogixStorage, ' ')[0]
 var StorageSuffix = environment().suffixes.storage
