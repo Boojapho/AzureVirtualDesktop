@@ -173,7 +173,7 @@ resource virtualMachine 'Microsoft.Compute/virtualMachines@2021-03-01' = [for i 
     networkProfile: {
       networkInterfaces: [
         {
-          id: resourceId('Microsoft.Network/networkInterfaces', 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}')
+          id: resourceId('Microsoft.Network/networkInterfaces', 'nic${NamingStandard}${padLeft((i + SessionHostIndex), 4, '0')}')
           properties: {
             deleteOption: 'Delete'
           }

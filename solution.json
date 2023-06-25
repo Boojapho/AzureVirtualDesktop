@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "10437034804378685378"
+      "templateHash": "14530140228579842169"
     }
   },
   "parameters": {
@@ -5575,7 +5575,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2193230251645953746"
+              "templateHash": "12480708176884817908"
             }
           },
           "parameters": {
@@ -6034,7 +6034,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "13922767431792829769"
+                      "templateHash": "12249573228628662575"
                     }
                   },
                   "parameters": {
@@ -6317,7 +6317,7 @@
                         "networkProfile": {
                           "networkInterfaces": [
                             {
-                              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0')))]",
+                              "id": "[resourceId('Microsoft.Network/networkInterfaces', format('nic{0}{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0')))]",
                               "properties": {
                                 "deleteOption": "Delete"
                               }
