@@ -789,7 +789,7 @@
                             "defaultValue": 1,
                             "toolTip": "Input the number of Storage Accounts to deploy with SMB file shares to support the use of FSLogix.",
                             "min": 0,
-                            "max": 10,
+                            "max": 100,
                             "showStepMarkers": false,
                             "constraints": {
                                 "required": true
