@@ -105,7 +105,7 @@ var PooledHostPool = (split(HostPoolType, ' ')[0] == 'Pooled')
 var SentinelWorkspaceKey = Sentinel ? listKeys(SentinelWorkspaceResourceId, '2021-06-01').primarySharedKey : 'NotApplicable'
 
 resource networkInterface 'Microsoft.Network/networkInterfaces@2020-05-01' = [for i in range(0, SessionHostCount): {
-  name: 'nic-${NamingStandard}-${padLeft((i + SessionHostIndex), 4, '0')}'
+  name: 'nic${NamingStandard}${padLeft((i + SessionHostIndex), 4, '0')}'
   location: Location
   tags: TagsNetworkInterfaces
   properties: {

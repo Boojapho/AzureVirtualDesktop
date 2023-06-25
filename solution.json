@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "7649517680503609469"
+      "templateHash": "10437034804378685378"
     }
   },
   "parameters": {
@@ -5575,7 +5575,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "13177801783672413389"
+              "templateHash": "2193230251645953746"
             }
           },
           "parameters": {
@@ -6034,7 +6034,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "14326241524295583857"
+                      "templateHash": "13922767431792829769"
                     }
                   },
                   "parameters": {
@@ -6250,7 +6250,7 @@
                       },
                       "type": "Microsoft.Network/networkInterfaces",
                       "apiVersion": "2020-05-01",
-                      "name": "[format('nic-{0}-{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
+                      "name": "[format('nic{0}{1}', parameters('NamingStandard'), padLeft(add(range(0, parameters('SessionHostCount'))[copyIndex()], parameters('SessionHostIndex')), 4, '0'))]",
                       "location": "[parameters('Location')]",
                       "tags": "[parameters('TagsNetworkInterfaces')]",
                       "properties": {
