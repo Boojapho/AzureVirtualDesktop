@@ -551,7 +551,10 @@
                                     "visible": "[not(equals(steps('hosts').identity.solution, 'AzureActiveDirectory'))]",
                                     "label": "OU Path",
                                     "toolTip": "Input the distinguished name of the desired organization unit for the AVD session hosts.",
-                                    "placeholder": "Example: OU=pooled,OU=avd,DC=cloudfit,DC=com"
+                                    "placeholder": "Example: OU=pooled,OU=avd,DC=cloudfit,DC=dev",
+                                    "constraints": {
+                                        "required": true
+                                    }
                                 }
                             ]
                         },

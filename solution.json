@@ -269,6 +269,7 @@
     },
     "OuPath": {
       "type": "string",
+      "defaultValue": "OU=AVD,DC=cloudfit,DC=dev",
       "metadata": {
         "description": "The distinguished name for the target Organization Unit in Active Directory Domain Services."
       }
